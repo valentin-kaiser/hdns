@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/valentin-kaiser/hdns/pkg/proto/service";
+
+option optimize_for = SPEED;
+
+// HDNS is the main service for HDNS.
+service HDNS {
+  // GetZones returns all zones.
+  rpc GetZones (Empty) returns (RecordList);
+
+  // StreamRecords streams all records.
+  rpc StreamRecords (Empty) returns (stream Record);
+
+  // GetRecords returns all records.
+  rpc GetRecords (Empty) returns (RecordList);
+
+  // UpsertRecord creates or updates a record.
+  rpc UpsertRecord (Record) returns (Record);
+
+  // DeleteRecord deletes a record.
+  rpc DeleteRecord (Record) returns (Empty);
+
+  // RefreshRecord the record's address.
+  rpc RefreshRecord (Record) returns (Record);
+
+  // StreamAddress streams the current address.
+  rpc StreamAddress (Empty) returns (stream Address);
+
+  // GetAddress returns the current address.
+  rpc GetAddress (Empty) returns (Address);
+
+  // GetAddressHistory returns the address history.
+  rpc GetAddressHistory (Empty) returns (AddressHistory);
+
+  // RefreshAddress refreshes the current address.
+  rpc RefreshAddress (Empty) returns (Address);
+
+  // ResolveRecord resolves the record's domain.
+  rpc ResolveRecord (Empty) returns (ResolutionResult);
+
+  // StreamResolveRecord streams the resolution results for the record.
+  rpc StreamResolveRecord (Empty) returns (stream Resolution);
+
+  // GetConfig returns the current configuration.
+  rpc GetConfig (Empty) returns (Configuration);
+
+  // UpdateConfig updates the current configuration.
+  rpc UpdateConfig (Configuration) returns (Configuration);
+
+  // StreamLogs streams the application logs.
+  rpc StreamLogs (Empty) returns (stream Empty);
+}
+
+message Empty {
+
+}
+
+// Address represents an IP address.
+message Address {
+  int64  id         = 1;
+  int64  created_at = 2;
+  int64  updated_at = 3;
+  string ip         = 4;
+  bool   current    = 5;
+}
+
+message AddressHistory {
+  repeated Address addresses = 1;
+}
+
+// Record represents a DNS record.
+message Record {
+  int64            id           = 1;
+  int64            created_at   = 2;
+  int64            updated_at   = 3;
+  string           token        = 4;
+  string           zone_id      = 5;
+  string           domain       = 6;
+  string           name         = 7;
+  uint32           ttl          = 8;
+  optional int64   address_id   = 9;
+  optional Address address      = 10;
+  optional int64   last_refresh = 11;
+}
+
+message RecordList {
+  repeated Record records = 1;
+}
+
+message Zone {
+  string id           = 1;
+  string name         = 2;
+  int64  record_count = 3;
+}
+
+message ZoneList {
+  repeated Zone zones = 1;
+}
+
+message Resolution {
+  string          server        = 1;
+  repeated string addresses     = 2;
+  int64           response_time = 3;
+  string          error         = 4;
+}
+
+message ResolutionResult {
+  repeated Resolution resolutions = 2;
+}
+
+message Configuration {
+  int32           log_level    = 1;
+  int32           web_port     = 2;
+  string          refresh_cron = 3;
+  repeated string dns_servers  = 4;
+}
+
+message Database {
+  string driver   = 1;
+  string host     = 2;
+  uint32 port     = 3;
+  string username = 4;
+  string password = 5;
+  string name     = 6;
+}

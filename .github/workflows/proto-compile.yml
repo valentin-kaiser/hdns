@@ -1,0 +1,17 @@
+name: Compile Protobuffer
+
+on: [push]
+
+permissions:
+  contents: write
+
+jobs:
+  proto-compile:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Docker Proto Compiler
+      uses: valentin-kaiser/protocdock@master
+      with:
+        command: 'cd application/proto && make proto'
+        commit_message: '[GEN] Updated compiled proto definitions'
