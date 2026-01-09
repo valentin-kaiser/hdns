@@ -5,8 +5,8 @@ sql:
     engine: "mysql"
     gen:
       go:
-        package: "db"
-        out: "./gen/db"
+        package: "hdnsdb"
+        out: "./gen/hdnsdb"
         emit_json_tags: false
         emit_prepared_queries: false
         emit_interface: false
