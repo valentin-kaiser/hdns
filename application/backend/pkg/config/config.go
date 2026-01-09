@@ -16,10 +16,12 @@ type App struct {
 }
 
 type Service struct {
-	LogLevel    int      `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
-	WebPort     int16    `usage:"port to bind the web server to" json:"web_port"`
-	RefreshCron string   `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
-	DNSServers  []string `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
+	LogLevel        int      `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
+	WebPort         int16    `usage:"port to bind the web server to" json:"web_port"`
+	CertificateFile string   `usage:"path to the TLS certificate file" json:"certificate_file"`
+	KeyFile         string   `usage:"path to the TLS key file" json:"key_file"`
+	RefreshCron     string   `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
+	DNSServers      []string `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
 }
 
 type Database struct {
