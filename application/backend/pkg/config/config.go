@@ -1,6 +1,7 @@
 package config
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/robfig/cron"
@@ -25,7 +26,6 @@ type Service struct {
 }
 
 type Database struct {
-	Driver   string
 	Host     string
 	Port     uint16
 	Username string
@@ -36,13 +36,14 @@ type Database struct {
 func Init() {
 	defaultConfig := &App{
 		Service: Service{
-			LogLevel:    1,
-			WebPort:     9100,
-			RefreshCron: "@every 5m",
-			DNSServers:  []string{"9.9.9.9:53", "1.1.1.1:53", "8.8.8.8:53"},
+			LogLevel:        1,
+			WebPort:         9100,
+			CertificateFile: filepath.Join(flag.Path, "certs/hdns.cert"),
+			KeyFile:         filepath.Join(flag.Path, "certs/hdns.key"),
+			RefreshCron:     "@every 5m",
+			DNSServers:      []string{"9.9.9.9:53", "1.1.1.1:53", "8.8.8.8:53"},
 		},
 		Database: Database{
-			Driver:   "sqlite",
 			Host:     "localhost",
 			Port:     3306,
 			Username: "hdns",
@@ -119,14 +120,6 @@ func (c *Service) Validate() error {
 }
 
 func (c *Database) Validate() error {
-	if strings.TrimSpace(c.Driver) == "" {
-		return apperror.NewError("database driver is required")
-	}
-
-	if c.Driver != "sqlite" && c.Driver != "mysql" {
-		return apperror.NewErrorf("unsupported database driver: %s", c.Driver)
-	}
-
 	if strings.TrimSpace(c.Host) == "" {
 		return apperror.NewError("database host is required")
 	}

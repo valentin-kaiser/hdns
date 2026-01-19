@@ -80,7 +80,7 @@ func Connect() {
 	instance.RegisterMiddleware(sl)
 	sl.SetEnabled(flag.Debug && config.Get().Service.LogLevel <= int(logging.VerboseLevel)).SetTrace(config.Get().Service.LogLevel < int(logging.VerboseLevel))
 	instance.Connect(time.Second, database.Config{
-		Driver:   config.Get().Database.Driver,
+		Driver:   "mysql",
 		Host:     config.Get().Database.Host,
 		Port:     config.Get().Database.Port,
 		User:     config.Get().Database.Username,
@@ -91,7 +91,7 @@ func Connect() {
 
 func Reconnect() {
 	instance.Reconnect(database.Config{
-		Driver:   config.Get().Database.Driver,
+		Driver:   "mysql",
 		Host:     config.Get().Database.Host,
 		Port:     config.Get().Database.Port,
 		User:     config.Get().Database.Username,
