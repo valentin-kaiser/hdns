@@ -79,6 +79,12 @@ export interface Database {
   name: string;
 }
 
+export interface LogEntry {
+  timestamp: number;
+  level: number;
+  message: string;
+}
+
 function createBaseEmpty(): Empty {
   return {};
 }
@@ -1170,6 +1176,98 @@ export const Database: MessageFns<Database> = {
     message.username = object.username ?? "";
     message.password = object.password ?? "";
     message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseLogEntry(): LogEntry {
+  return { timestamp: 0, level: 0, message: "" };
+}
+
+export const LogEntry: MessageFns<LogEntry> = {
+  encode(message: LogEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timestamp !== 0) {
+      writer.uint32(8).int64(message.timestamp);
+    }
+    if (message.level !== 0) {
+      writer.uint32(16).int32(message.level);
+    }
+    if (message.message !== "") {
+      writer.uint32(26).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.timestamp = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.level = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogEntry {
+    return {
+      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
+      level: isSet(object.level) ? globalThis.Number(object.level) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: LogEntry): unknown {
+    const obj: any = {};
+    if (message.timestamp !== 0) {
+      obj.timestamp = Math.round(message.timestamp);
+    }
+    if (message.level !== 0) {
+      obj.level = Math.round(message.level);
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogEntry>, I>>(base?: I): LogEntry {
+    return LogEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LogEntry>, I>>(object: I): LogEntry {
+    const message = createBaseLogEntry();
+    message.timestamp = object.timestamp ?? 0;
+    message.level = object.level ?? 0;
+    message.message = object.message ?? "";
     return message;
   },
 };

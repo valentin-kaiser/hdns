@@ -19,15 +19,15 @@ type HDNSServer interface {
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *Record) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
+	ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error)
+	StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error
 	StreamAddress(ctx context.Context, in *Empty, out chan *Address) error
 	GetAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
-	ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error)
-	StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
-	StreamLogs(ctx context.Context, in *Empty, out chan *Empty) error
+	StreamLogs(ctx context.Context, in *Empty, out chan *LogEntry) error
 }
 
 type UnimplementedHDNSServer struct{}
@@ -60,6 +60,14 @@ func (UnimplementedHDNSServer) RefreshRecord(ctx context.Context, in *Record) (*
 	return nil, errors.New("method HDNS.RefreshRecord not implemented")
 }
 
+func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error) {
+	return nil, errors.New("method HDNS.ResolveRecord not implemented")
+}
+
+func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error {
+	return errors.New("method HDNS.StreamResolveRecord not implemented")
+}
+
 func (UnimplementedHDNSServer) StreamAddress(ctx context.Context, in *Empty, out chan *Address) error {
 	return errors.New("method HDNS.StreamAddress not implemented")
 }
@@ -76,14 +84,6 @@ func (UnimplementedHDNSServer) RefreshAddress(ctx context.Context, in *Empty) (*
 	return nil, errors.New("method HDNS.RefreshAddress not implemented")
 }
 
-func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error) {
-	return nil, errors.New("method HDNS.ResolveRecord not implemented")
-}
-
-func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error {
-	return errors.New("method HDNS.StreamResolveRecord not implemented")
-}
-
 func (UnimplementedHDNSServer) GetConfig(ctx context.Context, in *Empty) (*Configuration, error) {
 	return nil, errors.New("method HDNS.GetConfig not implemented")
 }
@@ -92,7 +92,7 @@ func (UnimplementedHDNSServer) UpdateConfig(ctx context.Context, in *Configurati
 	return nil, errors.New("method HDNS.UpdateConfig not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamLogs(ctx context.Context, in *Empty, out chan *Empty) error {
+func (UnimplementedHDNSServer) StreamLogs(ctx context.Context, in *Empty, out chan *LogEntry) error {
 	return errors.New("method HDNS.StreamLogs not implemented")
 }
 

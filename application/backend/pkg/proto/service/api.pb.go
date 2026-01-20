@@ -715,6 +715,66 @@ func (x *Database) GetName() string {
 	return ""
 }
 
+type LogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timestamp     int64                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Level         int32                  `protobuf:"varint,2,opt,name=level,proto3" json:"level,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogEntry) Reset() {
+	*x = LogEntry{}
+	mi := &file_api_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogEntry) ProtoMessage() {}
+
+func (x *LogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
+func (*LogEntry) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *LogEntry) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *LogEntry) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *LogEntry) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_api_proto protoreflect.FileDescriptor
 
 const file_api_proto_rawDesc = "" +
@@ -780,7 +840,11 @@ const file_api_proto_rawDesc = "" +
 	"\x04port\x18\x03 \x01(\rR\x04port\x12\x1a\n" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x06 \x01(\tR\x04name2\xa8\x06\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name\"X\n" +
+	"\bLogEntry\x12\x1c\n" +
+	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
+	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\xab\x06\n" +
 	"\x04HDNS\x12-\n" +
 	"\bGetZones\x12\x0e.service.Empty\x1a\x11.service.ZoneList\x122\n" +
 	"\rStreamRecords\x12\x0e.service.Empty\x1a\x0f.service.Record0\x01\x121\n" +
@@ -788,18 +852,18 @@ const file_api_proto_rawDesc = "" +
 	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
 	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12/\n" +
 	"\fDeleteRecord\x12\x0f.service.Record\x1a\x0e.service.Empty\x121\n" +
-	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x123\n" +
+	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12:\n" +
+	"\rResolveRecord\x12\x0e.service.Empty\x1a\x19.service.ResolutionResult\x12<\n" +
+	"\x13StreamResolveRecord\x12\x0e.service.Empty\x1a\x13.service.Resolution0\x01\x123\n" +
 	"\rStreamAddress\x12\x0e.service.Empty\x1a\x10.service.Address0\x01\x12.\n" +
 	"\n" +
 	"GetAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12<\n" +
 	"\x11GetAddressHistory\x12\x0e.service.Empty\x1a\x17.service.AddressHistory\x122\n" +
-	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12:\n" +
-	"\rResolveRecord\x12\x0e.service.Empty\x1a\x19.service.ResolutionResult\x12<\n" +
-	"\x13StreamResolveRecord\x12\x0e.service.Empty\x1a\x13.service.Resolution0\x01\x123\n" +
+	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x123\n" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
-	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x12.\n" +
+	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x121\n" +
 	"\n" +
-	"StreamLogs\x12\x0e.service.Empty\x1a\x0e.service.Empty0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
+	"StreamLogs\x12\x0e.service.Empty\x1a\x11.service.LogEntry0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
@@ -813,7 +877,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_proto_goTypes = []any{
 	(*Empty)(nil),            // 0: service.Empty
 	(*Address)(nil),          // 1: service.Address
@@ -826,6 +890,7 @@ var file_api_proto_goTypes = []any{
 	(*ResolutionResult)(nil), // 8: service.ResolutionResult
 	(*Configuration)(nil),    // 9: service.Configuration
 	(*Database)(nil),         // 10: service.Database
+	(*LogEntry)(nil),         // 11: service.LogEntry
 }
 var file_api_proto_depIdxs = []int32{
 	1,  // 0: service.AddressHistory.addresses:type_name -> service.Address
@@ -839,12 +904,12 @@ var file_api_proto_depIdxs = []int32{
 	3,  // 8: service.HDNS.UpsertRecord:input_type -> service.Record
 	3,  // 9: service.HDNS.DeleteRecord:input_type -> service.Record
 	3,  // 10: service.HDNS.RefreshRecord:input_type -> service.Record
-	0,  // 11: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 12: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 13: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 14: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 15: service.HDNS.ResolveRecord:input_type -> service.Empty
-	0,  // 16: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 11: service.HDNS.ResolveRecord:input_type -> service.Empty
+	0,  // 12: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 13: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 14: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 15: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 16: service.HDNS.RefreshAddress:input_type -> service.Empty
 	0,  // 17: service.HDNS.GetConfig:input_type -> service.Empty
 	9,  // 18: service.HDNS.UpdateConfig:input_type -> service.Configuration
 	0,  // 19: service.HDNS.StreamLogs:input_type -> service.Empty
@@ -854,15 +919,15 @@ var file_api_proto_depIdxs = []int32{
 	3,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
 	0,  // 24: service.HDNS.DeleteRecord:output_type -> service.Empty
 	3,  // 25: service.HDNS.RefreshRecord:output_type -> service.Record
-	1,  // 26: service.HDNS.StreamAddress:output_type -> service.Address
-	1,  // 27: service.HDNS.GetAddress:output_type -> service.Address
-	2,  // 28: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	1,  // 29: service.HDNS.RefreshAddress:output_type -> service.Address
-	8,  // 30: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	7,  // 31: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	8,  // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	7,  // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	1,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
+	1,  // 29: service.HDNS.GetAddress:output_type -> service.Address
+	2,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	1,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
 	9,  // 32: service.HDNS.GetConfig:output_type -> service.Configuration
 	9,  // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	0,  // 34: service.HDNS.StreamLogs:output_type -> service.Empty
+	11, // 34: service.HDNS.StreamLogs:output_type -> service.LogEntry
 	20, // [20:35] is the sub-list for method output_type
 	5,  // [5:20] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -882,7 +947,7 @@ func file_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
