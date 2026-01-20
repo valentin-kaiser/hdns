@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package api;
+package service;
 
 option go_package = "github.com/valentin-kaiser/hdns/pkg/proto/service";
 
