@@ -719,7 +719,7 @@ var File_api_proto protoreflect.FileDescriptor
 
 const file_api_proto_rawDesc = "" +
 	"\n" +
-	"\tapi.proto\x12\x03api\"\a\n" +
+	"\tapi.proto\x12\aservice\"\a\n" +
 	"\x05Empty\"\x81\x01\n" +
 	"\aAddress\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
@@ -728,9 +728,9 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x0e\n" +
 	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x18\n" +
-	"\acurrent\x18\x05 \x01(\bR\acurrent\"<\n" +
-	"\x0eAddressHistory\x12*\n" +
-	"\taddresses\x18\x01 \x03(\v2\f.api.AddressR\taddresses\"\xe8\x02\n" +
+	"\acurrent\x18\x05 \x01(\bR\acurrent\"@\n" +
+	"\x0eAddressHistory\x12.\n" +
+	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xec\x02\n" +
 	"\x06Record\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -743,31 +743,31 @@ const file_api_proto_rawDesc = "" +
 	"\x04name\x18\a \x01(\tR\x04name\x12\x10\n" +
 	"\x03ttl\x18\b \x01(\rR\x03ttl\x12\"\n" +
 	"\n" +
-	"address_id\x18\t \x01(\x03H\x00R\taddressId\x88\x01\x01\x12+\n" +
+	"address_id\x18\t \x01(\x03H\x00R\taddressId\x88\x01\x01\x12/\n" +
 	"\aaddress\x18\n" +
-	" \x01(\v2\f.api.AddressH\x01R\aaddress\x88\x01\x01\x12&\n" +
+	" \x01(\v2\x10.service.AddressH\x01R\aaddress\x88\x01\x01\x12&\n" +
 	"\flast_refresh\x18\v \x01(\x03H\x02R\vlastRefresh\x88\x01\x01B\r\n" +
 	"\v_address_idB\n" +
 	"\n" +
 	"\b_addressB\x0f\n" +
-	"\r_last_refresh\"3\n" +
+	"\r_last_refresh\"7\n" +
 	"\n" +
-	"RecordList\x12%\n" +
-	"\arecords\x18\x01 \x03(\v2\v.api.RecordR\arecords\"M\n" +
+	"RecordList\x12)\n" +
+	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"M\n" +
 	"\x04Zone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
-	"\frecord_count\x18\x03 \x01(\x03R\vrecordCount\"+\n" +
-	"\bZoneList\x12\x1f\n" +
-	"\x05zones\x18\x01 \x03(\v2\t.api.ZoneR\x05zones\"}\n" +
+	"\frecord_count\x18\x03 \x01(\x03R\vrecordCount\"/\n" +
+	"\bZoneList\x12#\n" +
+	"\x05zones\x18\x01 \x03(\v2\r.service.ZoneR\x05zones\"}\n" +
 	"\n" +
 	"Resolution\x12\x16\n" +
 	"\x06server\x18\x01 \x01(\tR\x06server\x12\x1c\n" +
 	"\taddresses\x18\x02 \x03(\tR\taddresses\x12#\n" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"E\n" +
-	"\x10ResolutionResult\x121\n" +
-	"\vresolutions\x18\x02 \x03(\v2\x0f.api.ResolutionR\vresolutions\"\x8b\x01\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
+	"\x10ResolutionResult\x125\n" +
+	"\vresolutions\x18\x02 \x03(\v2\x13.service.ResolutionR\vresolutions\"\x8b\x01\n" +
 	"\rConfiguration\x12\x1b\n" +
 	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12\x19\n" +
 	"\bweb_port\x18\x02 \x01(\x05R\awebPort\x12!\n" +
@@ -780,39 +780,26 @@ const file_api_proto_rawDesc = "" +
 	"\x04port\x18\x03 \x01(\rR\x04port\x12\x1a\n" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x06 \x01(\tR\x04name2\xb2\x05\n" +
-	"\x04HDNS\x12'\n" +
-	"\bGetZones\x12\n" +
-	".api.Empty\x1a\x0f.api.RecordList\x12*\n" +
-	"\rStreamRecords\x12\n" +
-	".api.Empty\x1a\v.api.Record0\x01\x12)\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name2\xaa\x06\n" +
+	"\x04HDNS\x12/\n" +
+	"\bGetZones\x12\x0e.service.Empty\x1a\x13.service.RecordList\x122\n" +
+	"\rStreamRecords\x12\x0e.service.Empty\x1a\x0f.service.Record0\x01\x121\n" +
 	"\n" +
-	"GetRecords\x12\n" +
-	".api.Empty\x1a\x0f.api.RecordList\x12(\n" +
-	"\fUpsertRecord\x12\v.api.Record\x1a\v.api.Record\x12'\n" +
-	"\fDeleteRecord\x12\v.api.Record\x1a\n" +
-	".api.Empty\x12)\n" +
-	"\rRefreshRecord\x12\v.api.Record\x1a\v.api.Record\x12+\n" +
-	"\rStreamAddress\x12\n" +
-	".api.Empty\x1a\f.api.Address0\x01\x12&\n" +
+	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
+	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12/\n" +
+	"\fDeleteRecord\x12\x0f.service.Record\x1a\x0e.service.Empty\x121\n" +
+	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x123\n" +
+	"\rStreamAddress\x12\x0e.service.Empty\x1a\x10.service.Address0\x01\x12.\n" +
 	"\n" +
-	"GetAddress\x12\n" +
-	".api.Empty\x1a\f.api.Address\x124\n" +
-	"\x11GetAddressHistory\x12\n" +
-	".api.Empty\x1a\x13.api.AddressHistory\x12*\n" +
-	"\x0eRefreshAddress\x12\n" +
-	".api.Empty\x1a\f.api.Address\x122\n" +
-	"\rResolveRecord\x12\n" +
-	".api.Empty\x1a\x15.api.ResolutionResult\x124\n" +
-	"\x13StreamResolveRecord\x12\n" +
-	".api.Empty\x1a\x0f.api.Resolution0\x01\x12+\n" +
-	"\tGetConfig\x12\n" +
-	".api.Empty\x1a\x12.api.Configuration\x126\n" +
-	"\fUpdateConfig\x12\x12.api.Configuration\x1a\x12.api.Configuration\x12&\n" +
+	"GetAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12<\n" +
+	"\x11GetAddressHistory\x12\x0e.service.Empty\x1a\x17.service.AddressHistory\x122\n" +
+	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12:\n" +
+	"\rResolveRecord\x12\x0e.service.Empty\x1a\x19.service.ResolutionResult\x12<\n" +
+	"\x13StreamResolveRecord\x12\x0e.service.Empty\x1a\x13.service.Resolution0\x01\x123\n" +
+	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
+	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x12.\n" +
 	"\n" +
-	"StreamLogs\x12\n" +
-	".api.Empty\x1a\n" +
-	".api.Empty0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
+	"StreamLogs\x12\x0e.service.Empty\x1a\x0e.service.Empty0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
@@ -828,54 +815,54 @@ func file_api_proto_rawDescGZIP() []byte {
 
 var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_api_proto_goTypes = []any{
-	(*Empty)(nil),            // 0: api.Empty
-	(*Address)(nil),          // 1: api.Address
-	(*AddressHistory)(nil),   // 2: api.AddressHistory
-	(*Record)(nil),           // 3: api.Record
-	(*RecordList)(nil),       // 4: api.RecordList
-	(*Zone)(nil),             // 5: api.Zone
-	(*ZoneList)(nil),         // 6: api.ZoneList
-	(*Resolution)(nil),       // 7: api.Resolution
-	(*ResolutionResult)(nil), // 8: api.ResolutionResult
-	(*Configuration)(nil),    // 9: api.Configuration
-	(*Database)(nil),         // 10: api.Database
+	(*Empty)(nil),            // 0: service.Empty
+	(*Address)(nil),          // 1: service.Address
+	(*AddressHistory)(nil),   // 2: service.AddressHistory
+	(*Record)(nil),           // 3: service.Record
+	(*RecordList)(nil),       // 4: service.RecordList
+	(*Zone)(nil),             // 5: service.Zone
+	(*ZoneList)(nil),         // 6: service.ZoneList
+	(*Resolution)(nil),       // 7: service.Resolution
+	(*ResolutionResult)(nil), // 8: service.ResolutionResult
+	(*Configuration)(nil),    // 9: service.Configuration
+	(*Database)(nil),         // 10: service.Database
 }
 var file_api_proto_depIdxs = []int32{
-	1,  // 0: api.AddressHistory.addresses:type_name -> api.Address
-	1,  // 1: api.Record.address:type_name -> api.Address
-	3,  // 2: api.RecordList.records:type_name -> api.Record
-	5,  // 3: api.ZoneList.zones:type_name -> api.Zone
-	7,  // 4: api.ResolutionResult.resolutions:type_name -> api.Resolution
-	0,  // 5: api.HDNS.GetZones:input_type -> api.Empty
-	0,  // 6: api.HDNS.StreamRecords:input_type -> api.Empty
-	0,  // 7: api.HDNS.GetRecords:input_type -> api.Empty
-	3,  // 8: api.HDNS.UpsertRecord:input_type -> api.Record
-	3,  // 9: api.HDNS.DeleteRecord:input_type -> api.Record
-	3,  // 10: api.HDNS.RefreshRecord:input_type -> api.Record
-	0,  // 11: api.HDNS.StreamAddress:input_type -> api.Empty
-	0,  // 12: api.HDNS.GetAddress:input_type -> api.Empty
-	0,  // 13: api.HDNS.GetAddressHistory:input_type -> api.Empty
-	0,  // 14: api.HDNS.RefreshAddress:input_type -> api.Empty
-	0,  // 15: api.HDNS.ResolveRecord:input_type -> api.Empty
-	0,  // 16: api.HDNS.StreamResolveRecord:input_type -> api.Empty
-	0,  // 17: api.HDNS.GetConfig:input_type -> api.Empty
-	9,  // 18: api.HDNS.UpdateConfig:input_type -> api.Configuration
-	0,  // 19: api.HDNS.StreamLogs:input_type -> api.Empty
-	4,  // 20: api.HDNS.GetZones:output_type -> api.RecordList
-	3,  // 21: api.HDNS.StreamRecords:output_type -> api.Record
-	4,  // 22: api.HDNS.GetRecords:output_type -> api.RecordList
-	3,  // 23: api.HDNS.UpsertRecord:output_type -> api.Record
-	0,  // 24: api.HDNS.DeleteRecord:output_type -> api.Empty
-	3,  // 25: api.HDNS.RefreshRecord:output_type -> api.Record
-	1,  // 26: api.HDNS.StreamAddress:output_type -> api.Address
-	1,  // 27: api.HDNS.GetAddress:output_type -> api.Address
-	2,  // 28: api.HDNS.GetAddressHistory:output_type -> api.AddressHistory
-	1,  // 29: api.HDNS.RefreshAddress:output_type -> api.Address
-	8,  // 30: api.HDNS.ResolveRecord:output_type -> api.ResolutionResult
-	7,  // 31: api.HDNS.StreamResolveRecord:output_type -> api.Resolution
-	9,  // 32: api.HDNS.GetConfig:output_type -> api.Configuration
-	9,  // 33: api.HDNS.UpdateConfig:output_type -> api.Configuration
-	0,  // 34: api.HDNS.StreamLogs:output_type -> api.Empty
+	1,  // 0: service.AddressHistory.addresses:type_name -> service.Address
+	1,  // 1: service.Record.address:type_name -> service.Address
+	3,  // 2: service.RecordList.records:type_name -> service.Record
+	5,  // 3: service.ZoneList.zones:type_name -> service.Zone
+	7,  // 4: service.ResolutionResult.resolutions:type_name -> service.Resolution
+	0,  // 5: service.HDNS.GetZones:input_type -> service.Empty
+	0,  // 6: service.HDNS.StreamRecords:input_type -> service.Empty
+	0,  // 7: service.HDNS.GetRecords:input_type -> service.Empty
+	3,  // 8: service.HDNS.UpsertRecord:input_type -> service.Record
+	3,  // 9: service.HDNS.DeleteRecord:input_type -> service.Record
+	3,  // 10: service.HDNS.RefreshRecord:input_type -> service.Record
+	0,  // 11: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 12: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 13: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 14: service.HDNS.RefreshAddress:input_type -> service.Empty
+	0,  // 15: service.HDNS.ResolveRecord:input_type -> service.Empty
+	0,  // 16: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 17: service.HDNS.GetConfig:input_type -> service.Empty
+	9,  // 18: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	0,  // 19: service.HDNS.StreamLogs:input_type -> service.Empty
+	4,  // 20: service.HDNS.GetZones:output_type -> service.RecordList
+	3,  // 21: service.HDNS.StreamRecords:output_type -> service.Record
+	4,  // 22: service.HDNS.GetRecords:output_type -> service.RecordList
+	3,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
+	0,  // 24: service.HDNS.DeleteRecord:output_type -> service.Empty
+	3,  // 25: service.HDNS.RefreshRecord:output_type -> service.Record
+	1,  // 26: service.HDNS.StreamAddress:output_type -> service.Address
+	1,  // 27: service.HDNS.GetAddress:output_type -> service.Address
+	2,  // 28: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	1,  // 29: service.HDNS.RefreshAddress:output_type -> service.Address
+	8,  // 30: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	7,  // 31: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	9,  // 32: service.HDNS.GetConfig:output_type -> service.Configuration
+	9,  // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	0,  // 34: service.HDNS.StreamLogs:output_type -> service.Empty
 	20, // [20:35] is the sub-list for method output_type
 	5,  // [5:20] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
