@@ -780,9 +780,9 @@ const file_api_proto_rawDesc = "" +
 	"\x04port\x18\x03 \x01(\rR\x04port\x12\x1a\n" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x06 \x01(\tR\x04name2\xaa\x06\n" +
-	"\x04HDNS\x12/\n" +
-	"\bGetZones\x12\x0e.service.Empty\x1a\x13.service.RecordList\x122\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name2\xa8\x06\n" +
+	"\x04HDNS\x12-\n" +
+	"\bGetZones\x12\x0e.service.Empty\x1a\x11.service.ZoneList\x122\n" +
 	"\rStreamRecords\x12\x0e.service.Empty\x1a\x0f.service.Record0\x01\x121\n" +
 	"\n" +
 	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
@@ -848,7 +848,7 @@ var file_api_proto_depIdxs = []int32{
 	0,  // 17: service.HDNS.GetConfig:input_type -> service.Empty
 	9,  // 18: service.HDNS.UpdateConfig:input_type -> service.Configuration
 	0,  // 19: service.HDNS.StreamLogs:input_type -> service.Empty
-	4,  // 20: service.HDNS.GetZones:output_type -> service.RecordList
+	6,  // 20: service.HDNS.GetZones:output_type -> service.ZoneList
 	3,  // 21: service.HDNS.StreamRecords:output_type -> service.Record
 	4,  // 22: service.HDNS.GetRecords:output_type -> service.RecordList
 	3,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
