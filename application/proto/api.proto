@@ -26,6 +26,12 @@ service HDNS {
   // RefreshRecord the record's address.
   rpc RefreshRecord (Record) returns (Record);
 
+  // ResolveRecord resolves the record's domain.
+  rpc ResolveRecord (Empty) returns (ResolutionResult);
+
+  // StreamResolveRecord streams the resolution results for the record.
+  rpc StreamResolveRecord (Empty) returns (stream Resolution);
+
   // StreamAddress streams the current address.
   rpc StreamAddress (Empty) returns (stream Address);
 
@@ -38,12 +44,6 @@ service HDNS {
   // RefreshAddress refreshes the current address.
   rpc RefreshAddress (Empty) returns (Address);
 
-  // ResolveRecord resolves the record's domain.
-  rpc ResolveRecord (Empty) returns (ResolutionResult);
-
-  // StreamResolveRecord streams the resolution results for the record.
-  rpc StreamResolveRecord (Empty) returns (stream Resolution);
-
   // GetConfig returns the current configuration.
   rpc GetConfig (Empty) returns (Configuration);
 
@@ -51,7 +51,7 @@ service HDNS {
   rpc UpdateConfig (Configuration) returns (Configuration);
 
   // StreamLogs streams the application logs.
-  rpc StreamLogs (Empty) returns (stream Empty);
+  rpc StreamLogs (Empty) returns (stream LogEntry);
 }
 
 message Empty {
@@ -125,4 +125,10 @@ message Database {
   string username = 4;
   string password = 5;
   string name     = 6;
+}
+
+message LogEntry {
+  int64  timestamp = 1;
+  int32  level     = 2;
+  string message   = 3;
 }
