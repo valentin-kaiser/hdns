@@ -19,7 +19,8 @@ export interface Address {
   id: number;
   createdAt: number;
   updatedAt: number;
-  ip: string;
+  ipv4: string;
+  ipv6: string;
   current: boolean;
 }
 
@@ -199,7 +200,7 @@ export const Request: MessageFns<Request> = {
 };
 
 function createBaseAddress(): Address {
-  return { id: 0, createdAt: 0, updatedAt: 0, ip: "", current: false };
+  return { id: 0, createdAt: 0, updatedAt: 0, ipv4: "", ipv6: "", current: false };
 }
 
 export const Address: MessageFns<Address> = {
@@ -213,11 +214,14 @@ export const Address: MessageFns<Address> = {
     if (message.updatedAt !== 0) {
       writer.uint32(24).int64(message.updatedAt);
     }
-    if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
+    if (message.ipv4 !== "") {
+      writer.uint32(34).string(message.ipv4);
+    }
+    if (message.ipv6 !== "") {
+      writer.uint32(42).string(message.ipv6);
     }
     if (message.current !== false) {
-      writer.uint32(40).bool(message.current);
+      writer.uint32(48).bool(message.current);
     }
     return writer;
   },
@@ -258,11 +262,19 @@ export const Address: MessageFns<Address> = {
             break;
           }
 
-          message.ip = reader.string();
+          message.ipv4 = reader.string();
           continue;
         }
         case 5: {
-          if (tag !== 40) {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.ipv6 = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
             break;
           }
 
@@ -283,7 +295,8 @@ export const Address: MessageFns<Address> = {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
       updatedAt: isSet(object.updatedAt) ? globalThis.Number(object.updatedAt) : 0,
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ipv4: isSet(object.ipv4) ? globalThis.String(object.ipv4) : "",
+      ipv6: isSet(object.ipv6) ? globalThis.String(object.ipv6) : "",
       current: isSet(object.current) ? globalThis.Boolean(object.current) : false,
     };
   },
@@ -299,8 +312,11 @@ export const Address: MessageFns<Address> = {
     if (message.updatedAt !== 0) {
       obj.updatedAt = Math.round(message.updatedAt);
     }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
+    if (message.ipv4 !== "") {
+      obj.ipv4 = message.ipv4;
+    }
+    if (message.ipv6 !== "") {
+      obj.ipv6 = message.ipv6;
     }
     if (message.current !== false) {
       obj.current = message.current;
@@ -316,7 +332,8 @@ export const Address: MessageFns<Address> = {
     message.id = object.id ?? 0;
     message.createdAt = object.createdAt ?? 0;
     message.updatedAt = object.updatedAt ?? 0;
-    message.ip = object.ip ?? "";
+    message.ipv4 = object.ipv4 ?? "";
+    message.ipv6 = object.ipv6 ?? "";
     message.current = object.current ?? false;
     return message;
   },

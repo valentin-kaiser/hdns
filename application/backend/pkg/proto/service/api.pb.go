@@ -107,8 +107,9 @@ type Address struct {
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Ip            string                 `protobuf:"bytes,4,opt,name=ip,proto3" json:"ip,omitempty"`
-	Current       bool                   `protobuf:"varint,5,opt,name=current,proto3" json:"current,omitempty"`
+	Ipv4          string                 `protobuf:"bytes,4,opt,name=ipv4,proto3" json:"ipv4,omitempty"`
+	Ipv6          string                 `protobuf:"bytes,5,opt,name=ipv6,proto3" json:"ipv6,omitempty"`
+	Current       bool                   `protobuf:"varint,6,opt,name=current,proto3" json:"current,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -164,9 +165,16 @@ func (x *Address) GetUpdatedAt() int64 {
 	return 0
 }
 
-func (x *Address) GetIp() string {
+func (x *Address) GetIpv4() string {
 	if x != nil {
-		return x.Ip
+		return x.Ipv4
+	}
+	return ""
+}
+
+func (x *Address) GetIpv6() string {
+	if x != nil {
+		return x.Ipv6
 	}
 	return ""
 }
@@ -902,15 +910,16 @@ const file_api_proto_rawDesc = "" +
 	"\tapi.proto\x12\aservice\"\a\n" +
 	"\x05Empty\"\x1f\n" +
 	"\aRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"\x81\x01\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"\x99\x01\n" +
 	"\aAddress\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x02 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x0e\n" +
-	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x18\n" +
-	"\acurrent\x18\x05 \x01(\bR\acurrent\"@\n" +
+	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x12\n" +
+	"\x04ipv4\x18\x04 \x01(\tR\x04ipv4\x12\x12\n" +
+	"\x04ipv6\x18\x05 \x01(\tR\x04ipv6\x12\x18\n" +
+	"\acurrent\x18\x06 \x01(\bR\acurrent\"@\n" +
 	"\x0eAddressHistory\x12.\n" +
 	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xec\x02\n" +
 	"\x06Record\x12\x0e\n" +
