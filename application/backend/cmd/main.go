@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/valentin-kaiser/go-core/version"
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
+	"github.com/valentin-kaiser/hdns/pkg/dns"
 	"github.com/valentin-kaiser/hdns/pkg/web"
 )
 
@@ -121,9 +123,39 @@ func main() {
 	go database.Connect()
 	database.HDNS().AwaitConnection()
 
+	err := dns.Refresh(context.Background())
+	if err != nil {
+		log.Error().Err(err).Msg("failed to perform initial DNS refresh")
+		return
+	}
+
+	err = dns.Start(context.Background())
+	if err != nil {
+		log.Error().Err(err).Msg("failed to start DNS service")
+		return
+	}
+
 	go web.Start()
 
 	signal := interruption.OnSignal([]func() error{
+		func() error {
+			err := web.Stop()
+			if err != nil {
+				return apperror.Wrap(err)
+			}
+			return nil
+		},
+		func() error {
+			dns.Stop()
+			return nil
+		},
+		func() error {
+			err := database.HDNS().Disconnect()
+			if err != nil {
+				return apperror.Wrap(err)
+			}
+			return nil
+		},
 		func() error {
 			log.Info().Msg("stopped gracefully")
 			return nil
