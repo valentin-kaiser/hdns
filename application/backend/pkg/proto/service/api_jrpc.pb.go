@@ -16,7 +16,7 @@ type HDNSServer interface {
 	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
 	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
-	DeleteRecord(ctx context.Context, in *Record) (*Empty, error)
+	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
 	ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error)
 	StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error
@@ -47,7 +47,7 @@ func (UnimplementedHDNSServer) UpsertRecord(ctx context.Context, in *Record) (*R
 	return nil, errors.New("method HDNS.UpsertRecord not implemented")
 }
 
-func (UnimplementedHDNSServer) DeleteRecord(ctx context.Context, in *Record) (*Empty, error) {
+func (UnimplementedHDNSServer) DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error) {
 	return nil, errors.New("method HDNS.DeleteRecord not implemented")
 }
 

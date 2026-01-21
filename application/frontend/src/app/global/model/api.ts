@@ -47,6 +47,11 @@ export interface RecordList {
   records: Record[];
 }
 
+export interface RecordDelete {
+  record: Record | undefined;
+  deleteFromHetzner: boolean;
+}
+
 export interface Zone {
   id: string;
   name: string;
@@ -691,6 +696,84 @@ export const RecordList: MessageFns<RecordList> = {
   fromPartial<I extends Exact<DeepPartial<RecordList>, I>>(object: I): RecordList {
     const message = createBaseRecordList();
     message.records = object.records?.map((e) => Record.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseRecordDelete(): RecordDelete {
+  return { record: undefined, deleteFromHetzner: false };
+}
+
+export const RecordDelete: MessageFns<RecordDelete> = {
+  encode(message: RecordDelete, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.record !== undefined) {
+      Record.encode(message.record, writer.uint32(10).fork()).join();
+    }
+    if (message.deleteFromHetzner !== false) {
+      writer.uint32(16).bool(message.deleteFromHetzner);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RecordDelete {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRecordDelete();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.record = Record.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleteFromHetzner = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RecordDelete {
+    return {
+      record: isSet(object.record) ? Record.fromJSON(object.record) : undefined,
+      deleteFromHetzner: isSet(object.deleteFromHetzner) ? globalThis.Boolean(object.deleteFromHetzner) : false,
+    };
+  },
+
+  toJSON(message: RecordDelete): unknown {
+    const obj: any = {};
+    if (message.record !== undefined) {
+      obj.record = Record.toJSON(message.record);
+    }
+    if (message.deleteFromHetzner !== false) {
+      obj.deleteFromHetzner = message.deleteFromHetzner;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RecordDelete>, I>>(base?: I): RecordDelete {
+    return RecordDelete.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RecordDelete>, I>>(object: I): RecordDelete {
+    const message = createBaseRecordDelete();
+    message.record = (object.record !== undefined && object.record !== null)
+      ? Record.fromPartial(object.record)
+      : undefined;
+    message.deleteFromHetzner = object.deleteFromHetzner ?? false;
     return message;
   },
 };

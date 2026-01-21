@@ -399,6 +399,58 @@ func (x *RecordList) GetRecords() []*Record {
 	return nil
 }
 
+type RecordDelete struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Record            *Record                `protobuf:"bytes,1,opt,name=record,proto3" json:"record,omitempty"`
+	DeleteFromHetzner bool                   `protobuf:"varint,2,opt,name=delete_from_hetzner,json=deleteFromHetzner,proto3" json:"delete_from_hetzner,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *RecordDelete) Reset() {
+	*x = RecordDelete{}
+	mi := &file_api_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordDelete) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordDelete) ProtoMessage() {}
+
+func (x *RecordDelete) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordDelete.ProtoReflect.Descriptor instead.
+func (*RecordDelete) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RecordDelete) GetRecord() *Record {
+	if x != nil {
+		return x.Record
+	}
+	return nil
+}
+
+func (x *RecordDelete) GetDeleteFromHetzner() bool {
+	if x != nil {
+		return x.DeleteFromHetzner
+	}
+	return false
+}
+
 type Zone struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -410,7 +462,7 @@ type Zone struct {
 
 func (x *Zone) Reset() {
 	*x = Zone{}
-	mi := &file_api_proto_msgTypes[6]
+	mi := &file_api_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -422,7 +474,7 @@ func (x *Zone) String() string {
 func (*Zone) ProtoMessage() {}
 
 func (x *Zone) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[6]
+	mi := &file_api_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -435,7 +487,7 @@ func (x *Zone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Zone.ProtoReflect.Descriptor instead.
 func (*Zone) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{6}
+	return file_api_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Zone) GetId() string {
@@ -468,7 +520,7 @@ type ZoneList struct {
 
 func (x *ZoneList) Reset() {
 	*x = ZoneList{}
-	mi := &file_api_proto_msgTypes[7]
+	mi := &file_api_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +532,7 @@ func (x *ZoneList) String() string {
 func (*ZoneList) ProtoMessage() {}
 
 func (x *ZoneList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[7]
+	mi := &file_api_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +545,7 @@ func (x *ZoneList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneList.ProtoReflect.Descriptor instead.
 func (*ZoneList) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{7}
+	return file_api_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ZoneList) GetZones() []*Zone {
@@ -515,7 +567,7 @@ type Resolution struct {
 
 func (x *Resolution) Reset() {
 	*x = Resolution{}
-	mi := &file_api_proto_msgTypes[8]
+	mi := &file_api_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +579,7 @@ func (x *Resolution) String() string {
 func (*Resolution) ProtoMessage() {}
 
 func (x *Resolution) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[8]
+	mi := &file_api_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +592,7 @@ func (x *Resolution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resolution.ProtoReflect.Descriptor instead.
 func (*Resolution) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{8}
+	return file_api_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Resolution) GetServer() string {
@@ -580,7 +632,7 @@ type ResolutionResult struct {
 
 func (x *ResolutionResult) Reset() {
 	*x = ResolutionResult{}
-	mi := &file_api_proto_msgTypes[9]
+	mi := &file_api_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -592,7 +644,7 @@ func (x *ResolutionResult) String() string {
 func (*ResolutionResult) ProtoMessage() {}
 
 func (x *ResolutionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[9]
+	mi := &file_api_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +657,7 @@ func (x *ResolutionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolutionResult.ProtoReflect.Descriptor instead.
 func (*ResolutionResult) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{9}
+	return file_api_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ResolutionResult) GetResolutions() []*Resolution {
@@ -625,7 +677,7 @@ type Configuration struct {
 
 func (x *Configuration) Reset() {
 	*x = Configuration{}
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -637,7 +689,7 @@ func (x *Configuration) String() string {
 func (*Configuration) ProtoMessage() {}
 
 func (x *Configuration) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -650,7 +702,7 @@ func (x *Configuration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Configuration.ProtoReflect.Descriptor instead.
 func (*Configuration) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{10}
+	return file_api_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Configuration) GetService() *Service {
@@ -683,7 +735,7 @@ type Service struct {
 
 func (x *Service) Reset() {
 	*x = Service{}
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -695,7 +747,7 @@ func (x *Service) String() string {
 func (*Service) ProtoMessage() {}
 
 func (x *Service) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -708,7 +760,7 @@ func (x *Service) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Service.ProtoReflect.Descriptor instead.
 func (*Service) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Service) GetLogLevel() int32 {
@@ -780,7 +832,7 @@ type Database struct {
 
 func (x *Database) Reset() {
 	*x = Database{}
-	mi := &file_api_proto_msgTypes[12]
+	mi := &file_api_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -792,7 +844,7 @@ func (x *Database) String() string {
 func (*Database) ProtoMessage() {}
 
 func (x *Database) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[12]
+	mi := &file_api_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -805,7 +857,7 @@ func (x *Database) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Database.ProtoReflect.Descriptor instead.
 func (*Database) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{12}
+	return file_api_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Database) GetHost() string {
@@ -854,7 +906,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_api_proto_msgTypes[13]
+	mi := &file_api_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +918,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[13]
+	mi := &file_api_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +931,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{13}
+	return file_api_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *LogEntry) GetTimestamp() int64 {
@@ -940,7 +992,10 @@ const file_api_proto_rawDesc = "" +
 	"\flast_refresh\x18\v \x01(\x03R\vlastRefresh\"7\n" +
 	"\n" +
 	"RecordList\x12)\n" +
-	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"M\n" +
+	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"g\n" +
+	"\fRecordDelete\x12'\n" +
+	"\x06record\x18\x01 \x01(\v2\x0f.service.RecordR\x06record\x12.\n" +
+	"\x13delete_from_hetzner\x18\x02 \x01(\bR\x11deleteFromHetzner\"M\n" +
 	"\x04Zone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -977,13 +1032,13 @@ const file_api_proto_rawDesc = "" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\xf9\x05\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\xff\x05\n" +
 	"\x04HDNS\x12/\n" +
 	"\bGetZones\x12\x10.service.Request\x1a\x11.service.ZoneList\x121\n" +
 	"\n" +
 	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
-	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12/\n" +
-	"\fDeleteRecord\x12\x0f.service.Record\x1a\x0e.service.Empty\x121\n" +
+	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x125\n" +
+	"\fDeleteRecord\x12\x15.service.RecordDelete\x1a\x0e.service.Empty\x121\n" +
 	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12:\n" +
 	"\rResolveRecord\x12\x0e.service.Empty\x1a\x19.service.ResolutionResult\x12<\n" +
 	"\x13StreamResolveRecord\x12\x0e.service.Empty\x1a\x13.service.Resolution0\x01\x123\n" +
@@ -1009,7 +1064,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_api_proto_goTypes = []any{
 	(*Empty)(nil),            // 0: service.Empty
 	(*Request)(nil),          // 1: service.Request
@@ -1017,56 +1072,58 @@ var file_api_proto_goTypes = []any{
 	(*AddressHistory)(nil),   // 3: service.AddressHistory
 	(*Record)(nil),           // 4: service.Record
 	(*RecordList)(nil),       // 5: service.RecordList
-	(*Zone)(nil),             // 6: service.Zone
-	(*ZoneList)(nil),         // 7: service.ZoneList
-	(*Resolution)(nil),       // 8: service.Resolution
-	(*ResolutionResult)(nil), // 9: service.ResolutionResult
-	(*Configuration)(nil),    // 10: service.Configuration
-	(*Service)(nil),          // 11: service.Service
-	(*Database)(nil),         // 12: service.Database
-	(*LogEntry)(nil),         // 13: service.LogEntry
+	(*RecordDelete)(nil),     // 6: service.RecordDelete
+	(*Zone)(nil),             // 7: service.Zone
+	(*ZoneList)(nil),         // 8: service.ZoneList
+	(*Resolution)(nil),       // 9: service.Resolution
+	(*ResolutionResult)(nil), // 10: service.ResolutionResult
+	(*Configuration)(nil),    // 11: service.Configuration
+	(*Service)(nil),          // 12: service.Service
+	(*Database)(nil),         // 13: service.Database
+	(*LogEntry)(nil),         // 14: service.LogEntry
 }
 var file_api_proto_depIdxs = []int32{
 	2,  // 0: service.AddressHistory.addresses:type_name -> service.Address
 	2,  // 1: service.Record.address:type_name -> service.Address
 	4,  // 2: service.RecordList.records:type_name -> service.Record
-	6,  // 3: service.ZoneList.zones:type_name -> service.Zone
-	8,  // 4: service.ResolutionResult.resolutions:type_name -> service.Resolution
-	11, // 5: service.Configuration.service:type_name -> service.Service
-	12, // 6: service.Configuration.database:type_name -> service.Database
-	1,  // 7: service.HDNS.GetZones:input_type -> service.Request
-	0,  // 8: service.HDNS.GetRecords:input_type -> service.Empty
-	4,  // 9: service.HDNS.UpsertRecord:input_type -> service.Record
-	4,  // 10: service.HDNS.DeleteRecord:input_type -> service.Record
-	4,  // 11: service.HDNS.RefreshRecord:input_type -> service.Record
-	0,  // 12: service.HDNS.ResolveRecord:input_type -> service.Empty
-	0,  // 13: service.HDNS.StreamResolveRecord:input_type -> service.Empty
-	0,  // 14: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 15: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 16: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 17: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 18: service.HDNS.GetConfig:input_type -> service.Empty
-	10, // 19: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	0,  // 20: service.HDNS.StreamLogs:input_type -> service.Empty
-	7,  // 21: service.HDNS.GetZones:output_type -> service.ZoneList
-	5,  // 22: service.HDNS.GetRecords:output_type -> service.RecordList
-	4,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
-	0,  // 24: service.HDNS.DeleteRecord:output_type -> service.Empty
-	4,  // 25: service.HDNS.RefreshRecord:output_type -> service.Record
-	9,  // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	8,  // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
-	2,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
-	2,  // 29: service.HDNS.GetAddress:output_type -> service.Address
-	3,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	2,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
-	10, // 32: service.HDNS.GetConfig:output_type -> service.Configuration
-	10, // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	13, // 34: service.HDNS.StreamLogs:output_type -> service.LogEntry
-	21, // [21:35] is the sub-list for method output_type
-	7,  // [7:21] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	4,  // 3: service.RecordDelete.record:type_name -> service.Record
+	7,  // 4: service.ZoneList.zones:type_name -> service.Zone
+	9,  // 5: service.ResolutionResult.resolutions:type_name -> service.Resolution
+	12, // 6: service.Configuration.service:type_name -> service.Service
+	13, // 7: service.Configuration.database:type_name -> service.Database
+	1,  // 8: service.HDNS.GetZones:input_type -> service.Request
+	0,  // 9: service.HDNS.GetRecords:input_type -> service.Empty
+	4,  // 10: service.HDNS.UpsertRecord:input_type -> service.Record
+	6,  // 11: service.HDNS.DeleteRecord:input_type -> service.RecordDelete
+	4,  // 12: service.HDNS.RefreshRecord:input_type -> service.Record
+	0,  // 13: service.HDNS.ResolveRecord:input_type -> service.Empty
+	0,  // 14: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 15: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 16: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 17: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 18: service.HDNS.RefreshAddress:input_type -> service.Empty
+	0,  // 19: service.HDNS.GetConfig:input_type -> service.Empty
+	11, // 20: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	0,  // 21: service.HDNS.StreamLogs:input_type -> service.Empty
+	8,  // 22: service.HDNS.GetZones:output_type -> service.ZoneList
+	5,  // 23: service.HDNS.GetRecords:output_type -> service.RecordList
+	4,  // 24: service.HDNS.UpsertRecord:output_type -> service.Record
+	0,  // 25: service.HDNS.DeleteRecord:output_type -> service.Empty
+	4,  // 26: service.HDNS.RefreshRecord:output_type -> service.Record
+	10, // 27: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	9,  // 28: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	2,  // 29: service.HDNS.StreamAddress:output_type -> service.Address
+	2,  // 30: service.HDNS.GetAddress:output_type -> service.Address
+	3,  // 31: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	2,  // 32: service.HDNS.RefreshAddress:output_type -> service.Address
+	11, // 33: service.HDNS.GetConfig:output_type -> service.Configuration
+	11, // 34: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	14, // 35: service.HDNS.StreamLogs:output_type -> service.LogEntry
+	22, // [22:36] is the sub-list for method output_type
+	8,  // [8:22] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -1080,7 +1137,7 @@ func file_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
