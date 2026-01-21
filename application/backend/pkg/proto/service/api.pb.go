@@ -1032,16 +1032,16 @@ const file_api_proto_rawDesc = "" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\xff\x05\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\x81\x06\n" +
 	"\x04HDNS\x12/\n" +
 	"\bGetZones\x12\x10.service.Request\x1a\x11.service.ZoneList\x121\n" +
 	"\n" +
 	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
 	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x125\n" +
 	"\fDeleteRecord\x12\x15.service.RecordDelete\x1a\x0e.service.Empty\x121\n" +
-	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12:\n" +
-	"\rResolveRecord\x12\x0e.service.Empty\x1a\x19.service.ResolutionResult\x12<\n" +
-	"\x13StreamResolveRecord\x12\x0e.service.Empty\x1a\x13.service.Resolution0\x01\x123\n" +
+	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12;\n" +
+	"\rResolveRecord\x12\x0f.service.Record\x1a\x19.service.ResolutionResult\x12=\n" +
+	"\x13StreamResolveRecord\x12\x0f.service.Record\x1a\x13.service.Resolution0\x01\x123\n" +
 	"\rStreamAddress\x12\x0e.service.Empty\x1a\x10.service.Address0\x01\x12.\n" +
 	"\n" +
 	"GetAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12<\n" +
@@ -1096,8 +1096,8 @@ var file_api_proto_depIdxs = []int32{
 	4,  // 10: service.HDNS.UpsertRecord:input_type -> service.Record
 	6,  // 11: service.HDNS.DeleteRecord:input_type -> service.RecordDelete
 	4,  // 12: service.HDNS.RefreshRecord:input_type -> service.Record
-	0,  // 13: service.HDNS.ResolveRecord:input_type -> service.Empty
-	0,  // 14: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	4,  // 13: service.HDNS.ResolveRecord:input_type -> service.Record
+	4,  // 14: service.HDNS.StreamResolveRecord:input_type -> service.Record
 	0,  // 15: service.HDNS.StreamAddress:input_type -> service.Empty
 	0,  // 16: service.HDNS.GetAddress:input_type -> service.Empty
 	0,  // 17: service.HDNS.GetAddressHistory:input_type -> service.Empty

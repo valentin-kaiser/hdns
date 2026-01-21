@@ -18,8 +18,8 @@ type HDNSServer interface {
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
-	ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error)
-	StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error
+	ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error)
+	StreamResolveRecord(ctx context.Context, in *Record, out chan *Resolution) error
 	StreamAddress(ctx context.Context, in *Empty, out chan *Address) error
 	GetAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
@@ -55,11 +55,11 @@ func (UnimplementedHDNSServer) RefreshRecord(ctx context.Context, in *Record) (*
 	return nil, errors.New("method HDNS.RefreshRecord not implemented")
 }
 
-func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Empty) (*ResolutionResult, error) {
+func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error) {
 	return nil, errors.New("method HDNS.ResolveRecord not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Empty, out chan *Resolution) error {
+func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Record, out chan *Resolution) error {
 	return errors.New("method HDNS.StreamResolveRecord not implemented")
 }
 
