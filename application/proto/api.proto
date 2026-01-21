@@ -11,9 +11,6 @@ service HDNS {
   // GetZones returns all zones.
   rpc GetZones (Request) returns (ZoneList);
 
-  // StreamRecords streams all records.
-  rpc StreamRecords (Empty) returns (stream Record);
-
   // GetRecords returns all records.
   rpc GetRecords (Empty) returns (RecordList);
 
@@ -78,17 +75,17 @@ message AddressHistory {
 
 // Record represents a DNS record.
 message Record {
-  int64            id           = 1;
-  int64            created_at   = 2;
-  int64            updated_at   = 3;
-  string           token        = 4;
-  string           zone_id      = 5;
-  string           domain       = 6;
-  string           name         = 7;
-  uint32           ttl          = 8;
-  optional int64   address_id   = 9;
-  optional Address address      = 10;
-  optional int64   last_refresh = 11;
+  int64   id           = 1;
+  int64   created_at   = 2;
+  int64   updated_at   = 3;
+  string  token        = 4;
+  string  zone_id      = 5;
+  string  domain       = 6;
+  string  name         = 7;
+  uint32  ttl          = 8;
+  int64   address_id   = 9;
+  Address address      = 10;
+  int64   last_refresh = 11;
 }
 
 message RecordList {
