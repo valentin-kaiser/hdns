@@ -13,7 +13,7 @@ import (
 // HDNSServer is the server API for HDNS service.
 type HDNSServer interface {
 	Descriptor() protoreflect.FileDescriptor
-	GetZones(ctx context.Context, in *Empty) (*ZoneList, error)
+	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
 	StreamRecords(ctx context.Context, in *Empty, out chan *Record) error
 	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
@@ -36,7 +36,7 @@ func (UnimplementedHDNSServer) Descriptor() protoreflect.FileDescriptor {
 	return File_api_proto
 }
 
-func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *Empty) (*ZoneList, error) {
+func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *Request) (*ZoneList, error) {
 	return nil, errors.New("method HDNS.GetZones not implemented")
 }
 
