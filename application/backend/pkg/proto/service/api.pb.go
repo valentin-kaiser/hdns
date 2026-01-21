@@ -241,9 +241,9 @@ type Record struct {
 	Domain        string                 `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain,omitempty"`
 	Name          string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
 	Ttl           uint32                 `protobuf:"varint,8,opt,name=ttl,proto3" json:"ttl,omitempty"`
-	AddressId     *int64                 `protobuf:"varint,9,opt,name=address_id,json=addressId,proto3,oneof" json:"address_id,omitempty"`
-	Address       *Address               `protobuf:"bytes,10,opt,name=address,proto3,oneof" json:"address,omitempty"`
-	LastRefresh   *int64                 `protobuf:"varint,11,opt,name=last_refresh,json=lastRefresh,proto3,oneof" json:"last_refresh,omitempty"`
+	AddressId     int64                  `protobuf:"varint,9,opt,name=address_id,json=addressId,proto3" json:"address_id,omitempty"`
+	Address       *Address               `protobuf:"bytes,10,opt,name=address,proto3" json:"address,omitempty"`
+	LastRefresh   int64                  `protobuf:"varint,11,opt,name=last_refresh,json=lastRefresh,proto3" json:"last_refresh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -335,8 +335,8 @@ func (x *Record) GetTtl() uint32 {
 }
 
 func (x *Record) GetAddressId() int64 {
-	if x != nil && x.AddressId != nil {
-		return *x.AddressId
+	if x != nil {
+		return x.AddressId
 	}
 	return 0
 }
@@ -349,8 +349,8 @@ func (x *Record) GetAddress() *Address {
 }
 
 func (x *Record) GetLastRefresh() int64 {
-	if x != nil && x.LastRefresh != nil {
-		return *x.LastRefresh
+	if x != nil {
+		return x.LastRefresh
 	}
 	return 0
 }
@@ -921,7 +921,7 @@ const file_api_proto_rawDesc = "" +
 	"\x04ipv6\x18\x05 \x01(\tR\x04ipv6\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"@\n" +
 	"\x0eAddressHistory\x12.\n" +
-	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xec\x02\n" +
+	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xb1\x02\n" +
 	"\x06Record\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -932,16 +932,12 @@ const file_api_proto_rawDesc = "" +
 	"\azone_id\x18\x05 \x01(\tR\x06zoneId\x12\x16\n" +
 	"\x06domain\x18\x06 \x01(\tR\x06domain\x12\x12\n" +
 	"\x04name\x18\a \x01(\tR\x04name\x12\x10\n" +
-	"\x03ttl\x18\b \x01(\rR\x03ttl\x12\"\n" +
+	"\x03ttl\x18\b \x01(\rR\x03ttl\x12\x1d\n" +
 	"\n" +
-	"address_id\x18\t \x01(\x03H\x00R\taddressId\x88\x01\x01\x12/\n" +
+	"address_id\x18\t \x01(\x03R\taddressId\x12*\n" +
 	"\aaddress\x18\n" +
-	" \x01(\v2\x10.service.AddressH\x01R\aaddress\x88\x01\x01\x12&\n" +
-	"\flast_refresh\x18\v \x01(\x03H\x02R\vlastRefresh\x88\x01\x01B\r\n" +
-	"\v_address_idB\n" +
-	"\n" +
-	"\b_addressB\x0f\n" +
-	"\r_last_refresh\"7\n" +
+	" \x01(\v2\x10.service.AddressR\aaddress\x12!\n" +
+	"\flast_refresh\x18\v \x01(\x03R\vlastRefresh\"7\n" +
 	"\n" +
 	"RecordList\x12)\n" +
 	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"M\n" +
@@ -981,10 +977,9 @@ const file_api_proto_rawDesc = "" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\xad\x06\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\xf9\x05\n" +
 	"\x04HDNS\x12/\n" +
-	"\bGetZones\x12\x10.service.Request\x1a\x11.service.ZoneList\x122\n" +
-	"\rStreamRecords\x12\x0e.service.Empty\x1a\x0f.service.Record0\x01\x121\n" +
+	"\bGetZones\x12\x10.service.Request\x1a\x11.service.ZoneList\x121\n" +
 	"\n" +
 	"GetRecords\x12\x0e.service.Empty\x1a\x13.service.RecordList\x120\n" +
 	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12/\n" +
@@ -1040,37 +1035,35 @@ var file_api_proto_depIdxs = []int32{
 	11, // 5: service.Configuration.service:type_name -> service.Service
 	12, // 6: service.Configuration.database:type_name -> service.Database
 	1,  // 7: service.HDNS.GetZones:input_type -> service.Request
-	0,  // 8: service.HDNS.StreamRecords:input_type -> service.Empty
-	0,  // 9: service.HDNS.GetRecords:input_type -> service.Empty
-	4,  // 10: service.HDNS.UpsertRecord:input_type -> service.Record
-	4,  // 11: service.HDNS.DeleteRecord:input_type -> service.Record
-	4,  // 12: service.HDNS.RefreshRecord:input_type -> service.Record
-	0,  // 13: service.HDNS.ResolveRecord:input_type -> service.Empty
-	0,  // 14: service.HDNS.StreamResolveRecord:input_type -> service.Empty
-	0,  // 15: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 16: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 17: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 18: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 19: service.HDNS.GetConfig:input_type -> service.Empty
-	10, // 20: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	0,  // 21: service.HDNS.StreamLogs:input_type -> service.Empty
-	7,  // 22: service.HDNS.GetZones:output_type -> service.ZoneList
-	4,  // 23: service.HDNS.StreamRecords:output_type -> service.Record
-	5,  // 24: service.HDNS.GetRecords:output_type -> service.RecordList
-	4,  // 25: service.HDNS.UpsertRecord:output_type -> service.Record
-	0,  // 26: service.HDNS.DeleteRecord:output_type -> service.Empty
-	4,  // 27: service.HDNS.RefreshRecord:output_type -> service.Record
-	9,  // 28: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	8,  // 29: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
-	2,  // 30: service.HDNS.StreamAddress:output_type -> service.Address
-	2,  // 31: service.HDNS.GetAddress:output_type -> service.Address
-	3,  // 32: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	2,  // 33: service.HDNS.RefreshAddress:output_type -> service.Address
-	10, // 34: service.HDNS.GetConfig:output_type -> service.Configuration
-	10, // 35: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	13, // 36: service.HDNS.StreamLogs:output_type -> service.LogEntry
-	22, // [22:37] is the sub-list for method output_type
-	7,  // [7:22] is the sub-list for method input_type
+	0,  // 8: service.HDNS.GetRecords:input_type -> service.Empty
+	4,  // 9: service.HDNS.UpsertRecord:input_type -> service.Record
+	4,  // 10: service.HDNS.DeleteRecord:input_type -> service.Record
+	4,  // 11: service.HDNS.RefreshRecord:input_type -> service.Record
+	0,  // 12: service.HDNS.ResolveRecord:input_type -> service.Empty
+	0,  // 13: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 14: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 15: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 16: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 17: service.HDNS.RefreshAddress:input_type -> service.Empty
+	0,  // 18: service.HDNS.GetConfig:input_type -> service.Empty
+	10, // 19: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	0,  // 20: service.HDNS.StreamLogs:input_type -> service.Empty
+	7,  // 21: service.HDNS.GetZones:output_type -> service.ZoneList
+	5,  // 22: service.HDNS.GetRecords:output_type -> service.RecordList
+	4,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
+	0,  // 24: service.HDNS.DeleteRecord:output_type -> service.Empty
+	4,  // 25: service.HDNS.RefreshRecord:output_type -> service.Record
+	9,  // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	8,  // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	2,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
+	2,  // 29: service.HDNS.GetAddress:output_type -> service.Address
+	3,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	2,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
+	10, // 32: service.HDNS.GetConfig:output_type -> service.Configuration
+	10, // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	13, // 34: service.HDNS.StreamLogs:output_type -> service.LogEntry
+	21, // [21:35] is the sub-list for method output_type
+	7,  // [7:21] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -1081,7 +1074,6 @@ func file_api_proto_init() {
 	if File_api_proto != nil {
 		return
 	}
-	file_api_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

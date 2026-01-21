@@ -14,7 +14,6 @@ import (
 type HDNSServer interface {
 	Descriptor() protoreflect.FileDescriptor
 	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
-	StreamRecords(ctx context.Context, in *Empty, out chan *Record) error
 	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *Record) (*Empty, error)
@@ -38,10 +37,6 @@ func (UnimplementedHDNSServer) Descriptor() protoreflect.FileDescriptor {
 
 func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *Request) (*ZoneList, error) {
 	return nil, errors.New("method HDNS.GetZones not implemented")
-}
-
-func (UnimplementedHDNSServer) StreamRecords(ctx context.Context, in *Empty, out chan *Record) error {
-	return errors.New("method HDNS.StreamRecords not implemented")
 }
 
 func (UnimplementedHDNSServer) GetRecords(ctx context.Context, in *Empty) (*RecordList, error) {

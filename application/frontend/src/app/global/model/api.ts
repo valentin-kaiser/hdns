@@ -38,9 +38,9 @@ export interface Record {
   domain: string;
   name: string;
   ttl: number;
-  addressId?: number | undefined;
-  address?: Address | undefined;
-  lastRefresh?: number | undefined;
+  addressId: number;
+  address: Address | undefined;
+  lastRefresh: number;
 }
 
 export interface RecordList {
@@ -411,9 +411,9 @@ function createBaseRecord(): Record {
     domain: "",
     name: "",
     ttl: 0,
-    addressId: undefined,
+    addressId: 0,
     address: undefined,
-    lastRefresh: undefined,
+    lastRefresh: 0,
   };
 }
 
@@ -443,13 +443,13 @@ export const Record: MessageFns<Record> = {
     if (message.ttl !== 0) {
       writer.uint32(64).uint32(message.ttl);
     }
-    if (message.addressId !== undefined) {
+    if (message.addressId !== 0) {
       writer.uint32(72).int64(message.addressId);
     }
     if (message.address !== undefined) {
       Address.encode(message.address, writer.uint32(82).fork()).join();
     }
-    if (message.lastRefresh !== undefined) {
+    if (message.lastRefresh !== 0) {
       writer.uint32(88).int64(message.lastRefresh);
     }
     return writer;
@@ -569,9 +569,9 @@ export const Record: MessageFns<Record> = {
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       ttl: isSet(object.ttl) ? globalThis.Number(object.ttl) : 0,
-      addressId: isSet(object.addressId) ? globalThis.Number(object.addressId) : undefined,
+      addressId: isSet(object.addressId) ? globalThis.Number(object.addressId) : 0,
       address: isSet(object.address) ? Address.fromJSON(object.address) : undefined,
-      lastRefresh: isSet(object.lastRefresh) ? globalThis.Number(object.lastRefresh) : undefined,
+      lastRefresh: isSet(object.lastRefresh) ? globalThis.Number(object.lastRefresh) : 0,
     };
   },
 
@@ -601,13 +601,13 @@ export const Record: MessageFns<Record> = {
     if (message.ttl !== 0) {
       obj.ttl = Math.round(message.ttl);
     }
-    if (message.addressId !== undefined) {
+    if (message.addressId !== 0) {
       obj.addressId = Math.round(message.addressId);
     }
     if (message.address !== undefined) {
       obj.address = Address.toJSON(message.address);
     }
-    if (message.lastRefresh !== undefined) {
+    if (message.lastRefresh !== 0) {
       obj.lastRefresh = Math.round(message.lastRefresh);
     }
     return obj;
@@ -626,11 +626,11 @@ export const Record: MessageFns<Record> = {
     message.domain = object.domain ?? "";
     message.name = object.name ?? "";
     message.ttl = object.ttl ?? 0;
-    message.addressId = object.addressId ?? undefined;
+    message.addressId = object.addressId ?? 0;
     message.address = (object.address !== undefined && object.address !== null)
       ? Address.fromPartial(object.address)
       : undefined;
-    message.lastRefresh = object.lastRefresh ?? undefined;
+    message.lastRefresh = object.lastRefresh ?? 0;
     return message;
   },
 };
