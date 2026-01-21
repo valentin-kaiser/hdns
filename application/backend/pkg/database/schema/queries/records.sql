@@ -23,12 +23,10 @@ INSERT INTO
         zone_id,
         domain,
         name,
-        ttl,
-        address_id,
-        last_refresh
+        ttl
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?);
 
 -- name: UpdateRecord :execlastid
 UPDATE records
@@ -37,16 +35,15 @@ SET
     zone_id = ?,
     domain = ?,
     name = ?,
-    ttl = ?,
-    address_id = ?,
-    last_refresh = ?
+    ttl = ?
 WHERE
     id = ?;
 
 -- name: UpdateRecordAddress :exec
 UPDATE records
 SET
-    address_id = ?
+    address_id = ?,
+    last_refresh = ?
 WHERE
     id = ?;
 

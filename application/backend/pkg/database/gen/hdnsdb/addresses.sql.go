@@ -46,6 +46,29 @@ func (q *Queries) DeleteAddress(ctx context.Context, id int64) error {
 	return err
 }
 
+const GetAddressByID = `-- name: GetAddressByID :one
+SELECT
+    id, created_at, updated_at, ipv4, ipv6, current
+FROM
+    addresses
+WHERE
+    id = ?
+`
+
+func (q *Queries) GetAddressByID(ctx context.Context, id int64) (*Address, error) {
+	row := q.db.QueryRowContext(ctx, GetAddressByID, id)
+	var i Address
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Ipv4,
+		&i.Ipv6,
+		&i.Current,
+	)
+	return &i, err
+}
+
 const GetCurrentAddress = `-- name: GetCurrentAddress :one
 SELECT
     id, created_at, updated_at, ipv4, ipv6, current

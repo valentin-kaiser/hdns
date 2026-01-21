@@ -17,22 +17,18 @@ INSERT INTO
         zone_id,
         domain,
         name,
-        ttl,
-        address_id,
-        last_refresh
+        ttl
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?)
 `
 
 type CreateRecordParams struct {
-	Token       string
-	ZoneID      string
-	Domain      string
-	Name        string
-	Ttl         int32
-	AddressID   sql.NullInt64
-	LastRefresh sql.NullTime
+	Token  string
+	ZoneID string
+	Domain string
+	Name   string
+	Ttl    int32
 }
 
 func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int64, error) {
@@ -42,8 +38,6 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int
 		arg.Domain,
 		arg.Name,
 		arg.Ttl,
-		arg.AddressID,
-		arg.LastRefresh,
 	)
 	if err != nil {
 		return 0, err
@@ -141,22 +135,18 @@ SET
     zone_id = ?,
     domain = ?,
     name = ?,
-    ttl = ?,
-    address_id = ?,
-    last_refresh = ?
+    ttl = ?
 WHERE
     id = ?
 `
 
 type UpdateRecordParams struct {
-	Token       string
-	ZoneID      string
-	Domain      string
-	Name        string
-	Ttl         int32
-	AddressID   sql.NullInt64
-	LastRefresh sql.NullTime
-	ID          int64
+	Token  string
+	ZoneID string
+	Domain string
+	Name   string
+	Ttl    int32
+	ID     int64
 }
 
 func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int64, error) {
@@ -166,8 +156,6 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int
 		arg.Domain,
 		arg.Name,
 		arg.Ttl,
-		arg.AddressID,
-		arg.LastRefresh,
 		arg.ID,
 	)
 	if err != nil {
@@ -179,17 +167,19 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int
 const UpdateRecordAddress = `-- name: UpdateRecordAddress :exec
 UPDATE records
 SET
-    address_id = ?
+    address_id = ?,
+    last_refresh = ?
 WHERE
     id = ?
 `
 
 type UpdateRecordAddressParams struct {
-	AddressID sql.NullInt64
-	ID        int64
+	AddressID   sql.NullInt64
+	LastRefresh sql.NullTime
+	ID          int64
 }
 
 func (q *Queries) UpdateRecordAddress(ctx context.Context, arg UpdateRecordAddressParams) error {
-	_, err := q.db.ExecContext(ctx, UpdateRecordAddress, arg.AddressID, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateRecordAddress, arg.AddressID, arg.LastRefresh, arg.ID)
 	return err
 }

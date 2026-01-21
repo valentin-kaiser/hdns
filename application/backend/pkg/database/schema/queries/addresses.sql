@@ -8,6 +8,14 @@ WHERE
 LIMIT
     1;
 
+-- name: GetAddressByID :one
+SELECT
+    *
+FROM
+    addresses
+WHERE
+    id = ?;
+
 -- name: ListAddresses :many
 SELECT
     *
