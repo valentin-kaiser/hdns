@@ -112,19 +112,27 @@ message ResolutionResult {
 }
 
 message Configuration {
-  int32           log_level    = 1;
-  int32           web_port     = 2;
-  string          refresh_cron = 3;
-  repeated string dns_servers  = 4;
+  Service  service  = 1;
+  Database database = 2;
+}
+
+message Service {
+  int32           log_level        = 1;
+  int32           web_port         = 2;
+  string          certificate_path = 3;
+  string          key_path         = 4;
+  string          refresh_cron     = 5;
+  repeated string dns_servers      = 6;
+  repeated string ipv4_resolvers   = 7;
+  repeated string ipv6_resolvers   = 8;
 }
 
 message Database {
-  string driver   = 1;
-  string host     = 2;
-  uint32 port     = 3;
-  string username = 4;
-  string password = 5;
-  string name     = 6;
+  string host     = 1;
+  uint32 port     = 2;
+  string username = 3;
+  string password = 4;
+  string name     = 5;
 }
 
 message LogEntry {
