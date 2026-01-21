@@ -18,7 +18,7 @@ service HDNS {
   rpc UpsertRecord (Record) returns (Record);
 
   // DeleteRecord deletes a record.
-  rpc DeleteRecord (Record) returns (Empty);
+  rpc DeleteRecord (RecordDelete) returns (Empty);
 
   // RefreshRecord the record's address.
   rpc RefreshRecord (Record) returns (Record);
@@ -90,6 +90,11 @@ message Record {
 
 message RecordList {
   repeated Record records = 1;
+}
+
+message RecordDelete {
+  Record record = 1;
+  bool delete_from_hetzner = 2;
 }
 
 message Zone {
