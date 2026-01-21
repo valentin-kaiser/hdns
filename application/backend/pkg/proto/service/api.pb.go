@@ -565,10 +565,8 @@ func (x *ResolutionResult) GetResolutions() []*Resolution {
 
 type Configuration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	LogLevel      int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
-	WebPort       int32                  `protobuf:"varint,2,opt,name=web_port,json=webPort,proto3" json:"web_port,omitempty"`
-	RefreshCron   string                 `protobuf:"bytes,3,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
-	DnsServers    []string               `protobuf:"bytes,4,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
+	Service       *Service               `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	Database      *Database              `protobuf:"bytes,2,opt,name=database,proto3" json:"database,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -603,49 +601,134 @@ func (*Configuration) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *Configuration) GetLogLevel() int32 {
+func (x *Configuration) GetService() *Service {
+	if x != nil {
+		return x.Service
+	}
+	return nil
+}
+
+func (x *Configuration) GetDatabase() *Database {
+	if x != nil {
+		return x.Database
+	}
+	return nil
+}
+
+type Service struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	LogLevel        int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
+	WebPort         int32                  `protobuf:"varint,2,opt,name=web_port,json=webPort,proto3" json:"web_port,omitempty"`
+	CertificatePath string                 `protobuf:"bytes,3,opt,name=certificate_path,json=certificatePath,proto3" json:"certificate_path,omitempty"`
+	KeyPath         string                 `protobuf:"bytes,4,opt,name=key_path,json=keyPath,proto3" json:"key_path,omitempty"`
+	RefreshCron     string                 `protobuf:"bytes,5,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
+	DnsServers      []string               `protobuf:"bytes,6,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
+	Ipv4Resolvers   []string               `protobuf:"bytes,7,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
+	Ipv6Resolvers   []string               `protobuf:"bytes,8,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *Service) Reset() {
+	*x = Service{}
+	mi := &file_api_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Service) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Service) ProtoMessage() {}
+
+func (x *Service) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Service.ProtoReflect.Descriptor instead.
+func (*Service) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Service) GetLogLevel() int32 {
 	if x != nil {
 		return x.LogLevel
 	}
 	return 0
 }
 
-func (x *Configuration) GetWebPort() int32 {
+func (x *Service) GetWebPort() int32 {
 	if x != nil {
 		return x.WebPort
 	}
 	return 0
 }
 
-func (x *Configuration) GetRefreshCron() string {
+func (x *Service) GetCertificatePath() string {
+	if x != nil {
+		return x.CertificatePath
+	}
+	return ""
+}
+
+func (x *Service) GetKeyPath() string {
+	if x != nil {
+		return x.KeyPath
+	}
+	return ""
+}
+
+func (x *Service) GetRefreshCron() string {
 	if x != nil {
 		return x.RefreshCron
 	}
 	return ""
 }
 
-func (x *Configuration) GetDnsServers() []string {
+func (x *Service) GetDnsServers() []string {
 	if x != nil {
 		return x.DnsServers
 	}
 	return nil
 }
 
+func (x *Service) GetIpv4Resolvers() []string {
+	if x != nil {
+		return x.Ipv4Resolvers
+	}
+	return nil
+}
+
+func (x *Service) GetIpv6Resolvers() []string {
+	if x != nil {
+		return x.Ipv6Resolvers
+	}
+	return nil
+}
+
 type Database struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Driver        string                 `protobuf:"bytes,1,opt,name=driver,proto3" json:"driver,omitempty"`
-	Host          string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	Port          uint32                 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
-	Username      string                 `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
-	Name          string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Host          string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	Port          uint32                 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
+	Username      string                 `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Database) Reset() {
 	*x = Database{}
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -657,7 +740,7 @@ func (x *Database) String() string {
 func (*Database) ProtoMessage() {}
 
 func (x *Database) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -670,14 +753,7 @@ func (x *Database) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Database.ProtoReflect.Descriptor instead.
 func (*Database) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *Database) GetDriver() string {
-	if x != nil {
-		return x.Driver
-	}
-	return ""
+	return file_api_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Database) GetHost() string {
@@ -726,7 +802,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -738,7 +814,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -751,7 +827,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *LogEntry) GetTimestamp() int64 {
@@ -827,20 +903,26 @@ const file_api_proto_rawDesc = "" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
 	"\x10ResolutionResult\x125\n" +
-	"\vresolutions\x18\x02 \x03(\v2\x13.service.ResolutionR\vresolutions\"\x8b\x01\n" +
-	"\rConfiguration\x12\x1b\n" +
+	"\vresolutions\x18\x02 \x03(\v2\x13.service.ResolutionR\vresolutions\"j\n" +
+	"\rConfiguration\x12*\n" +
+	"\aservice\x18\x01 \x01(\v2\x10.service.ServiceR\aservice\x12-\n" +
+	"\bdatabase\x18\x02 \x01(\v2\x11.service.DatabaseR\bdatabase\"\x99\x02\n" +
+	"\aService\x12\x1b\n" +
 	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12\x19\n" +
-	"\bweb_port\x18\x02 \x01(\x05R\awebPort\x12!\n" +
-	"\frefresh_cron\x18\x03 \x01(\tR\vrefreshCron\x12\x1f\n" +
-	"\vdns_servers\x18\x04 \x03(\tR\n" +
-	"dnsServers\"\x96\x01\n" +
-	"\bDatabase\x12\x16\n" +
-	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x12\n" +
-	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
-	"\x04port\x18\x03 \x01(\rR\x04port\x12\x1a\n" +
-	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x06 \x01(\tR\x04name\"X\n" +
+	"\bweb_port\x18\x02 \x01(\x05R\awebPort\x12)\n" +
+	"\x10certificate_path\x18\x03 \x01(\tR\x0fcertificatePath\x12\x19\n" +
+	"\bkey_path\x18\x04 \x01(\tR\akeyPath\x12!\n" +
+	"\frefresh_cron\x18\x05 \x01(\tR\vrefreshCron\x12\x1f\n" +
+	"\vdns_servers\x18\x06 \x03(\tR\n" +
+	"dnsServers\x12%\n" +
+	"\x0eipv4_resolvers\x18\a \x03(\tR\ripv4Resolvers\x12%\n" +
+	"\x0eipv6_resolvers\x18\b \x03(\tR\ripv6Resolvers\"~\n" +
+	"\bDatabase\x12\x12\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
+	"\x04port\x18\x02 \x01(\rR\x04port\x12\x1a\n" +
+	"\busername\x18\x03 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x04 \x01(\tR\bpassword\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\"X\n" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
@@ -877,7 +959,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_proto_goTypes = []any{
 	(*Empty)(nil),            // 0: service.Empty
 	(*Address)(nil),          // 1: service.Address
@@ -889,8 +971,9 @@ var file_api_proto_goTypes = []any{
 	(*Resolution)(nil),       // 7: service.Resolution
 	(*ResolutionResult)(nil), // 8: service.ResolutionResult
 	(*Configuration)(nil),    // 9: service.Configuration
-	(*Database)(nil),         // 10: service.Database
-	(*LogEntry)(nil),         // 11: service.LogEntry
+	(*Service)(nil),          // 10: service.Service
+	(*Database)(nil),         // 11: service.Database
+	(*LogEntry)(nil),         // 12: service.LogEntry
 }
 var file_api_proto_depIdxs = []int32{
 	1,  // 0: service.AddressHistory.addresses:type_name -> service.Address
@@ -898,41 +981,43 @@ var file_api_proto_depIdxs = []int32{
 	3,  // 2: service.RecordList.records:type_name -> service.Record
 	5,  // 3: service.ZoneList.zones:type_name -> service.Zone
 	7,  // 4: service.ResolutionResult.resolutions:type_name -> service.Resolution
-	0,  // 5: service.HDNS.GetZones:input_type -> service.Empty
-	0,  // 6: service.HDNS.StreamRecords:input_type -> service.Empty
-	0,  // 7: service.HDNS.GetRecords:input_type -> service.Empty
-	3,  // 8: service.HDNS.UpsertRecord:input_type -> service.Record
-	3,  // 9: service.HDNS.DeleteRecord:input_type -> service.Record
-	3,  // 10: service.HDNS.RefreshRecord:input_type -> service.Record
-	0,  // 11: service.HDNS.ResolveRecord:input_type -> service.Empty
-	0,  // 12: service.HDNS.StreamResolveRecord:input_type -> service.Empty
-	0,  // 13: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 14: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 15: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 16: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 17: service.HDNS.GetConfig:input_type -> service.Empty
-	9,  // 18: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	0,  // 19: service.HDNS.StreamLogs:input_type -> service.Empty
-	6,  // 20: service.HDNS.GetZones:output_type -> service.ZoneList
-	3,  // 21: service.HDNS.StreamRecords:output_type -> service.Record
-	4,  // 22: service.HDNS.GetRecords:output_type -> service.RecordList
-	3,  // 23: service.HDNS.UpsertRecord:output_type -> service.Record
-	0,  // 24: service.HDNS.DeleteRecord:output_type -> service.Empty
-	3,  // 25: service.HDNS.RefreshRecord:output_type -> service.Record
-	8,  // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	7,  // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
-	1,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
-	1,  // 29: service.HDNS.GetAddress:output_type -> service.Address
-	2,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	1,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
-	9,  // 32: service.HDNS.GetConfig:output_type -> service.Configuration
-	9,  // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	11, // 34: service.HDNS.StreamLogs:output_type -> service.LogEntry
-	20, // [20:35] is the sub-list for method output_type
-	5,  // [5:20] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	10, // 5: service.Configuration.service:type_name -> service.Service
+	11, // 6: service.Configuration.database:type_name -> service.Database
+	0,  // 7: service.HDNS.GetZones:input_type -> service.Empty
+	0,  // 8: service.HDNS.StreamRecords:input_type -> service.Empty
+	0,  // 9: service.HDNS.GetRecords:input_type -> service.Empty
+	3,  // 10: service.HDNS.UpsertRecord:input_type -> service.Record
+	3,  // 11: service.HDNS.DeleteRecord:input_type -> service.Record
+	3,  // 12: service.HDNS.RefreshRecord:input_type -> service.Record
+	0,  // 13: service.HDNS.ResolveRecord:input_type -> service.Empty
+	0,  // 14: service.HDNS.StreamResolveRecord:input_type -> service.Empty
+	0,  // 15: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 16: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 17: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 18: service.HDNS.RefreshAddress:input_type -> service.Empty
+	0,  // 19: service.HDNS.GetConfig:input_type -> service.Empty
+	9,  // 20: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	0,  // 21: service.HDNS.StreamLogs:input_type -> service.Empty
+	6,  // 22: service.HDNS.GetZones:output_type -> service.ZoneList
+	3,  // 23: service.HDNS.StreamRecords:output_type -> service.Record
+	4,  // 24: service.HDNS.GetRecords:output_type -> service.RecordList
+	3,  // 25: service.HDNS.UpsertRecord:output_type -> service.Record
+	0,  // 26: service.HDNS.DeleteRecord:output_type -> service.Empty
+	3,  // 27: service.HDNS.RefreshRecord:output_type -> service.Record
+	8,  // 28: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	7,  // 29: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	1,  // 30: service.HDNS.StreamAddress:output_type -> service.Address
+	1,  // 31: service.HDNS.GetAddress:output_type -> service.Address
+	2,  // 32: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	1,  // 33: service.HDNS.RefreshAddress:output_type -> service.Address
+	9,  // 34: service.HDNS.GetConfig:output_type -> service.Configuration
+	9,  // 35: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	12, // 36: service.HDNS.StreamLogs:output_type -> service.LogEntry
+	22, // [22:37] is the sub-list for method output_type
+	7,  // [7:22] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -947,7 +1032,7 @@ func file_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
