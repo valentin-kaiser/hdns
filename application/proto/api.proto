@@ -24,10 +24,10 @@ service HDNS {
   rpc RefreshRecord (Record) returns (Record);
 
   // ResolveRecord resolves the record's domain.
-  rpc ResolveRecord (Empty) returns (ResolutionResult);
+  rpc ResolveRecord (Record) returns (ResolutionResult);
 
   // StreamResolveRecord streams the resolution results for the record.
-  rpc StreamResolveRecord (Empty) returns (stream Resolution);
+  rpc StreamResolveRecord (Record) returns (stream Resolution);
 
   // StreamAddress streams the current address.
   rpc StreamAddress (Empty) returns (stream Address);
