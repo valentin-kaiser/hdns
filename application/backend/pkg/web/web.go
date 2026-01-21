@@ -30,7 +30,7 @@ func Start() {
 		return
 	}
 
-	c, err := security.LoadCertAndConfig(config.Get().Service.CertificateFile, config.Get().Service.KeyFile, "", tls.NoClientCert)
+	c, err := security.LoadCertAndConfig(config.Get().Service.CertificatePath, config.Get().Service.KeyPath, "", tls.NoClientCert)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to load TLS certificate and key, generating self-signed certificate")
 		cert, _, err := security.GenerateSelfSignedCertificate(pkix.Name{
@@ -41,13 +41,13 @@ func Start() {
 			return
 		}
 
-		err = security.WriteCertificate(cert, config.Get().Service.CertificateFile, config.Get().Service.KeyFile)
+		err = security.WriteCertificate(cert, config.Get().Service.CertificatePath, config.Get().Service.KeyPath)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to write self-signed certificate and key to disk")
 			return
 		}
 
-		c, err = security.LoadCertAndConfig(config.Get().Service.CertificateFile, config.Get().Service.KeyFile, "", tls.NoClientCert)
+		c, err = security.LoadCertAndConfig(config.Get().Service.CertificatePath, config.Get().Service.KeyPath, "", tls.NoClientCert)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to load self-signed TLS certificate and key")
 			return

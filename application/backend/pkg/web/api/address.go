@@ -1,0 +1,113 @@
+package api
+
+import (
+	"context"
+	"time"
+
+	"github.com/valentin-kaiser/go-core/apperror"
+	"github.com/valentin-kaiser/hdns/pkg/database"
+	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/dns"
+	"github.com/valentin-kaiser/hdns/pkg/proto/service"
+)
+
+func (s *Server) StreamAddress(ctx context.Context, in *service.Empty, out chan *service.Address) error {
+	var current *hdnsdb.Address
+	for {
+		var address *hdnsdb.Address
+		err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+			var err error
+			address, err = q.GetCurrentAddress(ctx)
+			if err != nil {
+				return apperror.NewError("failed to fetch current address from database").AddError(err)
+			}
+			return nil
+		})
+		if err != nil {
+			return apperror.Wrap(err)
+		}
+
+		if current != nil && current.ID == address.ID {
+			continue
+		}
+		current = address
+		out <- &service.Address{
+			Id:        address.ID,
+			CreatedAt: address.CreatedAt.Time.UnixMilli(),
+			UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
+			Ipv4:      address.Ipv4.String,
+			Ipv6:      address.Ipv6.String,
+			Current:   address.Current,
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (s *Server) GetAddress(ctx context.Context, _ *service.Empty) (*service.Address, error) {
+	var address *hdnsdb.Address
+	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+		var err error
+		address, err = q.GetCurrentAddress(ctx)
+		if err != nil {
+			return apperror.NewError("failed to fetch current address from database").AddError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, apperror.Wrap(err)
+	}
+
+	return &service.Address{
+		Id:        address.ID,
+		CreatedAt: address.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
+		Ipv4:      address.Ipv4.String,
+		Ipv6:      address.Ipv6.String,
+		Current:   address.Current,
+	}, nil
+}
+
+func (s *Server) GetAddressHistory(ctx context.Context, _ *service.Empty) (*service.AddressHistory, error) {
+	var addresses []*hdnsdb.Address
+	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+		var err error
+		addresses, err = q.ListAddresses(ctx)
+		if err != nil {
+			return apperror.NewError("failed to fetch address history from database").AddError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, apperror.Wrap(err)
+	}
+
+	history := &service.AddressHistory{Addresses: make([]*service.Address, 0, len(addresses))}
+	for _, addr := range addresses {
+		history.Addresses = append(history.Addresses, &service.Address{
+			Id:        addr.ID,
+			CreatedAt: addr.CreatedAt.Time.UnixMilli(),
+			UpdatedAt: addr.UpdatedAt.Time.UnixMilli(),
+			Ipv4:      addr.Ipv4.String,
+			Ipv6:      addr.Ipv6.String,
+			Current:   addr.Current,
+		})
+	}
+
+	return history, nil
+}
+
+func (s *Server) RefreshAddress(ctx context.Context, _ *service.Empty) (*service.Address, error) {
+	address, err := dns.UpdateAddress(ctx)
+	if err != nil {
+		return nil, apperror.NewError("failed to refresh address").AddError(err)
+	}
+
+	return &service.Address{
+		Id:        address.ID,
+		CreatedAt: address.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
+		Ipv4:      address.Ipv4.String,
+		Ipv6:      address.Ipv6.String,
+		Current:   address.Current,
+	}, nil
+}
