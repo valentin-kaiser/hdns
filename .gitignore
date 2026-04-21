@@ -32,5 +32,5 @@ go.work.sum
 # .vscode/
 
 backend/cmd/data/
-backend/pkg/service/static/*
-!backend/pkg/service/static/PLACEHOLDER
+backend/pkg/web/static/*
+!backend/pkg/web/static/PLACEHOLDER
