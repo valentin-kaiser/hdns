@@ -14,7 +14,19 @@ import {
 } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../../environments/environment';
-import { HDNSDefinition } from '../../model/api';
+import {
+  Address,
+  AddressHistory,
+  Configuration,
+  Record as DnsRecord,
+  Empty,
+  HDNSDefinition,
+  RecordDelete,
+  RecordList,
+  Request,
+  ResolutionResult,
+  ZoneList,
+} from '../../model/api';
 import { LoggerService } from '../logger/logger.service';
 
 export interface Stream<TOut, TIn> {
@@ -50,12 +62,69 @@ export class ApiService {
     this.buildURL();
   }
 
+  public getZones(req: Request): Observable<ZoneList> {
+    return this.rpc<ZoneList>('getZones', req);
+  }
+
+  public getRecords(): Observable<RecordList> {
+    return this.rpc<RecordList>('getRecords', {});
+  }
+
+  public upsertRecord(record: DnsRecord): Observable<DnsRecord> {
+    return this.rpc<DnsRecord>('upsertRecord', record);
+  }
+
+  public deleteRecord(record: DnsRecord, deleteFromHetzner: boolean): Observable<Empty> {
+    const req: RecordDelete = { record, deleteFromHetzner };
+    return this.rpc<Empty>('deleteRecord', req);
+  }
+
+  public refreshRecord(record: DnsRecord): Observable<DnsRecord> {
+    return this.rpc<DnsRecord>('refreshRecord', record);
+  }
+
+  public resolveRecord(record: DnsRecord): Observable<ResolutionResult> {
+    return this.rpc<ResolutionResult>('resolveRecord', record);
+  }
+
+  public streamResolveRecord(record: DnsRecord): Stream<ResolutionResult, unknown> {
+    return this.stream<ResolutionResult, unknown>('streamResolveRecord', { ...record });
+  }
+
+  public getAddress(): Observable<Address> {
+    return this.rpc<Address>('getAddress', {});
+  }
+
+  public streamAddress(): Stream<Address, unknown> {
+    return this.stream<Address, unknown>('streamAddress');
+  }
+
+  public getAddressHistory(): Observable<AddressHistory> {
+    return this.rpc<AddressHistory>('getAddressHistory', {});
+  }
+
+  public refreshAddress(): Observable<Address> {
+    return this.rpc<Address>('refreshAddress', {});
+  }
+
+  public getConfig(): Observable<Configuration> {
+    return this.rpc<Configuration>('getConfig', {});
+  }
+
+  public updateConfig(config: Configuration): Observable<Configuration> {
+    return this.rpc<Configuration>('updateConfig', config);
+  }
+
+  public streamLogs(): Stream<any, unknown> {
+    return this.stream<any, unknown>('streamLogs');
+  }
+
   /**
    * Generic RPC method. All API calls go through this, which ensures consistent logging and error handling.
    */
   private rpc<T>(methodKey: keyof typeof HDNSDefinition.methods, body: unknown): Observable<T> {
     const method = HDNSDefinition.methods[methodKey];
-    const path = `/portal/rpc/${HDNSDefinition.name}/${method.name}`;
+    const path = `/rpc/${HDNSDefinition.name}/${method.name}`;
     return this.post<T>(path, body);
   }
 
@@ -66,7 +135,7 @@ export class ApiService {
   post<T = any>(path: string, body: unknown): Observable<T> {
     const url = this.baseURL + path;
     this.logger.info(`${this.logType} ${this.logName} POST ${url}`, body);
-    return this.http.post<T>(url, body, { withCredentials: true }).pipe(
+    return this.http.post<T>(url, body).pipe(
       tap((res) => this.logger.info(`${this.logType} ${this.logName} ${path} response`, res)),
       catchError((err) => {
         this.logger.error(`${this.logType} ${this.logName} ${path} error`, err);
@@ -113,7 +182,7 @@ export class ApiService {
     const errorSignal = signal<any>(null);
 
     const method = HDNSDefinition.methods[methodKey];
-    const path = `/portal/rpc/${HDNSDefinition.name}/${method.name}`;
+    const path = `/rpc/${HDNSDefinition.name}/${method.name}`;
     const url = this.toWebsocketURL(path, { ...params });
 
     const source$ = defer(() => {

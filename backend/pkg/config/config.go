@@ -26,7 +26,7 @@ type App struct {
 func Init() {
 	defaultConfig := &App{
 		LogLevel:        1,
-		WebPort:         9100,
+		WebPort:         443,
 		CertificatePath: filepath.Join(flag.Path, "certs/hdns.cert"),
 		KeyPath:         filepath.Join(flag.Path, "certs/hdns.key"),
 		RefreshCron:     "*/5 * * * *",
@@ -121,6 +121,9 @@ func (c *App) ToProto() *service.Configuration {
 		KeyPath:         c.KeyPath,
 		RefreshCron:     c.RefreshCron,
 		DnsServers:      c.DNSServers,
+		Ipv4Resolvers:   c.IPv4Resolvers,
+		Ipv6Resolvers:   c.IPv6Resolvers,
+		Database:        c.Database,
 	}
 }
 
@@ -134,6 +137,8 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 	c.KeyPath = pc.KeyPath
 	c.RefreshCron = pc.RefreshCron
 	c.DNSServers = pc.DnsServers
+	c.IPv4Resolvers = pc.Ipv4Resolvers
+	c.IPv6Resolvers = pc.Ipv6Resolvers
 	c.Database = pc.Database
 	return c
 }

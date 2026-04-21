@@ -59,6 +59,12 @@ func Start() {
 		WithTLS(c).
 		WithPort(uint16(config.Get().WebPort), web.ProtocolHTTPS).
 		WithSecurityHeaders().
+		WithCORSHeaders(&web.CORSConfig{
+			AllowOrigin:  "*",
+			AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodOptions},
+			AllowHeaders: []string{"Content-Type"},
+			MaxAge:       3600,
+		}).
 		WithGzip().
 		WithLog().
 		WithFS([]string{"/"}, frontend).

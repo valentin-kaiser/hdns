@@ -14,32 +14,52 @@ import (
 func (s *Server) StreamAddress(ctx context.Context, in *service.Empty, out chan<- *service.Address) error {
 	var current *schema.Address
 	for {
-		var address *schema.Address
-		err := database.HDNS().Query(func(q *schema.Queries) error {
-			var err error
-			address, err = q.GetCurrentAddress(ctx)
-			if err != nil {
-				return apperror.NewError("failed to fetch current address from database").AddError(err)
-			}
+		select {
+		case <-ctx.Done():
 			return nil
-		})
-		if err != nil {
-			return apperror.Wrap(err)
-		}
+		default:
+			var address *schema.Address
+			err := database.HDNS().Query(func(q *schema.Queries) error {
+				var err error
+				address, err = q.GetCurrentAddress(ctx)
+				if err != nil {
+					return apperror.NewError("failed to fetch current address from database").AddError(err)
+				}
+				return nil
+			})
+			if err != nil {
+				return apperror.Wrap(err)
+			}
 
-		if current != nil && current.ID == address.ID {
-			continue
+			if current != nil && current.ID == address.ID {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			current = address
+			proto := &service.Address{
+				Id:      address.ID,
+				Current: address.Current,
+			}
+
+			if address.Ipv4.Valid {
+				proto.Ipv4 = address.Ipv4.String
+			}
+
+			if address.Ipv6.Valid {
+				proto.Ipv6 = address.Ipv6.String
+			}
+
+			if address.CreatedAt.Valid {
+				proto.CreatedAt = address.CreatedAt.Time.UnixMilli()
+			}
+
+			if address.UpdatedAt.Valid {
+				proto.UpdatedAt = address.UpdatedAt.Time.UnixMilli()
+			}
+
+			out <- proto
+			time.Sleep(1 * time.Second)
 		}
-		current = address
-		out <- &service.Address{
-			Id:        address.ID,
-			CreatedAt: address.CreatedAt.Time.UnixMilli(),
-			UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
-			Ipv4:      address.Ipv4.String,
-			Ipv6:      address.Ipv6.String,
-			Current:   address.Current,
-		}
-		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -102,12 +122,26 @@ func (s *Server) RefreshAddress(ctx context.Context, _ *service.Empty) (*service
 		return nil, apperror.NewError("failed to refresh address").AddError(err)
 	}
 
-	return &service.Address{
-		Id:        address.ID,
-		CreatedAt: address.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
-		Ipv4:      address.Ipv4.String,
-		Ipv6:      address.Ipv6.String,
-		Current:   address.Current,
-	}, nil
+	proto := &service.Address{
+		Id:      address.ID,
+		Current: address.Current,
+	}
+
+	if address.Ipv4.Valid {
+		proto.Ipv4 = address.Ipv4.String
+	}
+
+	if address.Ipv6.Valid {
+		proto.Ipv6 = address.Ipv6.String
+	}
+
+	if address.CreatedAt.Valid {
+		proto.CreatedAt = address.CreatedAt.Time.UnixMilli()
+	}
+
+	if address.UpdatedAt.Valid {
+		proto.UpdatedAt = address.UpdatedAt.Time.UnixMilli()
+	}
+
+	return proto, nil
 }

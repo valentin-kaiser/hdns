@@ -25,7 +25,7 @@ func UpdateAddress(ctx context.Context) (*schema.Address, error) {
 
 	var addr *schema.Address
 	err = database.HDNS().Query(func(q *schema.Queries) error {
-		addr, err := q.GetCurrentAddress(ctx)
+		addr, err = q.GetCurrentAddress(ctx)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return apperror.Wrap(err)
 		}
