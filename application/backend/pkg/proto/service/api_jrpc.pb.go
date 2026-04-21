@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/valentin-kaiser/go-core/web/jrpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"net/url"
 )
 
 // HDNSServer is the server API for HDNS service.
@@ -19,14 +20,14 @@ type HDNSServer interface {
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
 	ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error)
-	StreamResolveRecord(ctx context.Context, in *Record, out chan *Resolution) error
-	StreamAddress(ctx context.Context, in *Empty, out chan *Address) error
+	StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error
+	StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error
 	GetAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
-	StreamLogs(ctx context.Context, in *Empty, out chan *LogEntry) error
+	StreamLogs(ctx context.Context, in *Empty, out chan<- *LogEntry) error
 }
 
 type UnimplementedHDNSServer struct{}
@@ -59,11 +60,11 @@ func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Record) (*
 	return nil, errors.New("method HDNS.ResolveRecord not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Record, out chan *Resolution) error {
+func (UnimplementedHDNSServer) StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error {
 	return errors.New("method HDNS.StreamResolveRecord not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamAddress(ctx context.Context, in *Empty, out chan *Address) error {
+func (UnimplementedHDNSServer) StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error {
 	return errors.New("method HDNS.StreamAddress not implemented")
 }
 
@@ -87,7 +88,7 @@ func (UnimplementedHDNSServer) UpdateConfig(ctx context.Context, in *Configurati
 	return nil, errors.New("method HDNS.UpdateConfig not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamLogs(ctx context.Context, in *Empty, out chan *LogEntry) error {
+func (UnimplementedHDNSServer) StreamLogs(ctx context.Context, in *Empty, out chan<- *LogEntry) error {
 	return errors.New("method HDNS.StreamLogs not implemented")
 }
 
@@ -99,3 +100,170 @@ func RegisterHDNSServer(server HDNSServer) *jrpc.Service {
 
 // Ensure UnimplementedHDNSServer implements HDNSServer
 var _ HDNSServer = (*UnimplementedHDNSServer)(nil)
+
+// HDNSClientDefinition is the client API for HDNS service.
+type HDNSClientDefinition interface {
+	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
+	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
+	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
+	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
+	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
+	ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error)
+	StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error
+	StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error
+	GetAddress(ctx context.Context, in *Empty) (*Address, error)
+	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
+	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
+	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
+	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
+	StreamLogs(ctx context.Context, in *Empty, out chan<- *LogEntry) error
+}
+
+type HDNSClient struct {
+	client  *jrpc.Client
+	baseURL *url.URL
+}
+
+// NewHDNSClient creates a new client for the HDNS service.
+// It parses and validates the baseURL, returning an error if the URL is malformed.
+func NewHDNSClient(baseURL string, opts ...jrpc.ClientOption) (*HDNSClient, error) {
+	parsedURL, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
+	return &HDNSClient{
+		client:  jrpc.NewClient(opts...),
+		baseURL: parsedURL,
+	}, nil
+}
+
+func (c *HDNSClient) GetZones(ctx context.Context, in *Request) (*ZoneList, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetZones")
+	out := &ZoneList{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetRecords(ctx context.Context, in *Empty) (*RecordList, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetRecords")
+	out := &RecordList{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) UpsertRecord(ctx context.Context, in *Record) (*Record, error) {
+	u := c.baseURL.JoinPath("HDNS", "UpsertRecord")
+	out := &Record{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error) {
+	u := c.baseURL.JoinPath("HDNS", "DeleteRecord")
+	out := &Empty{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) RefreshRecord(ctx context.Context, in *Record) (*Record, error) {
+	u := c.baseURL.JoinPath("HDNS", "RefreshRecord")
+	out := &Record{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error) {
+	u := c.baseURL.JoinPath("HDNS", "ResolveRecord")
+	out := &ResolutionResult{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error {
+	u := c.baseURL.JoinPath("HDNS", "StreamResolveRecord")
+	factory := func() *Resolution { return &Resolution{} }
+	return jrpc.ServerStream(c.client, ctx, u, in, out, factory)
+}
+
+func (c *HDNSClient) StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error {
+	u := c.baseURL.JoinPath("HDNS", "StreamAddress")
+	factory := func() *Address { return &Address{} }
+	return jrpc.ServerStream(c.client, ctx, u, in, out, factory)
+}
+
+func (c *HDNSClient) GetAddress(ctx context.Context, in *Empty) (*Address, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetAddress")
+	out := &Address{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetAddressHistory")
+	out := &AddressHistory{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) RefreshAddress(ctx context.Context, in *Empty) (*Address, error) {
+	u := c.baseURL.JoinPath("HDNS", "RefreshAddress")
+	out := &Address{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetConfig(ctx context.Context, in *Empty) (*Configuration, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetConfig")
+	out := &Configuration{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error) {
+	u := c.baseURL.JoinPath("HDNS", "UpdateConfig")
+	out := &Configuration{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) StreamLogs(ctx context.Context, in *Empty, out chan<- *LogEntry) error {
+	u := c.baseURL.JoinPath("HDNS", "StreamLogs")
+	factory := func() *LogEntry { return &LogEntry{} }
+	return jrpc.ServerStream(c.client, ctx, u, in, out, factory)
+}
+
+// Ensure HDNSClient implements HDNSClientDefinition
+var _ HDNSClientDefinition = (*HDNSClient)(nil)
