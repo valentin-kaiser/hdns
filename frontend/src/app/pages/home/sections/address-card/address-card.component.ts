@@ -56,10 +56,12 @@ import { AddressHistoryDrawerComponent } from '../../drawers/address-history/add
             <span class="address-label">IPv4</span>
             <span class="address-value">{{ address()!.ipv4 || '—' }}</span>
           </div>
-          <div class="address-row">
-            <span class="address-label">IPv6</span>
-            <span class="address-value">{{ address()!.ipv6 || '—' }}</span>
-          </div>
+          @if (address()!.ipv6) {
+            <div class="address-row">
+              <span class="address-label">IPv6</span>
+              <span class="address-value">{{ address()!.ipv6 }}</span>
+            </div>
+          }
           @if (address()!.updatedAt) {
             <div class="address-row">
               <span class="address-label">Last updated</span>

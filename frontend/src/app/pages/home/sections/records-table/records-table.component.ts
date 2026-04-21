@@ -46,19 +46,14 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
       @if (records().length > 0) {
         <div class="table-container">
           <table mat-table [dataSource]="records()" class="records-table">
-            <ng-container matColumnDef="domain">
-              <th mat-header-cell *matHeaderCellDef>Domain</th>
-              <td mat-cell *matCellDef="let r">{{ r.domain }}</td>
-            </ng-container>
-
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
               <td mat-cell *matCellDef="let r">{{ r.name }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="ttl">
-              <th mat-header-cell *matHeaderCellDef>TTL</th>
-              <td mat-cell *matCellDef="let r">{{ r.ttl }}s</td>
+            <ng-container matColumnDef="domain">
+              <th mat-header-cell *matHeaderCellDef>Domain</th>
+              <td mat-cell *matCellDef="let r">{{ r.domain }}</td>
             </ng-container>
 
             <ng-container matColumnDef="address">
@@ -73,6 +68,11 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               <td mat-cell *matCellDef="let r" class="muted">
                 {{ r.lastRefresh ? (r.lastRefresh | date: 'short') : '—' }}
               </td>
+            </ng-container>
+
+            <ng-container matColumnDef="ttl">
+              <th mat-header-cell *matHeaderCellDef>TTL</th>
+              <td mat-cell *matCellDef="let r">{{ r.ttl }}s</td>
             </ng-container>
 
             <ng-container matColumnDef="actions">
@@ -201,7 +201,7 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
 })
 export class RecordsTableComponent implements OnInit {
   readonly records = signal<DnsRecord[]>([]);
-  columns = ['domain', 'name', 'ttl', 'address', 'lastRefresh', 'actions'];
+  columns = ['name', 'domain', 'address', 'lastRefresh', 'ttl', 'actions'];
 
   @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
 

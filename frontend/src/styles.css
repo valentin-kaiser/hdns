@@ -59,11 +59,6 @@ html, body {
   gap: 24px;
 }
 
-/* ── Table row hover ────────────────────────────────────────────────────── */
-.mat-mdc-row:hover {
-  background: var(--hdns-primary-tint) !important;
-}
-
 /* ── Dark Material overrides ────────────────────────────────────────────── */
 .mat-mdc-table {
   background: transparent !important;
