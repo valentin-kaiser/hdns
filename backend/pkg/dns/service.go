@@ -48,7 +48,7 @@ func Refresh(ctx context.Context) error {
 	}
 	var records []*schema.Record
 	err = database.HDNS().Query(func(q *schema.Queries) error {
-		records, err = q.ListRecords(context.Background())
+		records, err = q.ListRecords(ctx)
 		if err != nil {
 			return apperror.Wrap(err)
 		}
@@ -72,7 +72,7 @@ func RefreshRecord(ctx context.Context, record *schema.Record) error {
 	var current *schema.Address
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
-		current, err = q.GetCurrentAddress(context.Background())
+		current, err = q.GetCurrentAddress(ctx)
 		if err != nil {
 			return apperror.Wrap(err)
 		}
@@ -83,12 +83,12 @@ func RefreshRecord(ctx context.Context, record *schema.Record) error {
 		return err
 	}
 
-	rec, found, err := FetchRecord(record)
+	rrset, found, err := FetchRecord(ctx, record)
 	if err != nil {
 		return err
 	}
 
-	if found && rec.Value == current.Ipv4.String {
+	if found && len(rrset.Records) > 0 && rrset.Records[0].Value == current.Ipv4.String {
 		log.Info().Msgf("record %s.%s is already up-to-date with address %s", record.Name, record.Domain, current.Ipv4.String)
 		return nil
 	}

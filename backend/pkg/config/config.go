@@ -6,23 +6,21 @@ import (
 	"github.com/robfig/cron"
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/config"
-	"github.com/valentin-kaiser/go-core/database"
 	"github.com/valentin-kaiser/go-core/flag"
 	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
 type App struct {
-	LogLevel        int             `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
-	WebPort         int16           `usage:"port to bind the web server to" json:"web_port"`
-	CertificatePath string          `usage:"path to the TLS certificate file" json:"certificate_file"`
-	KeyPath         string          `usage:"path to the TLS key file" json:"key_file"`
-	RefreshCron     string          `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
-	DNSServers      []string        `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
-	IPv4Resolvers   []string        `usage:"list of IPv4 resolvers to determine public IP address" json:"ipv4_resolvers"`
-	IPv6Resolvers   []string        `usage:"list of IPv6 resolvers to determine public IP address" json:"ipv6_resolvers"`
-	DatabaseDriver  database.Driver `usage:"database driver to use (e.g. sqlite, postgres, mysql)" json:"database_driver"`
-	Database        string          `usage:"database connection DSN" json:"database"`
+	LogLevel        int      `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
+	WebPort         int16    `usage:"port to bind the web server to" json:"web_port"`
+	CertificatePath string   `usage:"path to the TLS certificate file" json:"certificate_file"`
+	KeyPath         string   `usage:"path to the TLS key file" json:"key_file"`
+	RefreshCron     string   `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
+	DNSServers      []string `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
+	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address" json:"ipv4_resolvers"`
+	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address" json:"ipv6_resolvers"`
+	Database        string   `usage:"database connection DSN" json:"database"`
 }
 
 func Init() {
@@ -31,7 +29,7 @@ func Init() {
 		WebPort:         9100,
 		CertificatePath: filepath.Join(flag.Path, "certs/hdns.cert"),
 		KeyPath:         filepath.Join(flag.Path, "certs/hdns.key"),
-		RefreshCron:     "0 */5 * * * *",
+		RefreshCron:     "*/5 * * * *",
 		DNSServers: []string{
 			"9.9.9.9:53",
 			"1.1.1.1:53",
@@ -50,7 +48,7 @@ func Init() {
 			"https://api6.ipify.org",
 			"https://ipv6.icanhazip.com",
 		},
-		Database: "file:hdns.db?cache=shared&_pragma=foreign_keys(1)",
+		Database: "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true",
 	}
 
 	err := config.Manager().WithName("hdns").Register(defaultConfig)
@@ -117,14 +115,12 @@ func (c *App) Validate() error {
 
 func (c *App) ToProto() *service.Configuration {
 	return &service.Configuration{
-		Service: &service.Service{
-			LogLevel:        int32(c.LogLevel),
-			WebPort:         int32(c.WebPort),
-			CertificatePath: c.CertificatePath,
-			KeyPath:         c.KeyPath,
-			RefreshCron:     c.RefreshCron,
-			DnsServers:      c.DNSServers,
-		},
+		LogLevel:        int32(c.LogLevel),
+		WebPort:         int32(c.WebPort),
+		CertificatePath: c.CertificatePath,
+		KeyPath:         c.KeyPath,
+		RefreshCron:     c.RefreshCron,
+		DnsServers:      c.DNSServers,
 	}
 }
 
@@ -132,17 +128,12 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 	if pc == nil {
 		return nil
 	}
-	if pc.Service == nil {
-		return nil
-	}
-
-	c.LogLevel = int(pc.Service.LogLevel)
-	c.WebPort = int16(pc.Service.WebPort)
-	c.CertificatePath = pc.Service.CertificatePath
-	c.KeyPath = pc.Service.KeyPath
-	c.RefreshCron = pc.Service.RefreshCron
-	c.DNSServers = pc.Service.DnsServers
-	c.DatabaseDriver = database.Driver(pc.Driver)
+	c.LogLevel = int(pc.LogLevel)
+	c.WebPort = int16(pc.WebPort)
+	c.CertificatePath = pc.CertificatePath
+	c.KeyPath = pc.KeyPath
+	c.RefreshCron = pc.RefreshCron
+	c.DNSServers = pc.DnsServers
 	c.Database = pc.Database
 	return c
 }

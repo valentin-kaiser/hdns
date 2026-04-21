@@ -49,6 +49,11 @@ CREATE TABLE
         FOREIGN KEY (address_id) REFERENCES addresses (id) ON DELETE SET NULL
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
+-- Existing zone_id values are UUID strings from the old dns.hetzner.com API
+-- and are incompatible with the new api.hetzner.cloud int64 zone IDs.
+-- Clear all records to force re-setup via the UI.
+UPDATE records SET zone_id = '', address_id = NULL, last_refresh = NULL;
+
 -- +migrate Down
 DROP TABLE IF EXISTS releases;
 DROP TABLE IF EXISTS records;

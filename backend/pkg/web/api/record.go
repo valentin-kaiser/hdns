@@ -188,7 +188,7 @@ func (s *Server) DeleteRecord(ctx context.Context, in *service.RecordDelete) (*s
 		}
 
 		if in.DeleteFromHetzner {
-			err = dns.DeleteRecord(record)
+			err = dns.DeleteRecord(ctx, record)
 			if err != nil {
 				return apperror.NewError("failed to delete record from Hetzner DNS").AddError(err)
 			}
