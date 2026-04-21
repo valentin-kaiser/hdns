@@ -13,5 +13,5 @@ jobs:
     - name: Docker Proto Compiler
       uses: valentin-kaiser/protocdock@master
       with:
-        command: 'cd application/proto && make proto'
+        command: 'cd proto && make proto'
         commit_message: '[GEN] Updated compiled proto definitions'

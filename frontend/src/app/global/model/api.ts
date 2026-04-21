@@ -1649,6 +1649,141 @@ export const LogEntry: MessageFns<LogEntry> = {
   },
 };
 
+/** HDNS is the main service for HDNS. */
+export type HDNSDefinition = typeof HDNSDefinition;
+export const HDNSDefinition = {
+  name: "HDNS",
+  fullName: "service.HDNS",
+  methods: {
+    /** GetZones returns all zones. */
+    getZones: {
+      name: "GetZones",
+      requestType: Request as typeof Request,
+      requestStream: false,
+      responseType: ZoneList as typeof ZoneList,
+      responseStream: false,
+      options: {},
+    },
+    /** GetRecords returns all records. */
+    getRecords: {
+      name: "GetRecords",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: RecordList as typeof RecordList,
+      responseStream: false,
+      options: {},
+    },
+    /** UpsertRecord creates or updates a record. */
+    upsertRecord: {
+      name: "UpsertRecord",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: Record as typeof Record,
+      responseStream: false,
+      options: {},
+    },
+    /** DeleteRecord deletes a record. */
+    deleteRecord: {
+      name: "DeleteRecord",
+      requestType: RecordDelete as typeof RecordDelete,
+      requestStream: false,
+      responseType: Empty as typeof Empty,
+      responseStream: false,
+      options: {},
+    },
+    /** RefreshRecord the record's address. */
+    refreshRecord: {
+      name: "RefreshRecord",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: Record as typeof Record,
+      responseStream: false,
+      options: {},
+    },
+    /** ResolveRecord resolves the record's domain. */
+    resolveRecord: {
+      name: "ResolveRecord",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: ResolutionResult as typeof ResolutionResult,
+      responseStream: false,
+      options: {},
+    },
+    /** StreamResolveRecord streams the resolution results for the record. */
+    streamResolveRecord: {
+      name: "StreamResolveRecord",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: Resolution as typeof Resolution,
+      responseStream: true,
+      options: {},
+    },
+    /** StreamAddress streams the current address. */
+    streamAddress: {
+      name: "StreamAddress",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: Address as typeof Address,
+      responseStream: true,
+      options: {},
+    },
+    /** GetAddress returns the current address. */
+    getAddress: {
+      name: "GetAddress",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: Address as typeof Address,
+      responseStream: false,
+      options: {},
+    },
+    /** GetAddressHistory returns the address history. */
+    getAddressHistory: {
+      name: "GetAddressHistory",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: AddressHistory as typeof AddressHistory,
+      responseStream: false,
+      options: {},
+    },
+    /** RefreshAddress refreshes the current address. */
+    refreshAddress: {
+      name: "RefreshAddress",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: Address as typeof Address,
+      responseStream: false,
+      options: {},
+    },
+    /** GetConfig returns the current configuration. */
+    getConfig: {
+      name: "GetConfig",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: Configuration as typeof Configuration,
+      responseStream: false,
+      options: {},
+    },
+    /** UpdateConfig updates the current configuration. */
+    updateConfig: {
+      name: "UpdateConfig",
+      requestType: Configuration as typeof Configuration,
+      requestStream: false,
+      responseType: Configuration as typeof Configuration,
+      responseStream: false,
+      options: {},
+    },
+    /** StreamLogs streams the application logs. */
+    streamLogs: {
+      name: "StreamLogs",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: LogEntry as typeof LogEntry,
+      responseStream: true,
+      options: {},
+    },
+  },
+} as const;
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T

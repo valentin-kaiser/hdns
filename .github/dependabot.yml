@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/application/backend"
+    directory: "/backend"
     schedule:
       interval: "daily"
     groups:
@@ -12,7 +12,7 @@ updates:
     assignees:
       - "Valentin-Kaiser"
   - package-ecosystem: "npm"
-    directory: "/application/frontend"
+    directory: "/frontend"
     schedule:
       interval: "daily"
     groups:

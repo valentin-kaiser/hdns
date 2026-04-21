@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package service;
 
-option go_package = "github.com/valentin-kaiser/hdns/pkg/proto/service";
+option go_package = "github.com/valentin-kaiser/hdns/backend/pkg/proto/service";
 
 option optimize_for = SPEED;
 

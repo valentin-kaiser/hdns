@@ -3,7 +3,7 @@
 FROM node:22-alpine AS frontend
 
 COPY . /app
-WORKDIR /app/application/frontend
+WORKDIR /app/frontend
 
 RUN npm install -g @angular/cli@latest && \
     npm install -g @ionic/cli@latest
@@ -16,7 +16,7 @@ FROM golang:1.24-alpine AS backend
 
 COPY --from=frontend /app /app
 
-WORKDIR /app/application/backend
+WORKDIR /app/backend
 
 ENV CGO_ENABLED=1
 

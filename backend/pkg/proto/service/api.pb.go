@@ -1050,7 +1050,7 @@ const file_api_proto_rawDesc = "" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
 	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x121\n" +
 	"\n" +
-	"StreamLogs\x12\x0e.service.Empty\x1a\x11.service.LogEntry0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
+	"StreamLogs\x12\x0e.service.Empty\x1a\x11.service.LogEntry0\x01B=H\x01Z9github.com/valentin-kaiser/hdns/backend/pkg/proto/serviceb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
