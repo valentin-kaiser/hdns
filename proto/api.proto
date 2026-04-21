@@ -79,7 +79,7 @@ message Record {
   int64   created_at   = 2;
   int64   updated_at   = 3;
   string  token        = 4;
-  string  zone_id      = 5;
+  int64   zone_id      = 5;
   string  domain       = 6;
   string  name         = 7;
   uint32  ttl          = 8;
@@ -98,7 +98,7 @@ message RecordDelete {
 }
 
 message Zone {
-  string id           = 1;
+  int64  id           = 1;
   string name         = 2;
   int64  record_count = 3;
 }
