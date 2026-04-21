@@ -74,12 +74,6 @@ export interface ResolutionResult {
 }
 
 export interface Configuration {
-  service: Service | undefined;
-  driver: string;
-  database: string;
-}
-
-export interface Service {
   logLevel: number;
   webPort: number;
   certificatePath: string;
@@ -88,6 +82,7 @@ export interface Service {
   dnsServers: string[];
   ipv4Resolvers: string[];
   ipv6Resolvers: string[];
+  database: string;
 }
 
 export interface LogEntry {
@@ -1134,100 +1129,6 @@ export const ResolutionResult: MessageFns<ResolutionResult> = {
 };
 
 function createBaseConfiguration(): Configuration {
-  return { service: undefined, driver: "", database: "" };
-}
-
-export const Configuration: MessageFns<Configuration> = {
-  encode(message: Configuration, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.service !== undefined) {
-      Service.encode(message.service, writer.uint32(10).fork()).join();
-    }
-    if (message.driver !== "") {
-      writer.uint32(18).string(message.driver);
-    }
-    if (message.database !== "") {
-      writer.uint32(26).string(message.database);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): Configuration {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseConfiguration();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.service = Service.decode(reader, reader.uint32());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.driver = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.database = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Configuration {
-    return {
-      service: isSet(object.service) ? Service.fromJSON(object.service) : undefined,
-      driver: isSet(object.driver) ? globalThis.String(object.driver) : "",
-      database: isSet(object.database) ? globalThis.String(object.database) : "",
-    };
-  },
-
-  toJSON(message: Configuration): unknown {
-    const obj: any = {};
-    if (message.service !== undefined) {
-      obj.service = Service.toJSON(message.service);
-    }
-    if (message.driver !== "") {
-      obj.driver = message.driver;
-    }
-    if (message.database !== "") {
-      obj.database = message.database;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Configuration>, I>>(base?: I): Configuration {
-    return Configuration.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Configuration>, I>>(object: I): Configuration {
-    const message = createBaseConfiguration();
-    message.service = (object.service !== undefined && object.service !== null)
-      ? Service.fromPartial(object.service)
-      : undefined;
-    message.driver = object.driver ?? "";
-    message.database = object.database ?? "";
-    return message;
-  },
-};
-
-function createBaseService(): Service {
   return {
     logLevel: 0,
     webPort: 0,
@@ -1237,11 +1138,12 @@ function createBaseService(): Service {
     dnsServers: [],
     ipv4Resolvers: [],
     ipv6Resolvers: [],
+    database: "",
   };
 }
 
-export const Service: MessageFns<Service> = {
-  encode(message: Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const Configuration: MessageFns<Configuration> = {
+  encode(message: Configuration, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.logLevel !== 0) {
       writer.uint32(8).int32(message.logLevel);
     }
@@ -1266,13 +1168,16 @@ export const Service: MessageFns<Service> = {
     for (const v of message.ipv6Resolvers) {
       writer.uint32(66).string(v!);
     }
+    if (message.database !== "") {
+      writer.uint32(74).string(message.database);
+    }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Service {
+  decode(input: BinaryReader | Uint8Array, length?: number): Configuration {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseService();
+    const message = createBaseConfiguration();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1340,6 +1245,14 @@ export const Service: MessageFns<Service> = {
           message.ipv6Resolvers.push(reader.string());
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.database = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1349,7 +1262,7 @@ export const Service: MessageFns<Service> = {
     return message;
   },
 
-  fromJSON(object: any): Service {
+  fromJSON(object: any): Configuration {
     return {
       logLevel: isSet(object.logLevel)
         ? globalThis.Number(object.logLevel)
@@ -1391,10 +1304,11 @@ export const Service: MessageFns<Service> = {
         : globalThis.Array.isArray(object?.ipv6_resolvers)
         ? object.ipv6_resolvers.map((e: any) => globalThis.String(e))
         : [],
+      database: isSet(object.database) ? globalThis.String(object.database) : "",
     };
   },
 
-  toJSON(message: Service): unknown {
+  toJSON(message: Configuration): unknown {
     const obj: any = {};
     if (message.logLevel !== 0) {
       obj.logLevel = Math.round(message.logLevel);
@@ -1420,14 +1334,17 @@ export const Service: MessageFns<Service> = {
     if (message.ipv6Resolvers?.length) {
       obj.ipv6Resolvers = message.ipv6Resolvers;
     }
+    if (message.database !== "") {
+      obj.database = message.database;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Service>, I>>(base?: I): Service {
-    return Service.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Configuration>, I>>(base?: I): Configuration {
+    return Configuration.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Service>, I>>(object: I): Service {
-    const message = createBaseService();
+  fromPartial<I extends Exact<DeepPartial<Configuration>, I>>(object: I): Configuration {
+    const message = createBaseConfiguration();
     message.logLevel = object.logLevel ?? 0;
     message.webPort = object.webPort ?? 0;
     message.certificatePath = object.certificatePath ?? "";
@@ -1436,6 +1353,7 @@ export const Service: MessageFns<Service> = {
     message.dnsServers = object.dnsServers?.map((e) => e) || [];
     message.ipv4Resolvers = object.ipv4Resolvers?.map((e) => e) || [];
     message.ipv6Resolvers = object.ipv6Resolvers?.map((e) => e) || [];
+    message.database = object.database ?? "";
     return message;
   },
 };
