@@ -75,7 +75,8 @@ export interface ResolutionResult {
 
 export interface Configuration {
   service: Service | undefined;
-  database: Database | undefined;
+  driver: string;
+  database: string;
 }
 
 export interface Service {
@@ -87,14 +88,6 @@ export interface Service {
   dnsServers: string[];
   ipv4Resolvers: string[];
   ipv6Resolvers: string[];
-}
-
-export interface Database {
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  name: string;
 }
 
 export interface LogEntry {
@@ -1141,7 +1134,7 @@ export const ResolutionResult: MessageFns<ResolutionResult> = {
 };
 
 function createBaseConfiguration(): Configuration {
-  return { service: undefined, database: undefined };
+  return { service: undefined, driver: "", database: "" };
 }
 
 export const Configuration: MessageFns<Configuration> = {
@@ -1149,8 +1142,11 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.service !== undefined) {
       Service.encode(message.service, writer.uint32(10).fork()).join();
     }
-    if (message.database !== undefined) {
-      Database.encode(message.database, writer.uint32(18).fork()).join();
+    if (message.driver !== "") {
+      writer.uint32(18).string(message.driver);
+    }
+    if (message.database !== "") {
+      writer.uint32(26).string(message.database);
     }
     return writer;
   },
@@ -1175,7 +1171,15 @@ export const Configuration: MessageFns<Configuration> = {
             break;
           }
 
-          message.database = Database.decode(reader, reader.uint32());
+          message.driver = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.database = reader.string();
           continue;
         }
       }
@@ -1190,7 +1194,8 @@ export const Configuration: MessageFns<Configuration> = {
   fromJSON(object: any): Configuration {
     return {
       service: isSet(object.service) ? Service.fromJSON(object.service) : undefined,
-      database: isSet(object.database) ? Database.fromJSON(object.database) : undefined,
+      driver: isSet(object.driver) ? globalThis.String(object.driver) : "",
+      database: isSet(object.database) ? globalThis.String(object.database) : "",
     };
   },
 
@@ -1199,8 +1204,11 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.service !== undefined) {
       obj.service = Service.toJSON(message.service);
     }
-    if (message.database !== undefined) {
-      obj.database = Database.toJSON(message.database);
+    if (message.driver !== "") {
+      obj.driver = message.driver;
+    }
+    if (message.database !== "") {
+      obj.database = message.database;
     }
     return obj;
   },
@@ -1213,9 +1221,8 @@ export const Configuration: MessageFns<Configuration> = {
     message.service = (object.service !== undefined && object.service !== null)
       ? Service.fromPartial(object.service)
       : undefined;
-    message.database = (object.database !== undefined && object.database !== null)
-      ? Database.fromPartial(object.database)
-      : undefined;
+    message.driver = object.driver ?? "";
+    message.database = object.database ?? "";
     return message;
   },
 };
@@ -1429,130 +1436,6 @@ export const Service: MessageFns<Service> = {
     message.dnsServers = object.dnsServers?.map((e) => e) || [];
     message.ipv4Resolvers = object.ipv4Resolvers?.map((e) => e) || [];
     message.ipv6Resolvers = object.ipv6Resolvers?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseDatabase(): Database {
-  return { host: "", port: 0, username: "", password: "", name: "" };
-}
-
-export const Database: MessageFns<Database> = {
-  encode(message: Database, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.host !== "") {
-      writer.uint32(10).string(message.host);
-    }
-    if (message.port !== 0) {
-      writer.uint32(16).uint32(message.port);
-    }
-    if (message.username !== "") {
-      writer.uint32(26).string(message.username);
-    }
-    if (message.password !== "") {
-      writer.uint32(34).string(message.password);
-    }
-    if (message.name !== "") {
-      writer.uint32(42).string(message.name);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): Database {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDatabase();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.host = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.port = reader.uint32();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.username = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.password = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Database {
-    return {
-      host: isSet(object.host) ? globalThis.String(object.host) : "",
-      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
-      password: isSet(object.password) ? globalThis.String(object.password) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-    };
-  },
-
-  toJSON(message: Database): unknown {
-    const obj: any = {};
-    if (message.host !== "") {
-      obj.host = message.host;
-    }
-    if (message.port !== 0) {
-      obj.port = Math.round(message.port);
-    }
-    if (message.username !== "") {
-      obj.username = message.username;
-    }
-    if (message.password !== "") {
-      obj.password = message.password;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Database>, I>>(base?: I): Database {
-    return Database.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Database>, I>>(object: I): Database {
-    const message = createBaseDatabase();
-    message.host = object.host ?? "";
-    message.port = object.port ?? 0;
-    message.username = object.username ?? "";
-    message.password = object.password ?? "";
-    message.name = object.name ?? "";
     return message;
   },
 };
