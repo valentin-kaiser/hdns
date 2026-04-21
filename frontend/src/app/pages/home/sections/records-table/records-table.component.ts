@@ -24,7 +24,6 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
     MatMenuModule,
     MatTooltipModule,
     MatCheckboxModule,
-    DrawerComponent,
     RecordFormDrawerComponent,
     ResolveDrawerComponent,
   ],

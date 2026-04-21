@@ -116,10 +116,6 @@ export class ApiService {
     return this.rpc<Configuration>('updateConfig', config);
   }
 
-  public streamLogs(): Stream<any, Empty> {
-    return this.stream<any, Empty>('streamLogs');
-  }
-
   /**
    * Generic RPC method. All API calls go through this, which ensures consistent logging and error handling.
    */

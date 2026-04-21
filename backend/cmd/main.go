@@ -33,7 +33,6 @@ func init() {
 		NewZerologAdapter().
 		WithConsole().
 		WithFileRotation(filepath.Join(flag.Path, "logs", "hdns.log"), 10, 30, 30, true).
-		WithStream(200).
 		SetLevel(logging.InfoLevel))
 
 	config.Init()
@@ -60,7 +59,6 @@ func main() {
 		NewZerologAdapter().
 		WithConsole().
 		WithFileRotation(filepath.Join(flag.Path, "logs", "hdns.log"), 10, 30, 30, true).
-		WithStream(200).
 		SetLevel(logging.Level(config.Get().LogLevel)))
 
 	if flag.Help {

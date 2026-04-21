@@ -46,9 +46,6 @@ service HDNS {
 
   // UpdateConfig updates the current configuration.
   rpc UpdateConfig (Configuration) returns (Configuration);
-
-  // StreamLogs streams the application logs.
-  rpc StreamLogs (Empty) returns (stream LogEntry);
 }
 
 message Empty {

@@ -6,7 +6,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
-import { DrawerComponent } from '../../../../components/drawer/drawer.component';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 import { AddressHistoryDrawerComponent } from '../../drawers/address-history/address-history-drawer.component';
@@ -20,7 +19,6 @@ import { AddressHistoryDrawerComponent } from '../../drawers/address-history/add
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    DrawerComponent,
     AddressHistoryDrawerComponent,
   ],
   template: `
