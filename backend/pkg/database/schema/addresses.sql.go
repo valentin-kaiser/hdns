@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: addresses.sql
 
-package hdnsdb
+package schema
 
 import (
 	"context"

@@ -8,13 +8,13 @@ import (
 	"github.com/valentin-kaiser/go-core/queue"
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
 
 var scheduler = queue.NewTaskScheduler()
 
 func Start(ctx context.Context) error {
-	err := scheduler.RegisterCronTask("ddns-refresh", config.Get().Service.RefreshCron, Refresh)
+	err := scheduler.RegisterCronTask("ddns-refresh", config.Get().RefreshCron, Refresh)
 	if err != nil {
 		return apperror.NewError("failed to add cron job for DNS refresh").AddError(err)
 	}
@@ -46,8 +46,8 @@ func Refresh(ctx context.Context) error {
 	if err != nil {
 		return apperror.NewError("failed to update public IP address").AddError(err)
 	}
-	var records []*hdnsdb.Record
-	err = database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var records []*schema.Record
+	err = database.HDNS().Query(func(q *schema.Queries) error {
 		records, err = q.ListRecords(context.Background())
 		if err != nil {
 			return apperror.Wrap(err)
@@ -68,9 +68,9 @@ func Refresh(ctx context.Context) error {
 	return nil
 }
 
-func RefreshRecord(ctx context.Context, record *hdnsdb.Record) error {
-	var current *hdnsdb.Address
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+func RefreshRecord(ctx context.Context, record *schema.Record) error {
+	var current *schema.Address
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		current, err = q.GetCurrentAddress(context.Background())
 		if err != nil {

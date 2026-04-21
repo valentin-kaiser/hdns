@@ -7,14 +7,14 @@ import (
 
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/hdns/pkg/database"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 	"github.com/valentin-kaiser/hdns/pkg/dns"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
 func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.RecordList, error) {
-	var records []*hdnsdb.Record
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var records []*schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		records, err = q.ListRecords(ctx)
 		if err != nil {
@@ -42,8 +42,8 @@ func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.Rec
 		}
 
 		if record.AddressID.Valid {
-			var address *hdnsdb.Address
-			err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+			var address *schema.Address
+			err := database.HDNS().Query(func(q *schema.Queries) error {
 				var err error
 				address, err = q.GetAddressByID(ctx, record.AddressID.Int64)
 				if err != nil {
@@ -91,12 +91,12 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("record name is required")
 	}
 
-	var record *hdnsdb.Record
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var record *schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		switch in.Id {
 		case 0:
-			in.Id, err = q.CreateRecord(ctx, hdnsdb.CreateRecordParams{
+			in.Id, err = q.CreateRecord(ctx, schema.CreateRecordParams{
 				Token:  in.Token,
 				ZoneID: in.ZoneId,
 				Domain: in.Domain,
@@ -107,7 +107,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				return apperror.NewError("failed to create record in database").AddError(err)
 			}
 		default:
-			_, err := q.UpdateRecord(ctx, hdnsdb.UpdateRecordParams{
+			_, err := q.UpdateRecord(ctx, schema.UpdateRecordParams{
 				ID:     in.Id,
 				Token:  in.Token,
 				ZoneID: in.ZoneId,
@@ -150,8 +150,8 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 	}
 
 	if record.AddressID.Valid {
-		var address *hdnsdb.Address
-		err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+		var address *schema.Address
+		err := database.HDNS().Query(func(q *schema.Queries) error {
 			var err error
 			address, err = q.GetAddressByID(ctx, record.AddressID.Int64)
 			if err != nil {
@@ -181,7 +181,7 @@ func (s *Server) DeleteRecord(ctx context.Context, in *service.RecordDelete) (*s
 		return nil, apperror.NewError("record is required")
 	}
 
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		record, err := q.GetRecord(ctx, in.Record.Id)
 		if err != nil {
 			return apperror.NewError("failed to fetch record from database").AddError(err)
@@ -208,9 +208,9 @@ func (s *Server) DeleteRecord(ctx context.Context, in *service.RecordDelete) (*s
 }
 
 func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*service.Record, error) {
-	var address *hdnsdb.Address
-	var record *hdnsdb.Record
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var address *schema.Address
+	var record *schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		record, err = q.GetRecord(ctx, in.Id)
 		if err != nil {
@@ -265,8 +265,8 @@ func (s *Server) ResolveRecord(ctx context.Context, in *service.Record) (*servic
 		return nil, apperror.NewError("record is required")
 	}
 
-	var record *hdnsdb.Record
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var record *schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		record, err = q.GetRecord(ctx, in.Id)
 		if err != nil {
@@ -298,13 +298,13 @@ func (s *Server) ResolveRecord(ctx context.Context, in *service.Record) (*servic
 	return list, nil
 }
 
-func (s *Server) StreamResolveRecord(ctx context.Context, in *service.Record, out chan *service.Resolution) error {
+func (s *Server) StreamResolveRecord(ctx context.Context, in *service.Record, out chan<- *service.Resolution) error {
 	if in == nil {
 		return apperror.NewError("record is required")
 	}
 
-	var record *hdnsdb.Record
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var record *schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		record, err = q.GetRecord(ctx, in.Id)
 		if err != nil {

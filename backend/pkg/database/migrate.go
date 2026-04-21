@@ -9,38 +9,38 @@ import (
 	"github.com/valentin-kaiser/go-core/logging/log"
 )
 
-//go:embed schema/migrations/*.sql
+//go:embed migrations/*.sql
 var migrations embed.FS
 
 // Migrate runs all pending migrations up
-func Migrate(db *sql.DB) error {
+func Migrate(db *sql.DB, step int) error {
 	migration := &migrate.EmbedFileSystemMigrationSource{
 		FileSystem: migrations,
-		Root:       "schema/migrations",
+		Root:       "migrations",
 	}
 
-	n, err := migrate.Exec(db, "mysql", migration, migrate.Up)
+	n, err := migrate.ExecMax(db, "mysql", migration, migrate.Up, step)
 	if err != nil {
 		return apperror.NewError("failed to run migrations").AddError(err)
 	}
 
-	log.Info().Msgf("Applied %d migration(s)", n)
+	log.Info().Msgf("applied %d migration(s)", n)
 	return nil
 }
 
 // MigrateDown rolls back one migration
-func MigrateDown(db *sql.DB) error {
+func MigrateDown(db *sql.DB, step int) error {
 	migration := &migrate.EmbedFileSystemMigrationSource{
 		FileSystem: migrations,
-		Root:       "schema/migrations",
+		Root:       "migrations",
 	}
 
-	n, err := migrate.ExecMax(db, "mysql", migration, migrate.Down, 1)
+	n, err := migrate.ExecMax(db, "mysql", migration, migrate.Down, step)
 	if err != nil {
 		return apperror.NewError("failed to rollback migration").AddError(err)
 	}
 
-	log.Info().Msgf("Rolled back %d migration(s)", n)
+	log.Info().Msgf("rolled back %d migration(s)", n)
 	return nil
 }
 
@@ -55,12 +55,12 @@ func MigrateStatus(db *sql.DB) ([]*migrate.MigrationRecord, error) {
 }
 
 // PlanMigration plans the migrations in the given direction
-func PlanMigration(db *sql.DB, dir int) ([]*migrate.PlannedMigration, error) {
+func PlanMigration(db *sql.DB, dir int, step int) ([]*migrate.PlannedMigration, error) {
 	migration := &migrate.EmbedFileSystemMigrationSource{
 		FileSystem: migrations,
-		Root:       "schema/migrations",
+		Root:       "migrations",
 	}
-	plans, _, err := migrate.PlanMigration(db, "mysql", migration, migrate.MigrationDirection(dir), 0)
+	plans, _, err := migrate.PlanMigration(db, "mysql", migration, migrate.MigrationDirection(dir), step)
 	if err != nil {
 		return nil, apperror.NewError("failed to plan migrations").AddError(err)
 	}

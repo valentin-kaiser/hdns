@@ -6,16 +6,16 @@ import (
 
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/hdns/pkg/database"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 	"github.com/valentin-kaiser/hdns/pkg/dns"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
-func (s *Server) StreamAddress(ctx context.Context, in *service.Empty, out chan *service.Address) error {
-	var current *hdnsdb.Address
+func (s *Server) StreamAddress(ctx context.Context, in *service.Empty, out chan<- *service.Address) error {
+	var current *schema.Address
 	for {
-		var address *hdnsdb.Address
-		err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+		var address *schema.Address
+		err := database.HDNS().Query(func(q *schema.Queries) error {
 			var err error
 			address, err = q.GetCurrentAddress(ctx)
 			if err != nil {
@@ -44,8 +44,8 @@ func (s *Server) StreamAddress(ctx context.Context, in *service.Empty, out chan 
 }
 
 func (s *Server) GetAddress(ctx context.Context, _ *service.Empty) (*service.Address, error) {
-	var address *hdnsdb.Address
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var address *schema.Address
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		address, err = q.GetCurrentAddress(ctx)
 		if err != nil {
@@ -68,8 +68,8 @@ func (s *Server) GetAddress(ctx context.Context, _ *service.Empty) (*service.Add
 }
 
 func (s *Server) GetAddressHistory(ctx context.Context, _ *service.Empty) (*service.AddressHistory, error) {
-	var addresses []*hdnsdb.Address
-	err := database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var addresses []*schema.Address
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		addresses, err = q.ListAddresses(ctx)
 		if err != nil {

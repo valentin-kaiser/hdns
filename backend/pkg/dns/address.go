@@ -14,17 +14,17 @@ import (
 	"github.com/valentin-kaiser/go-core/version"
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
 
-func UpdateAddress(ctx context.Context) (*hdnsdb.Address, error) {
+func UpdateAddress(ctx context.Context) (*schema.Address, error) {
 	ipv4, ipv6, err := resolve()
 	if err != nil {
 		return nil, apperror.Wrap(err)
 	}
 
-	var addr *hdnsdb.Address
-	err = database.HDNS().Query(func(q *hdnsdb.Queries) error {
+	var addr *schema.Address
+	err = database.HDNS().Query(func(q *schema.Queries) error {
 		addr, err := q.GetCurrentAddress(ctx)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return apperror.Wrap(err)
@@ -44,7 +44,7 @@ func UpdateAddress(ctx context.Context) (*hdnsdb.Address, error) {
 		addr.Ipv6 = sql.NullString{String: ipv6, Valid: ipv6 != ""}
 		addr.Current = true
 
-		_, err = q.CreateAddress(ctx, hdnsdb.CreateAddressParams{
+		_, err = q.CreateAddress(ctx, schema.CreateAddressParams{
 			Ipv4:    addr.Ipv4,
 			Ipv6:    addr.Ipv6,
 			Current: addr.Current,
@@ -63,7 +63,7 @@ func UpdateAddress(ctx context.Context) (*hdnsdb.Address, error) {
 
 func resolve() (string, string, error) {
 	var ipv4 string
-	for _, r := range config.Get().Service.IPv4Resolvers {
+	for _, r := range config.Get().IPv4Resolvers {
 		var err error
 		ipv4, err = resolveIPv4Address(r)
 		if err != nil {
@@ -75,7 +75,7 @@ func resolve() (string, string, error) {
 	}
 
 	var ipv6 string
-	for _, r := range config.Get().Service.IPv6Resolvers {
+	for _, r := range config.Get().IPv6Resolvers {
 		var err error
 		ipv6, err = resolveIPv6Address(r)
 		if err != nil {

@@ -1,12 +1,12 @@
 version: "2"
 sql:
-  - schema: "schema/migrations/*.sql"
-    queries: "schema/queries"
+  - schema: "migrations/*.sql"
+    queries: "queries"
     engine: "mysql"
     gen:
       go:
-        package: "hdnsdb"
-        out: "./gen/hdnsdb"
+        package: "schema"
+        out: "schema"
         emit_json_tags: false
         emit_prepared_queries: false
         emit_interface: false

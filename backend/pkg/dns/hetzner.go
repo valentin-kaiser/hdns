@@ -14,7 +14,7 @@ import (
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/version"
 	"github.com/valentin-kaiser/hdns/pkg/database"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
 
 const (
@@ -41,7 +41,7 @@ type Zone struct {
 	RecordsCount int    `json:"records_count"`
 }
 
-func UpdateRecord(ctx context.Context, r *hdnsdb.Record, addr *hdnsdb.Address) error {
+func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) error {
 	err := updateHetzner(r, addr.Ipv4.String)
 	if err != nil {
 		return apperror.Wrap(err)
@@ -50,8 +50,8 @@ func UpdateRecord(ctx context.Context, r *hdnsdb.Record, addr *hdnsdb.Address) e
 
 	r.AddressID = sql.NullInt64{Int64: addr.ID, Valid: true}
 	r.LastRefresh = sql.NullTime{Time: time.Now(), Valid: true}
-	err = database.HDNS().Query(func(q *hdnsdb.Queries) error {
-		err = q.UpdateRecordAddress(ctx, hdnsdb.UpdateRecordAddressParams{
+	err = database.HDNS().Query(func(q *schema.Queries) error {
+		err = q.UpdateRecordAddress(ctx, schema.UpdateRecordAddressParams{
 			AddressID:   r.AddressID,
 			LastRefresh: r.LastRefresh,
 			ID:          r.ID,
@@ -69,7 +69,7 @@ func UpdateRecord(ctx context.Context, r *hdnsdb.Record, addr *hdnsdb.Address) e
 	return nil
 }
 
-func FetchRecord(r *hdnsdb.Record) (*Record, bool, error) {
+func FetchRecord(r *schema.Record) (*Record, bool, error) {
 	c := &client{APIToken: r.Token}
 	rec, found, err := c.findRecord(r)
 	if err != nil {
@@ -98,7 +98,7 @@ func FetchZones(token string) ([]Zone, error) {
 	return res.Zones, nil
 }
 
-func DeleteRecord(r *hdnsdb.Record) error {
+func DeleteRecord(r *schema.Record) error {
 	c := &client{APIToken: r.Token}
 	rec, found, err := c.findRecord(r)
 	if err != nil {
@@ -110,7 +110,7 @@ func DeleteRecord(r *hdnsdb.Record) error {
 	return c.deleteRecord(rec.ID)
 }
 
-func updateHetzner(r *hdnsdb.Record, ip string) error {
+func updateHetzner(r *schema.Record, ip string) error {
 	c := &client{APIToken: r.Token}
 	rec, found, err := c.findRecord(r)
 	if err != nil {
@@ -180,7 +180,7 @@ func (c *client) deleteRecord(recordID string) error {
 	return c.handleAPIResponse(body, "delete")
 }
 
-func (c *client) findRecord(r *hdnsdb.Record) (*Record, bool, error) {
+func (c *client) findRecord(r *schema.Record) (*Record, bool, error) {
 	url := fmt.Sprintf("%s?zone_id=%s&name=%s&type=A", hetznerBaseURL+"/records", r.ZoneID, r.Name)
 	body, err := c.fetch(http.MethodGet, url, nil)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/hdns/pkg/config"
-	"github.com/valentin-kaiser/hdns/pkg/database/gen/hdnsdb"
+	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
 
 // Resolution represents the result of a DNS lookup from a specific server
@@ -30,7 +30,7 @@ type Resolver struct {
 // NewDNSResolver creates a new DNS resolver with the configured servers
 func NewDNSResolver() *Resolver {
 	return &Resolver{
-		servers: config.Get().Service.DNSServers,
+		servers: config.Get().DNSServers,
 		timeout: 5 * time.Second,
 	}
 }
@@ -112,7 +112,7 @@ func (r *Resolver) Resolve(domain string) ([]Resolution, error) {
 }
 
 // buildDomain constructs the full domain name from record name and domain
-func (r *Resolver) BuildDomain(record *hdnsdb.Record) string {
+func (r *Resolver) BuildDomain(record *schema.Record) string {
 	domain := record.Domain
 	if record.Name == "*" {
 		domain = "wildcard." + record.Domain

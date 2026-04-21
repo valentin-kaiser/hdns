@@ -30,7 +30,7 @@ func Start() {
 		return
 	}
 
-	c, err := security.LoadCertAndConfig(config.Get().Service.CertificatePath, config.Get().Service.KeyPath, "", tls.NoClientCert)
+	c, err := security.LoadCertAndConfig(config.Get().CertificatePath, config.Get().KeyPath, "", tls.NoClientCert)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to load TLS certificate and key, generating self-signed certificate")
 		cert, _, err := security.GenerateSelfSignedCertificate(pkix.Name{
@@ -41,13 +41,13 @@ func Start() {
 			return
 		}
 
-		err = security.WriteCertificate(cert, config.Get().Service.CertificatePath, config.Get().Service.KeyPath)
+		err = security.WriteCertificate(cert, config.Get().CertificatePath, config.Get().KeyPath)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to write self-signed certificate and key to disk")
 			return
 		}
 
-		c, err = security.LoadCertAndConfig(config.Get().Service.CertificatePath, config.Get().Service.KeyPath, "", tls.NoClientCert)
+		c, err = security.LoadCertAndConfig(config.Get().CertificatePath, config.Get().KeyPath, "", tls.NoClientCert)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to load self-signed TLS certificate and key")
 			return
@@ -57,9 +57,8 @@ func Start() {
 	done := make(chan error, 1)
 	s := web.Instance().
 		WithTLS(c).
-		WithPort(uint16(config.Get().Service.WebPort), web.ProtocolHTTPS).
+		WithPort(uint16(config.Get().WebPort), web.ProtocolHTTPS).
 		WithSecurityHeaders().
-		WithCORSHeaders().
 		WithGzip().
 		WithLog().
 		WithFS([]string{"/"}, frontend).
@@ -80,7 +79,7 @@ func Start() {
 func Restart() {
 	done := make(chan error, 1)
 	web.Instance().
-		WithPort(uint16(config.Get().Service.WebPort), web.ProtocolHTTPS).
+		WithPort(uint16(config.Get().WebPort), web.ProtocolHTTPS).
 		RestartAsync(done)
 	err := <-done
 	if err != nil {
