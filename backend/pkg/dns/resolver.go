@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/valentin-kaiser/go-core/apperror"
+	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
@@ -70,10 +70,10 @@ func (r *Resolver) Resolve(domain string) ([]Resolution, error) {
 			for _, ip := range ips {
 				if !ValidateIpv4Address(ip) {
 					log.Warn().
-						Str("server", dnsServer).
-						Str("domain", domain).
-						Str("ip", ip).
-						Dur("response_time", responseTime).
+						Field("server", dnsServer).
+						Field("domain", domain).
+						Field("ip", ip).
+						Field("response_time", responseTime).
 						Msg("Invalid IP address")
 					continue
 				}
@@ -90,19 +90,19 @@ func (r *Resolver) Resolve(domain string) ([]Resolution, error) {
 				results[index].Error = err.Error()
 
 				log.Warn().
-					Str("server", dnsServer).
-					Str("domain", domain).
-					Dur("response_time", responseTime).
+					Field("server", dnsServer).
+					Field("domain", domain).
+					Field("response_time", responseTime).
 					Err(err).
 					Msg("DNS resolution failed")
 				return
 			}
 
 			log.Debug().
-				Str("server", dnsServer).
-				Str("domain", domain).
-				Strs("ips", ips).
-				Dur("response_time", responseTime).
+				Field("server", dnsServer).
+				Field("domain", domain).
+				Field("ips", ips).
+				Field("response_time", responseTime).
 				Msg("DNS resolution successful")
 		}(i, server)
 	}

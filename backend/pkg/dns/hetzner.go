@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
-	"github.com/rs/zerolog/log"
 	"github.com/valentin-kaiser/go-core/apperror"
+	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/go-core/version"
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
