@@ -34,7 +34,7 @@ export interface Record {
   createdAt: number;
   updatedAt: number;
   token: string;
-  zoneId: string;
+  zoneId: number;
   domain: string;
   name: string;
   ttl: number;
@@ -53,7 +53,7 @@ export interface RecordDelete {
 }
 
 export interface Zone {
-  id: string;
+  id: number;
   name: string;
   recordCount: number;
 }
@@ -408,7 +408,7 @@ function createBaseRecord(): Record {
     createdAt: 0,
     updatedAt: 0,
     token: "",
-    zoneId: "",
+    zoneId: 0,
     domain: "",
     name: "",
     ttl: 0,
@@ -432,8 +432,8 @@ export const Record: MessageFns<Record> = {
     if (message.token !== "") {
       writer.uint32(34).string(message.token);
     }
-    if (message.zoneId !== "") {
-      writer.uint32(42).string(message.zoneId);
+    if (message.zoneId !== 0) {
+      writer.uint32(40).int64(message.zoneId);
     }
     if (message.domain !== "") {
       writer.uint32(50).string(message.domain);
@@ -496,11 +496,11 @@ export const Record: MessageFns<Record> = {
           continue;
         }
         case 5: {
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.zoneId = reader.string();
+          message.zoneId = longToNumber(reader.int64());
           continue;
         }
         case 6: {
@@ -575,10 +575,10 @@ export const Record: MessageFns<Record> = {
         : 0,
       token: isSet(object.token) ? globalThis.String(object.token) : "",
       zoneId: isSet(object.zoneId)
-        ? globalThis.String(object.zoneId)
+        ? globalThis.Number(object.zoneId)
         : isSet(object.zone_id)
-        ? globalThis.String(object.zone_id)
-        : "",
+        ? globalThis.Number(object.zone_id)
+        : 0,
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       ttl: isSet(object.ttl) ? globalThis.Number(object.ttl) : 0,
@@ -610,8 +610,8 @@ export const Record: MessageFns<Record> = {
     if (message.token !== "") {
       obj.token = message.token;
     }
-    if (message.zoneId !== "") {
-      obj.zoneId = message.zoneId;
+    if (message.zoneId !== 0) {
+      obj.zoneId = Math.round(message.zoneId);
     }
     if (message.domain !== "") {
       obj.domain = message.domain;
@@ -643,7 +643,7 @@ export const Record: MessageFns<Record> = {
     message.createdAt = object.createdAt ?? 0;
     message.updatedAt = object.updatedAt ?? 0;
     message.token = object.token ?? "";
-    message.zoneId = object.zoneId ?? "";
+    message.zoneId = object.zoneId ?? 0;
     message.domain = object.domain ?? "";
     message.name = object.name ?? "";
     message.ttl = object.ttl ?? 0;
@@ -799,13 +799,13 @@ export const RecordDelete: MessageFns<RecordDelete> = {
 };
 
 function createBaseZone(): Zone {
-  return { id: "", name: "", recordCount: 0 };
+  return { id: 0, name: "", recordCount: 0 };
 }
 
 export const Zone: MessageFns<Zone> = {
   encode(message: Zone, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -824,11 +824,11 @@ export const Zone: MessageFns<Zone> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.id = reader.string();
+          message.id = longToNumber(reader.int64());
           continue;
         }
         case 2: {
@@ -858,7 +858,7 @@ export const Zone: MessageFns<Zone> = {
 
   fromJSON(object: any): Zone {
     return {
-      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       recordCount: isSet(object.recordCount)
         ? globalThis.Number(object.recordCount)
@@ -870,8 +870,8 @@ export const Zone: MessageFns<Zone> = {
 
   toJSON(message: Zone): unknown {
     const obj: any = {};
-    if (message.id !== "") {
-      obj.id = message.id;
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -887,7 +887,7 @@ export const Zone: MessageFns<Zone> = {
   },
   fromPartial<I extends Exact<DeepPartial<Zone>, I>>(object: I): Zone {
     const message = createBaseZone();
-    message.id = object.id ?? "";
+    message.id = object.id ?? 0;
     message.name = object.name ?? "";
     message.recordCount = object.recordCount ?? 0;
     return message;

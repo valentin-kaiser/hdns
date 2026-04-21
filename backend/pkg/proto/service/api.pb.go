@@ -237,7 +237,7 @@ type Record struct {
 	CreatedAt     int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Token         string                 `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
-	ZoneId        string                 `protobuf:"bytes,5,opt,name=zone_id,json=zoneId,proto3" json:"zone_id,omitempty"`
+	ZoneId        int64                  `protobuf:"varint,5,opt,name=zone_id,json=zoneId,proto3" json:"zone_id,omitempty"`
 	Domain        string                 `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain,omitempty"`
 	Name          string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
 	Ttl           uint32                 `protobuf:"varint,8,opt,name=ttl,proto3" json:"ttl,omitempty"`
@@ -306,11 +306,11 @@ func (x *Record) GetToken() string {
 	return ""
 }
 
-func (x *Record) GetZoneId() string {
+func (x *Record) GetZoneId() int64 {
 	if x != nil {
 		return x.ZoneId
 	}
-	return ""
+	return 0
 }
 
 func (x *Record) GetDomain() string {
@@ -453,7 +453,7 @@ func (x *RecordDelete) GetDeleteFromHetzner() bool {
 
 type Zone struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	RecordCount   int64                  `protobuf:"varint,3,opt,name=record_count,json=recordCount,proto3" json:"record_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -490,11 +490,11 @@ func (*Zone) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *Zone) GetId() string {
+func (x *Zone) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *Zone) GetName() string {
@@ -861,7 +861,7 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x14\n" +
 	"\x05token\x18\x04 \x01(\tR\x05token\x12\x17\n" +
-	"\azone_id\x18\x05 \x01(\tR\x06zoneId\x12\x16\n" +
+	"\azone_id\x18\x05 \x01(\x03R\x06zoneId\x12\x16\n" +
 	"\x06domain\x18\x06 \x01(\tR\x06domain\x12\x12\n" +
 	"\x04name\x18\a \x01(\tR\x04name\x12\x10\n" +
 	"\x03ttl\x18\b \x01(\rR\x03ttl\x12\x1d\n" +
@@ -877,7 +877,7 @@ const file_api_proto_rawDesc = "" +
 	"\x06record\x18\x01 \x01(\v2\x0f.service.RecordR\x06record\x12.\n" +
 	"\x13delete_from_hetzner\x18\x02 \x01(\bR\x11deleteFromHetzner\"M\n" +
 	"\x04Zone\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
 	"\frecord_count\x18\x03 \x01(\x03R\vrecordCount\"/\n" +
 	"\bZoneList\x12#\n" +
