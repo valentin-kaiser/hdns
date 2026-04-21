@@ -55,11 +55,7 @@ func main() {
 
 	apperror.WithDetails = flag.Debug
 	logging.Debug(flag.Debug)
-	logging.SetGlobalAdapter(logging.
-		NewZerologAdapter().
-		WithConsole().
-		WithFileRotation(filepath.Join(flag.Path, "logs", "hdns.log"), 10, 30, 30, true).
-		SetLevel(logging.Level(config.Get().LogLevel)))
+	logging.GetGlobalAdapterInterface().SetLevel(logging.Level(config.Get().LogLevel))
 
 	if flag.Help {
 		flag.PrintHelp()
