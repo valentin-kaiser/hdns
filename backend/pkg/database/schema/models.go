@@ -22,7 +22,7 @@ type Record struct {
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	Token       string
-	ZoneID      string
+	ZoneID      int64
 	Domain      string
 	Name        string
 	Ttl         int32

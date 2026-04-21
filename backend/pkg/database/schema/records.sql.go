@@ -25,7 +25,7 @@ VALUES
 
 type CreateRecordParams struct {
 	Token  string
-	ZoneID string
+	ZoneID int64
 	Domain string
 	Name   string
 	Ttl    int32
@@ -142,7 +142,7 @@ WHERE
 
 type UpdateRecordParams struct {
 	Token  string
-	ZoneID string
+	ZoneID int64
 	Domain string
 	Name   string
 	Ttl    int32

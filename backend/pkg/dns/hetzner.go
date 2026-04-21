@@ -3,7 +3,6 @@ package dns
 import (
 	"context"
 	"database/sql"
-	"strconv"
 	"time"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
@@ -33,14 +32,14 @@ func FetchZones(ctx context.Context, token string) ([]*hcloud.Zone, error) {
 // FetchRecord looks up the A RRSet for the given record in Hetzner.
 func FetchRecord(ctx context.Context, r *schema.Record) (*hcloud.ZoneRRSet, bool, error) {
 	c := newClient(r.Token)
-	return findRRSet(ctx, c, r)
+	return findResourceRecordSet(ctx, c, r)
 }
 
 // UpdateRecord creates or overwrites the A RRSet for r with addr.Ipv4,
 // then saves address_id + last_refresh to the DB.
 func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) error {
 	c := newClient(r.Token)
-	err := upsertRRSet(ctx, c, r, addr.Ipv4.String)
+	err := upsertResourceRecordSet(ctx, c, r, addr.Ipv4.String)
 	if err != nil {
 		return apperror.Wrap(err)
 	}
@@ -68,7 +67,7 @@ func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) e
 // DeleteRecord removes the A RRSet for r from Hetzner.
 func DeleteRecord(ctx context.Context, r *schema.Record) error {
 	c := newClient(r.Token)
-	rrset, found, err := findRRSet(ctx, c, r)
+	rrset, found, err := findResourceRecordSet(ctx, c, r)
 	if err != nil {
 		return apperror.Wrap(err)
 	}
@@ -82,20 +81,9 @@ func DeleteRecord(ctx context.Context, r *schema.Record) error {
 	return nil
 }
 
-func zoneRef(r *schema.Record) (*hcloud.Zone, error) {
-	id, err := strconv.ParseInt(r.ZoneID, 10, 64)
-	if err != nil {
-		return nil, apperror.NewErrorf("invalid zone ID %q", r.ZoneID).AddError(err)
-	}
-	return &hcloud.Zone{ID: id}, nil
-}
-
-func findRRSet(ctx context.Context, c *hcloud.Client, r *schema.Record) (*hcloud.ZoneRRSet, bool, error) {
-	zone, err := zoneRef(r)
-	if err != nil {
-		return nil, false, err
-	}
-	rrset, _, err := c.Zone.GetRRSetByNameAndType(ctx, zone, r.Name, hcloud.ZoneRRSetTypeA)
+// findResourceRecordSet looks up the A RRSet for the given record in Hetzner and returns it.
+func findResourceRecordSet(ctx context.Context, c *hcloud.Client, r *schema.Record) (*hcloud.ZoneRRSet, bool, error) {
+	rrset, _, err := c.Zone.GetRRSetByNameAndType(ctx, &hcloud.Zone{ID: r.ZoneID}, r.Name, hcloud.ZoneRRSetTypeA)
 	if err != nil {
 		return nil, false, apperror.NewError("failed to fetch RRSet").AddError(err)
 	}
@@ -105,8 +93,9 @@ func findRRSet(ctx context.Context, c *hcloud.Client, r *schema.Record) (*hcloud
 	return rrset, true, nil
 }
 
-func upsertRRSet(ctx context.Context, c *hcloud.Client, r *schema.Record, ip string) error {
-	rrset, found, err := findRRSet(ctx, c, r)
+// upsertResourceRecordSet creates or overwrites the A RRSet for r with the given IP address.
+func upsertResourceRecordSet(ctx context.Context, c *hcloud.Client, r *schema.Record, ip string) error {
+	rrset, found, err := findResourceRecordSet(ctx, c, r)
 	if err != nil {
 		return apperror.Wrap(err)
 	}
@@ -114,11 +103,7 @@ func upsertRRSet(ctx context.Context, c *hcloud.Client, r *schema.Record, ip str
 	records := []hcloud.ZoneRRSetRecord{{Value: ip}}
 
 	if !found {
-		zone, err := zoneRef(r)
-		if err != nil {
-			return err
-		}
-		_, _, err = c.Zone.CreateRRSet(ctx, zone, hcloud.ZoneRRSetCreateOpts{
+		_, _, err = c.Zone.CreateRRSet(ctx, &hcloud.Zone{ID: r.ZoneID}, hcloud.ZoneRRSetCreateOpts{
 			Name:    r.Name,
 			Type:    hcloud.ZoneRRSetTypeA,
 			TTL:     &ttl,

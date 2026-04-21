@@ -37,7 +37,7 @@ CREATE TABLE
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         token VARCHAR(255) NOT NULL,
-        zone_id VARCHAR(255) NOT NULL,
+        zone_id BIGINT NOT NULL DEFAULT 0,
         domain VARCHAR(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
         ttl INT NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE
 -- Existing zone_id values are UUID strings from the old dns.hetzner.com API
 -- and are incompatible with the new api.hetzner.cloud int64 zone IDs.
 -- Clear all records to force re-setup via the UI.
-UPDATE records SET zone_id = '', address_id = NULL, last_refresh = NULL;
+UPDATE records SET zone_id = 0, address_id = NULL, last_refresh = NULL;
 
 -- +migrate Down
 DROP TABLE IF EXISTS releases;

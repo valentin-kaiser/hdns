@@ -79,7 +79,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("record token is required")
 	}
 
-	if strings.TrimSpace(in.ZoneId) == "" {
+	if in.ZoneId == 0 {
 		return nil, apperror.NewError("zone ID is required")
 	}
 

@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/hdns/pkg/dns"
@@ -18,7 +17,7 @@ func (s *Server) GetZones(ctx context.Context, in *service.Request) (*service.Zo
 	list := &service.ZoneList{Zones: make([]*service.Zone, 0, len(zones))}
 	for _, z := range zones {
 		list.Zones = append(list.Zones, &service.Zone{
-			Id:          strconv.FormatInt(z.ID, 10),
+			Id:          z.ID,
 			Name:        z.Name,
 			RecordCount: int64(z.RecordCount),
 		})
