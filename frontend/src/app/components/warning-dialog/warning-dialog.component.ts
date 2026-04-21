@@ -1,12 +1,14 @@
 import { Component, Inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Warning } from '../../global/services/notify/notify.model';
 
 @Component({
   selector: 'app-warning-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [MatDialogModule, MatButtonModule, MatCheckboxModule, FormsModule],
   template: `
     <div class="dialog-header">
       <span class="material-symbols-outlined header-icon">warning</span>
@@ -18,68 +20,86 @@ import { Warning } from '../../global/services/notify/notify.model';
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="dialog-footer">
+      @if (data.showCheckbox) {
+        <mat-checkbox
+          class="footer-checkbox"
+          [(ngModel)]="data.checkboxValue"
+          (change)="data.checkboxChange?.($event.checked)"
+        >{{ data.checkboxLabel }}</mat-checkbox>
+      }
       @for (btn of data.buttons; track btn.text) {
-        <button mat-stroked-button
-                [class.is-destructive]="btn.color === 'warn'"
-                [class.is-primary]="btn.color === 'primary'"
-                (click)="handleButton(btn.handler)">
+        <button
+          mat-stroked-button
+          [class.is-destructive]="btn.color === 'warn'"
+          [class.is-primary]="btn.color === 'primary'"
+          (click)="handleButton(btn.handler)"
+        >
           {{ btn.text }}
         </button>
       }
     </mat-dialog-actions>
   `,
-  styles: [`
-    .dialog-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 20px 24px 14px;
-      border-bottom: 1px solid var(--launch-border-color);
-    }
+  styles: [
+    `
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 24px 14px;
+        border-bottom: 1px solid var(--launch-border-color);
+      }
 
-    .header-icon {
-      font-size: 20px;
-      line-height: 1;
-      color: var(--launch-warning-icon);
-      flex-shrink: 0;
-    }
+      .header-icon {
+        font-size: 20px;
+        line-height: 1;
+        color: var(--launch-warning-icon);
+        flex-shrink: 0;
+      }
 
-    .header-title {
-      font-size: 0.9375rem;
-      font-weight: 600;
-      color: var(--launch-text-primary);
-      line-height: 1.4;
-    }
+      .header-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--launch-text-primary);
+        line-height: 1.4;
+      }
 
-    .dialog-body {
-      padding: 16px 24px !important;
+      .dialog-body {
+        padding: 16px 24px !important;
 
-      p {
-        margin: 0;
+        p {
+          margin: 0;
+          font-size: 0.875rem;
+          color: var(--launch-text-secondary);
+          line-height: 1.65;
+        }
+      }
+
+      .dialog-footer {
+        padding: 8px 16px 12px !important;
+        border-top: 1px solid var(--launch-border-color);
+        gap: 8px;
+        margin: 0 !important;
+        justify-content: space-between !important;
+      }
+
+      .footer-checkbox {
+        margin-right: auto;
         font-size: 0.875rem;
         color: var(--launch-text-secondary);
-        line-height: 1.65;
       }
-    }
 
-    .dialog-footer {
-      padding: 8px 16px 12px !important;
-      border-top: 1px solid var(--launch-border-color);
-      gap: 8px;
-      margin: 0 !important;
-    }
+      .is-destructive {
+        color: var(--launch-error) !important;
+        border-color: var(--launch-error) !important;
+      }
 
-    .is-destructive {
-      color: var(--launch-error) !important;
-      border-color: var(--launch-error) !important;
-    }
-
-    .is-primary {
-      background-color: var(--launch-accent) !important;
-      border-color: var(--launch-accent) !important;
-      color: #0f172a !important;
-    }
-  `],
+      .is-primary {
+        background-color: var(--launch-accent) !important;
+        border-color: var(--launch-accent) !important;
+        color: #0f172a !important;
+      }
+    `,
+  ],
 })
 export class WarningDialogComponent {
   constructor(
@@ -92,5 +112,3 @@ export class WarningDialogComponent {
     this.dialogRef.close();
   }
 }
-
-

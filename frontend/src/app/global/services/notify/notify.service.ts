@@ -40,6 +40,7 @@ export class NotifyService {
    */
   error(msg: string, title?: string, duration = 5000): void {
     const displayMessage = this.extractErrorMessage(msg);
+    console.log('ERROR', msg, '=>', displayMessage);
     this.addNotification(
       { kind: 'error', message: displayMessage, title, rawError: msg },
       duration,

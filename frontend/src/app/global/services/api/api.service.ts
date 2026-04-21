@@ -6,7 +6,9 @@ import {
   catchError,
   defer,
   finalize,
+  repeat,
   retry,
+  shareReplay,
   takeUntil,
   tap,
   throwError,
@@ -18,23 +20,22 @@ import {
   Address,
   AddressHistory,
   Configuration,
-  Record as DnsRecord,
   Empty,
   HDNSDefinition,
+  Record,
   RecordDelete,
   RecordList,
   Request,
+  Resolution,
   ResolutionResult,
   ZoneList,
 } from '../../model/api';
 import { LoggerService } from '../logger/logger.service';
 
 export interface Stream<TOut, TIn> {
-  messages: Signal<TOut[]>;
-  latestMessage: Signal<TOut | null>;
-  isConnected: Signal<boolean>;
-  terminateEvent: Signal<CloseEvent | 'client' | null>;
-  error: Signal<any>;
+  messages$: Observable<TOut>;
+  terminate$: Observable<CloseEvent | 'client'>;
+  connect$: Observable<void>;
   send: (msg: TIn) => void;
   close: () => void;
 }
@@ -70,33 +71,33 @@ export class ApiService {
     return this.rpc<RecordList>('getRecords', {});
   }
 
-  public upsertRecord(record: DnsRecord): Observable<DnsRecord> {
-    return this.rpc<DnsRecord>('upsertRecord', record);
+  public upsertRecord(record: Record): Observable<Record> {
+    return this.rpc<Record>('upsertRecord', record);
   }
 
-  public deleteRecord(record: DnsRecord, deleteFromHetzner: boolean): Observable<Empty> {
+  public deleteRecord(record: Record, deleteFromHetzner: boolean): Observable<Empty> {
     const req: RecordDelete = { record, deleteFromHetzner };
     return this.rpc<Empty>('deleteRecord', req);
   }
 
-  public refreshRecord(record: DnsRecord): Observable<DnsRecord> {
-    return this.rpc<DnsRecord>('refreshRecord', record);
+  public refreshRecord(record: Record): Observable<Record> {
+    return this.rpc<Record>('refreshRecord', record);
   }
 
-  public resolveRecord(record: DnsRecord): Observable<ResolutionResult> {
+  public resolveRecord(record: Record): Observable<ResolutionResult> {
     return this.rpc<ResolutionResult>('resolveRecord', record);
   }
 
-  public streamResolveRecord(record: DnsRecord): Stream<ResolutionResult, unknown> {
-    return this.stream<ResolutionResult, unknown>('streamResolveRecord', { ...record });
+  public streamResolveRecord(): Stream<Resolution, Record> {
+    return this.stream<Resolution, Record>('streamResolveRecord');
   }
 
   public getAddress(): Observable<Address> {
     return this.rpc<Address>('getAddress', {});
   }
 
-  public streamAddress(): Stream<Address, unknown> {
-    return this.stream<Address, unknown>('streamAddress');
+  public streamAddress(): Stream<Address, Empty> {
+    return this.stream<Address, Empty>('streamAddress');
   }
 
   public getAddressHistory(): Observable<AddressHistory> {
@@ -115,8 +116,8 @@ export class ApiService {
     return this.rpc<Configuration>('updateConfig', config);
   }
 
-  public streamLogs(): Stream<any, unknown> {
-    return this.stream<any, unknown>('streamLogs');
+  public streamLogs(): Stream<any, Empty> {
+    return this.stream<any, Empty>('streamLogs');
   }
 
   /**
@@ -156,7 +157,7 @@ export class ApiService {
 
   public stream<TOut, TIn = unknown>(
     methodKey: keyof typeof HDNSDefinition.methods,
-    params?: Record<string, any>,
+    params?: any,
     opts: {
       reconnect?: boolean;
       maxRetries?: number;
@@ -171,110 +172,147 @@ export class ApiService {
       maxBackoffMs = 10000,
     } = opts;
 
-    let currentWs: WebSocketSubject<any> | null = null;
-    const outgoing$ = new Subject<TIn>();
-    const kill$ = new Subject<void>();
-
-    const messagesSignal = signal<TOut[]>([]);
-    const latestMessageSignal = signal<TOut | null>(null);
-    const isConnectedSignal = signal<boolean>(false);
-    const terminateEventSignal = signal<CloseEvent | 'client' | null>(null);
-    const errorSignal = signal<any>(null);
-
     const method = HDNSDefinition.methods[methodKey];
     const path = `/rpc/${HDNSDefinition.name}/${method.name}`;
     const url = this.toWebsocketURL(path, { ...params });
 
+    let currentWs: WebSocketSubject<any> | null = null;
+    const outgoing$ = new Subject<TIn>();
+    const terminate$ = new Subject<CloseEvent | 'client'>();
+    const kill$ = new Subject<void>();
+    const connectSource$ = new Subject<void>();
+    const connect$ = connectSource$.pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+    this.logger.info(`${this.logType} ${this.logName} - ${method.name} WS connect`);
+
+    // One WS per subscription; we reconnect by re-subscribing via retryWhen
     const source$ = defer(() => {
-      this.logger.info(`${this.logType} ${this.logName} connecting to WebSocket ${url}`);
       const config: WebSocketSubjectConfig<any> = {
         url,
-        deserializer: (e: MessageEvent) => JSON.parse(e.data),
-        serializer: (v: any) => JSON.stringify(v),
-        openObserver: { next: () => isConnectedSignal.set(true) },
+        deserializer: (e: MessageEvent) => JSON.parse(e.data), // -> TOut
+        serializer: (value: any) => JSON.stringify(value), // <- TIn
+        openObserver: {
+          next: () => {
+            this.logger.info(`${this.logType} ${this.logName} WS open ${url}`);
+            connectSource$.next();
+          },
+        },
         closeObserver: {
           next: (ev: CloseEvent) => {
-            isConnectedSignal.set(false);
-            terminateEventSignal.set(ev);
+            this.logger.info(
+              `${this.logType} ${this.logName} - ${method.name} WS closed code=${ev.code} reason=${ev.reason}`,
+            );
+            terminate$.next(ev);
           },
         },
       };
-      currentWs = webSocket<any>(config);
+
+      const ws = webSocket<any>(config);
+      currentWs = ws;
+
+      // Pipe queued outgoing messages into the active socket
       const outSub = outgoing$.subscribe({
-        next: (v) => {
-          this.logger.debug(`${this.logType} ${this.logName} [stream:${method.name}] >>> sent:`, v);
+        next: (value) => {
           try {
-            currentWs!.next(v);
-          } catch (e) {
-            errorSignal.set(e);
+            ws.next(value);
+          } catch (err) {
+            this.logger.warn(
+              `${this.logType} ${this.logName} - ${method.name} WS send failed (will retry on reconnect)`,
+              err,
+            );
+            // If send fails due to closed socket, the retryWhen will recreate ws.
           }
         },
       });
-      return currentWs.pipe(
+
+      // When this WS completes/errors, stop feeding it
+      return ws.pipe(
         finalize(() => {
           outSub.unsubscribe();
           currentWs = null;
-          isConnectedSignal.set(false);
         }),
       );
     });
 
-    const subscription = source$
+    const messages$ = source$
       .pipe(
         reconnect
           ? retry({
               count: maxRetries,
               resetOnSuccess: true,
-              delay: (err, n) => {
-                const ms =
-                  Math.min(maxBackoffMs, backoffMs * Math.pow(2, Math.max(0, n - 1))) +
-                  Math.random() * 300;
-                errorSignal.set(err);
-                return timer(ms);
+              delay: (error, retryCount) => {
+                const backoff = Math.min(
+                  maxBackoffMs,
+                  Math.floor(backoffMs * Math.pow(2, Math.max(0, retryCount - 1))),
+                );
+                const jitter = Math.floor(Math.random() * 300);
+                this.logger.warn(
+                  `${this.logType} ${this.logName} - ${method.name} WS retry #${retryCount} in ${backoff + jitter}ms`,
+                  error,
+                );
+                return timer(backoff + jitter);
+              },
+            })
+          : tap({}),
+        // Also re-connect when the server closes the socket cleanly (stream completes
+        // without an error). `retry` only handles errors, so add `repeat` for
+        // completions with the same exponential backoff.
+        reconnect
+          ? repeat({
+              count: maxRetries,
+              delay: (repeatCount) => {
+                const backoff = Math.min(
+                  maxBackoffMs,
+                  Math.floor(backoffMs * Math.pow(2, Math.max(0, repeatCount - 1))),
+                );
+                const jitter = Math.floor(Math.random() * 300);
+                this.logger.warn(
+                  `${this.logType} ${this.logName} - ${method.name} WS reconnect #${repeatCount} in ${backoff + jitter}ms (server closed stream)`,
+                );
+                return timer(backoff + jitter);
               },
             })
           : tap({}),
         takeUntil(kill$),
+        shareReplay({ bufferSize: 1, refCount: true }),
       )
-      .subscribe({
-        next: (msg: TOut) => {
-          this.logger.debug(
-            `${this.logType} ${this.logName} [stream:${method.name}] <<< received:`,
-            msg,
-          );
-          messagesSignal.update((m) => [...m, msg]);
-          latestMessageSignal.set(msg);
-        },
-        error: (err) => {
-          errorSignal.set(err);
-          isConnectedSignal.set(false);
-        },
-        complete: () => isConnectedSignal.set(false),
-      });
+      .pipe(
+        tap({
+          next: (msg) =>
+            this.logger.debug(
+              `${this.logType} ${this.logName} - ${method.name} WS message received`,
+              msg,
+            ),
+          error: (err) =>
+            this.logger.error(
+              `${this.logType} ${this.logName} - ${method.name} WS message error`,
+              err,
+            ),
+        }),
+      ) as Observable<TOut>;
 
-    this.logger.info(`${this.logType} ${this.logName} initialized WebSocket stream for ${url}`);
-
-    return {
-      messages: messagesSignal.asReadonly(),
-      latestMessage: latestMessageSignal.asReadonly(),
-      isConnected: isConnectedSignal.asReadonly(),
-      terminateEvent: terminateEventSignal.asReadonly(),
-      error: errorSignal.asReadonly(),
-      send: (msg) => outgoing$.next(msg),
-      close: () => {
-        kill$.next();
-        kill$.complete();
-        try {
-          currentWs?.complete();
-          subscription.unsubscribe();
-        } catch {
-          /* ignore */
-        }
-        outgoing$.complete();
-        terminateEventSignal.set('client');
-        isConnectedSignal.set(false);
-      },
+    const send = (msg: TIn) => {
+      this.logger.debug(`${this.logType} ${this.logName} - ${method.name} WS message sent`, msg);
+      outgoing$.next(msg);
     };
+
+    const close = () => {
+      // Stop retries and close current socket
+      kill$.next();
+      kill$.complete();
+      try {
+        currentWs?.complete();
+      } catch {
+        /* ignore */
+      }
+      outgoing$.complete();
+      connectSource$.complete();
+      terminate$.next('client');
+      terminate$.complete();
+      this.logger.info(`${this.logType} ${this.logName} - ${method.name} WS closed by client`);
+    };
+
+    return { messages$, terminate$, connect$, send, close };
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
@@ -287,7 +325,7 @@ export class ApiService {
     this.baseURL = url.protocol + '//' + url.hostname + (url.port ? `:${url.port}` : '');
   }
 
-  private toWebsocketURL(endpoint: string, params?: Record<string, any>): string {
+  private toWebsocketURL(endpoint: string, params?: any): string {
     const base = new URL(this.baseURL);
     const url = new URL(endpoint, base);
     if (params) {

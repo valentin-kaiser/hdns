@@ -19,4 +19,8 @@ export interface Warning {
   title: string;
   message: string;
   buttons: WarningButton[];
+  showCheckbox?: boolean;
+  checkboxLabel?: string;
+  checkboxValue?: boolean;
+  checkboxChange?: (checked: boolean) => void;
 }

@@ -1,48 +1,61 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { ChangeDetectorRef, Component, OnChanges, OnDestroy, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Subscription } from 'rxjs';
+import { DrawerComponent } from '../../../../components/drawer/drawer.component';
+import { Record as DnsRecord, Resolution } from '../../../../global/model/api';
 import { ApiService, Stream } from '../../../../global/services/api/api.service';
-import { Record as DnsRecord, ResolutionResult } from '../../../../global/model/api';
+import { NotifyService } from '../../../../global/services/notify/notify.service';
 
 @Component({
   selector: 'app-resolve-drawer',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, DrawerComponent],
   template: `
+    <app-drawer #drawer [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }]">
     <div class="drawer-header" header>
       <h3 class="drawer-title">Resolve: {{ record?.name }}.{{ record?.domain }}</h3>
     </div>
 
     <div class="drawer-body" content>
-      <div *ngIf="connecting" class="spinner-row">
-        <mat-spinner diameter="24" /><span>Connecting…</span>
-      </div>
 
-      <div *ngIf="results.length === 0 && !connecting" class="empty-msg">
-        <mat-icon>travel_explore</mat-icon>
-        <span>No results yet.</span>
-      </div>
+      @if (results.size === 0) {
+        <div class="empty-msg">
+          <mat-icon>travel_explore</mat-icon>
+          <span>No results yet.</span>
+        </div>
+      }
 
       <div class="result-list">
-        <div class="result-row" *ngFor="let r of results">
-          <div class="result-server">{{ r.server }}</div>
-          <div class="result-addresses" *ngIf="r.addresses?.length">
-            <span class="mono" *ngFor="let a of r.addresses">{{ a }}</span>
+        @for (r of results.values(); track r.server) {
+          <div class="result-row">
+            <div class="result-server">{{ r.server }}</div>
+            @if (r.addresses?.length) {
+              <div class="result-addresses">
+                @for (a of r.addresses; track a) {
+                  <span class="mono">{{ a }}</span>
+                }
+              </div>
+            }
+            @if (r.error) {
+              <div class="result-error">
+                <mat-icon class="err-icon">error_outline</mat-icon>{{ r.error }}
+              </div>
+            }
+            <div class="result-meta">
+              @if (r.responseTime) {
+                <span>{{ r.responseTime }}ms</span>
+              }
+            </div>
           </div>
-          <div class="result-error" *ngIf="r.error">
-            <mat-icon class="err-icon">error_outline</mat-icon>{{ r.error }}
-          </div>
-          <div class="result-meta">
-            <span *ngIf="r.responseTime">{{ r.responseTime }}ms</span>
-          </div>
-        </div>
+        }
       </div>
     </div>
 
     <div class="drawer-footer" footer>
-      <button mat-stroked-button (click)="closeStream(); close.emit()">Close</button>
+      <button mat-stroked-button (click)="close()">Close</button>
     </div>
   `,
   styles: [`
@@ -86,16 +99,20 @@ import { Record as DnsRecord, ResolutionResult } from '../../../../global/model/
   `],
 })
 export class ResolveDrawerComponent implements OnChanges, OnDestroy {
-  @Input() record: DnsRecord | null = null;
-  @Output() close = new EventEmitter<void>();
+  record: DnsRecord | null = null;
+  @ViewChild('drawer') drawer!: DrawerComponent;
 
-  results: ResolutionResult['resolutions'] = [];
-  connecting = false;
+  results: Map<string, Resolution> = new Map();
 
-  private stream: Stream<ResolutionResult, unknown> | null = null;
-  private _clearInterval?: () => void;
+  private stream: Stream<Resolution, unknown> | null = null;
+  private messagesSub?: Subscription;
+  private connectedSub?: Subscription;
 
-  constructor(private readonly api: ApiService) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly notify: NotifyService,
+  ) {}
 
   ngOnChanges(): void {
     this.closeStream();
@@ -108,25 +125,42 @@ export class ResolveDrawerComponent implements OnChanges, OnDestroy {
     this.closeStream();
   }
 
+  open(r: DnsRecord): void {
+    this.record = r;
+    this.startStream();
+    this.drawer.open();
+  }
+
+  close(): void {
+    this.closeStream();
+    this.drawer.close();
+  }
+
   startStream(): void {
-    this.results = [];
-    this.connecting = true;
-    this.stream = this.api.streamResolveRecord(this.record!);
-    const interval = setInterval(() => {
-      if (this.stream!.isConnected()) this.connecting = false;
-      const msgs = this.stream!.messages();
-      if (msgs.length > 0) {
-        const allResolutions = msgs.flatMap((m: any) => m.resolutions ?? []);
-        this.results = allResolutions;
-      }
-    }, 300);
-    this._clearInterval = () => clearInterval(interval);
+    this.results = new Map();
+    this.stream = this.api.streamResolveRecord();
+    
+    this.connectedSub = this.stream.connect$.subscribe(() => {
+      this.stream.send(this.record!);
+    });
+
+    this.messagesSub = this.stream.messages$.subscribe({
+      next: (msg) => {
+        this.results = new Map(this.results.set(msg.server, msg));
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.notify.error(err?.message ?? String(err), 'Resolve stream error');
+      },
+    });
   }
 
   closeStream(): void {
+    this.messagesSub?.unsubscribe();
+    this.messagesSub = undefined;
+    this.connectedSub?.unsubscribe();
+    this.connectedSub = undefined;
     this.stream?.close();
     this.stream = null;
-    this._clearInterval?.();
-    this._clearInterval = undefined;
   }
 }

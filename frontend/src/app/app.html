@@ -6,12 +6,14 @@
 
   <span class="toolbar-spacer"></span>
 
-  <div class="toolbar-live" *ngIf="currentAddress()">
-    <span class="live-dot"></span>
-    <span class="live-address">{{ currentAddress()!.ipv4 || currentAddress()!.ipv6 }}</span>
-  </div>
+  @if (currentAddress()) {
+    <div class="toolbar-live">
+      <span class="live-dot"></span>
+      <span class="live-address">{{ currentAddress()!.ipv4 || currentAddress()!.ipv6 }}</span>
+    </div>
+  }
 
-  <button mat-icon-button (click)="openConfig()" matTooltip="Settings" aria-label="Open settings">
+  <button mat-icon-button (click)="configDrawer.open()" matTooltip="Settings" aria-label="Open settings">
     <mat-icon>settings</mat-icon>
   </button>
 </mat-toolbar>
@@ -24,6 +26,4 @@
 
 <app-loading />
 
-<app-drawer #configDrawer [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }]">
-  <app-config-drawer (saved)="configDrawer.close()" (cancelled)="configDrawer.close()" />
-</app-drawer>
+<app-config-drawer #configDrawer />
