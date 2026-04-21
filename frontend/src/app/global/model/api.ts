@@ -1573,15 +1573,6 @@ export const HDNSDefinition = {
       responseStream: false,
       options: {},
     },
-    /** StreamLogs streams the application logs. */
-    streamLogs: {
-      name: "StreamLogs",
-      requestType: Empty as typeof Empty,
-      requestStream: false,
-      responseType: LogEntry as typeof LogEntry,
-      responseStream: true,
-      options: {},
-    },
   },
 } as const;
 
