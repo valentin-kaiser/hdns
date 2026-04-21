@@ -119,12 +119,6 @@ message ResolutionResult {
 }
 
 message Configuration {
-  Service service  = 1;
-  string  driver   = 2;
-  string  database = 3;
-}
-
-message Service {
   int32           log_level        = 1;
   int32           web_port         = 2;
   string          certificate_path = 3;
@@ -133,6 +127,7 @@ message Service {
   repeated string dns_servers      = 6;
   repeated string ipv4_resolvers   = 7;
   repeated string ipv6_resolvers   = 8;
+  string          database         = 9;
 }
 
 message LogEntry {
