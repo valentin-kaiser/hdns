@@ -18,8 +18,8 @@ type App struct {
 	KeyPath         string   `usage:"path to the TLS key file" json:"key_file"`
 	RefreshCron     string   `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
 	DNSServers      []string `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
-	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address" json:"ipv4_resolvers"`
-	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address" json:"ipv6_resolvers"`
+	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
+	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
 	Database        string   `usage:"database connection DSN" json:"database"`
 }
 
@@ -45,14 +45,17 @@ func Init() {
 			"8.8.8.8:53",
 		},
 		IPv4Resolvers: []string{
-			"https://api.ipify.org",
-			"https://api.my-ip.io/ip",
-			"https://api.ipy.ch",
-			"https://ident.me/",
-			"https://ifconfig.me/ip",
+			"dns://resolver1.opendns.com/myip.opendns.com?type=A",
+			"dns://ns1.google.com/o-o.myaddr.l.google.com?type=TXT",
+			"dns://1.1.1.1/whoami.cloudflare?type=TXT&class=CH",
 			"https://icanhazip.com/",
+			"https://ident.me/",
+			"https://api.ipy.ch",
 		},
 		IPv6Resolvers: []string{
+			"dns://resolver1.opendns.com/myip.opendns.com?type=AAAA",
+			"dns://ns1.google.com/o-o.myaddr.l.google.com?type=TXT",
+			"dns://[2606:4700:4700::1111]/whoami.cloudflare?type=TXT&class=CH",
 			"https://api6.ipify.org",
 			"https://ipv6.icanhazip.com",
 		},

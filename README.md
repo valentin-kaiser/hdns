@@ -37,37 +37,40 @@ docker run -p 443:443 hdns
 - `HDNS_KEY_PATH`: Path to the TLS key file
 - `HDNS_REFRESH_CRON`: Cron expression to schedule data refresh tasks
 - `HDNS_DNS_SERVERS`: Comma-separated list of DNS servers to use for lookups 
-- `HDNS_IPV4_RESOLVERS`: Comma-separated list of IPv4 resolvers to determine public IP address
-- `HDNS_IPV6_RESOLVERS`: Comma-separated list of IPv6 resolvers to determine public IP address
+- `HDNS_IPV4_RESOLVERS`: Comma-separated list of IPv4 resolvers to determine public IP address. Each entry is a URI; `http(s)://…` entries perform an HTTP GET and expect the plain IP in the body, while `dns://<server>[:port]/<query-name>?type=A|AAAA|TXT[&class=IN|CH]` entries perform a DNS query (e.g. `dns://resolver1.opendns.com/myip.opendns.com?type=A`, `dns://1.1.1.1/whoami.cloudflare?type=TXT&class=CH`).
+- `HDNS_IPV6_RESOLVERS`: Comma-separated list of IPv6 resolvers to determine public IP address. Same URI format as `HDNS_IPV4_RESOLVERS`; for DNS entries the default query type is `AAAA`.
 - `HDNS_DATABASE`: Database connection DSN 
 
 ### File-Based Configuration
 
 ```yaml
-log_level: 1
-web_port: 443
-certificate_path: "/path/to/cert.pem"
-key_path: "/path/to/key.pem"
-refresh_cron: "0 * * * *"
-dns_servers:
-  - "hydrogen.ns.hetzner.com:53"
-  - "oxygen.ns.hetzner.com:53"
-  - "helium.ns.hetzner.de:53"
-  - "ns3.second-ns.de:53"
-  - "ns1.your-server.de:53"
-  - "ns.second.ns.com:53"
-  - "9.9.9.9:53"
-  - "1.1.1.1:53"
-  - "8.8.8.8:53"
-ipv4_resolvers:
-  - "https://api.ipify.org"
-  - "https://api.my-ip.io/ip"
-  - "https://api.ipy.ch"
-  - "https://ident.me/"
-  - "https://ifconfig.me/ip"
-  - "https://icanhazip.com/"
-ipv6_resolvers:
-  - "https://api6.ipify.org"
-  - "https://ipv6.icanhazip.com/"
+loglevel: 1
+webport: 443
+certificatepath: "/path/to/cert.pem"
+keypath: "/path/to/key.pem"
+refreshcron: "0 * * * *"
+dnsservers:
+- hydrogen.ns.hetzner.com:53
+- oxygen.ns.hetzner.com:53
+- helium.ns.hetzner.de:53
+- ns3.second-ns.de:53
+- ns1.your-server.de:53
+- ns.second.ns.com:53
+- 9.9.9.9:53
+- 1.1.1.1:53
+- 8.8.8.8:53
+ipv4resolvers:
+- dns://resolver1.opendns.com/myip.opendns.com?type=A
+- dns://ns1.google.com/o-o.myaddr.l.google.com?type=TXT
+- dns://1.1.1.1/whoami.cloudflare?type=TXT&class=CH
+- https://icanhazip.com/
+- https://ident.me/
+- https://api.ipy.ch
+ipv6resolvers:
+- dns://resolver1.opendns.com/myip.opendns.com?type=AAAA
+- dns://ns1.google.com/o-o.myaddr.l.google.com?type=TXT
+- dns://[2606:4700:4700::1111]/whoami.cloudflare?type=TXT&class=CH
+- https://api6.ipify.org
+- https://ipv6.icanhazip.com
 database: "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true"
 ```

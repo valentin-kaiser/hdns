@@ -3,7 +3,7 @@ GIT_TAG := $(shell git describe --tags)
 GIT_COMMIT := $(shell git rev-parse HEAD)
 GIT_SHORT := $(shell git rev-parse --short HEAD)
 BUILD_TIME := $(shell date +%FT%T%z)
-PACKAGE := github.com/Valentin-Kaiser/go-core/version
+PACKAGE := github.com/valentin-kaiser/go-core/version
 LDFLAGS := -ldflags "-X $(PACKAGE).GitTag=$(GIT_TAG) -X $(PACKAGE).GitCommit=$(GIT_COMMIT) -X $(PACKAGE).GitShort=$(GIT_SHORT) -X $(PACKAGE).BuildDate=$(BUILD_TIME)"
 
 RELEASE_FILE=../../../hdns
