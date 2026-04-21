@@ -11,7 +11,7 @@ services:
       hdns-db:
         condition: service_healthy
     environment:
-      - HDNS_DATABASE_DSN=hdns:hdns@tcp(hdns-db:3306)/hdns?parseTime=true
+      - HDNS_DATABASE=hdns:hdns@tcp(hdns-db:3306)/hdns?parseTime=true
 
   hdns-db:
     image: mariadb:11

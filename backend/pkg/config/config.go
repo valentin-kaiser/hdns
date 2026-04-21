@@ -31,12 +31,20 @@ func Init() {
 		KeyPath:         filepath.Join(flag.Path, "certs/hdns.key"),
 		RefreshCron:     "*/5 * * * *",
 		DNSServers: []string{
+			// Robot
+			"hydrogen.ns.hetzner.com:53",
+			"oxygen.ns.hetzner.com:53",
+			"helium.ns.hetzner.de:53",
+			// Konsole
+			"ns3.second-ns.de:53",
+			"ns1.your-server.de:53",
+			"ns.second.ns.com:53",
+			// Public
 			"9.9.9.9:53",
 			"1.1.1.1:53",
 			"8.8.8.8:53",
 		},
 		IPv4Resolvers: []string{
-			"https://nms.intellitrend.de",
 			"https://api.ipify.org",
 			"https://api.my-ip.io/ip",
 			"https://api.ipy.ch",
