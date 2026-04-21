@@ -32,7 +32,6 @@ func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.Rec
 			Id:          record.ID,
 			CreatedAt:   record.CreatedAt.Time.UnixMilli(),
 			UpdatedAt:   record.UpdatedAt.Time.UnixMilli(),
-			Token:       record.Token,
 			ZoneId:      record.ZoneID,
 			Domain:      record.Domain,
 			Name:        record.Name,
@@ -237,7 +236,6 @@ func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*servic
 		Id:          record.ID,
 		CreatedAt:   record.CreatedAt.Time.UnixMilli(),
 		UpdatedAt:   record.UpdatedAt.Time.UnixMilli(),
-		Token:       record.Token,
 		ZoneId:      record.ZoneID,
 		Domain:      record.Domain,
 		Name:        record.Name,
@@ -319,19 +317,24 @@ func (s *Server) StreamResolveRecord(ctx context.Context, in *service.Record, ou
 	resolver := dns.NewDNSResolver()
 	domain := resolver.BuildDomain(record)
 	for {
-		result, err := resolver.Resolve(domain)
-		if err != nil {
-			return apperror.NewError("failed to resolve record").AddError(err)
-		}
-
-		for _, res := range result {
-			out <- &service.Resolution{
-				Server:       res.Server,
-				Addresses:    res.Addresses,
-				ResponseTime: res.ResponseTime,
-				Error:        res.Error,
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			result, err := resolver.Resolve(domain)
+			if err != nil {
+				return apperror.NewError("failed to resolve record").AddError(err)
 			}
+
+			for _, res := range result {
+				out <- &service.Resolution{
+					Server:       res.Server,
+					Addresses:    res.Addresses,
+					ResponseTime: res.ResponseTime,
+					Error:        res.Error,
+				}
+			}
+			time.Sleep(5 * time.Second)
 		}
-		time.Sleep(5 * time.Second)
 	}
 }
