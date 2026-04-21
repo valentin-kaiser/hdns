@@ -93,8 +93,8 @@ message RecordList {
 }
 
 message RecordDelete {
-  Record record = 1;
-  bool delete_from_hetzner = 2;
+  Record record              = 1;
+  bool   delete_from_hetzner = 2;
 }
 
 message Zone {
@@ -119,8 +119,9 @@ message ResolutionResult {
 }
 
 message Configuration {
-  Service  service  = 1;
-  Database database = 2;
+  Service service  = 1;
+  string  driver   = 2;
+  string  database = 3;
 }
 
 message Service {
@@ -132,14 +133,6 @@ message Service {
   repeated string dns_servers      = 6;
   repeated string ipv4_resolvers   = 7;
   repeated string ipv6_resolvers   = 8;
-}
-
-message Database {
-  string host     = 1;
-  uint32 port     = 2;
-  string username = 3;
-  string password = 4;
-  string name     = 5;
 }
 
 message LogEntry {
