@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"strings"
 	"time"
 
@@ -99,9 +98,9 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("record name is required")
 	}
 
-	keyBytes, err := hex.DecodeString(config.Get().EncryptionKey)
-	if err != nil {
-		return nil, apperror.NewError("invalid token encryption key").AddError(err)
+	keyBytes := config.EncryptionKey()
+	if len(keyBytes) != 32 {
+		return nil, apperror.NewError("invalid token encryption key")
 	}
 
 	var encBuf bytes.Buffer
@@ -112,7 +111,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 	encryptedToken := encBuf.String()
 
 	var record *schema.Record
-	err = database.HDNS().Query(func(q *schema.Queries) error {
+	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		switch in.Id {
 		case 0:
