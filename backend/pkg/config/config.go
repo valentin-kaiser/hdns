@@ -97,7 +97,9 @@ func Init() {
 func EncryptionKey() []byte {
 	mutex.RLock()
 	defer mutex.RUnlock()
-	return key
+	keyCopy := make([]byte, len(key))
+	copy(keyCopy, key)
+	return keyCopy
 }
 
 // loadEncryptionKey reads the encryption key from disk, creating and
@@ -109,7 +111,7 @@ func loadEncryptionKey() error {
 	switch {
 	case err == nil:
 		if len(data) != 32 {
-			return apperror.NewError("encryption key file has unexpected size").AddError(err)
+			return apperror.NewError("encryption key file has unexpected size")
 		}
 		mutex.Lock()
 		key = data
