@@ -1,11 +1,15 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"strings"
 	"time"
 
 	"github.com/valentin-kaiser/go-core/apperror"
+	"github.com/valentin-kaiser/go-core/security"
+	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 	"github.com/valentin-kaiser/hdns/pkg/dns"
@@ -14,16 +18,26 @@ import (
 
 func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.RecordList, error) {
 	var records []*schema.Record
+	var addresses []*schema.Address
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		records, err = q.ListRecords(ctx)
 		if err != nil {
 			return apperror.NewError("failed to fetch records from database").AddError(err)
 		}
+		addresses, err = q.ListAddresses(ctx)
+		if err != nil {
+			return apperror.NewError("failed to fetch addresses from database").AddError(err)
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, apperror.Wrap(err)
+	}
+
+	addrByID := make(map[int64]*schema.Address, len(addresses))
+	for _, a := range addresses {
+		addrByID[a.ID] = a
 	}
 
 	list := &service.RecordList{}
@@ -40,26 +54,15 @@ func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.Rec
 		}
 
 		if record.AddressID.Valid {
-			var address *schema.Address
-			err := database.HDNS().Query(func(q *schema.Queries) error {
-				var err error
-				address, err = q.GetAddressByID(ctx, record.AddressID.Int64)
-				if err != nil {
-					return apperror.NewError("failed to fetch address from database").AddError(err)
+			if address, ok := addrByID[record.AddressID.Int64]; ok {
+				proto.Address = &service.Address{
+					Id:        address.ID,
+					CreatedAt: address.CreatedAt.Time.UnixMilli(),
+					UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
+					Ipv4:      address.Ipv4.String,
+					Ipv6:      address.Ipv6.String,
+					Current:   address.Current,
 				}
-				return nil
-			})
-			if err != nil {
-				return nil, apperror.Wrap(err)
-			}
-
-			proto.Address = &service.Address{
-				Id:        address.ID,
-				CreatedAt: address.CreatedAt.Time.UnixMilli(),
-				UpdatedAt: address.UpdatedAt.Time.UnixMilli(),
-				Ipv4:      address.Ipv4.String,
-				Ipv6:      address.Ipv6.String,
-				Current:   address.Current,
 			}
 		}
 
@@ -89,13 +92,25 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("record name is required")
 	}
 
+	keyBytes, err := hex.DecodeString(config.Get().EncryptionKey)
+	if err != nil {
+		return nil, apperror.NewError("invalid token encryption key").AddError(err)
+	}
+
+	var encBuf bytes.Buffer
+	cipher := security.NewAesCipher().WithPassphrase(keyBytes).Encrypt(in.Token, &encBuf)
+	if cipher.Error != nil {
+		return nil, apperror.NewError("failed to encrypt record token").AddError(cipher.Error)
+	}
+	encryptedToken := encBuf.String()
+
 	var record *schema.Record
-	err := database.HDNS().Query(func(q *schema.Queries) error {
+	err = database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		switch in.Id {
 		case 0:
 			in.Id, err = q.CreateRecord(ctx, schema.CreateRecordParams{
-				Token:  in.Token,
+				Token:  encryptedToken,
 				ZoneID: in.ZoneId,
 				Domain: in.Domain,
 				Name:   in.Name,
@@ -107,7 +122,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		default:
 			_, err := q.UpdateRecord(ctx, schema.UpdateRecordParams{
 				ID:     in.Id,
-				Token:  in.Token,
+				Token:  encryptedToken,
 				ZoneID: in.ZoneId,
 				Domain: in.Domain,
 				Name:   in.Name,
@@ -138,7 +153,6 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		Id:        record.ID,
 		CreatedAt: record.CreatedAt.Time.UnixMilli(),
 		UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
-		Token:     record.Token,
 		ZoneId:    record.ZoneID,
 		Domain:    record.Domain,
 		Name:      record.Name,

@@ -1,13 +1,17 @@
 package dns
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/hex"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/logging/log"
+	"github.com/valentin-kaiser/go-core/security"
 	"github.com/valentin-kaiser/go-core/version"
+	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 )
@@ -17,6 +21,23 @@ func newClient(token string) *hcloud.Client {
 		hcloud.WithToken(token),
 		hcloud.WithApplication("hdns", version.GitTag),
 	)
+}
+
+// clientForRecord decrypts the stored token and returns a Hetzner client.
+// r.Token is AES-256-GCM encrypted at rest; this function decrypts it before use.
+func clientForRecord(r *schema.Record) (*hcloud.Client, error) {
+	keyBytes, err := hex.DecodeString(config.Get().EncryptionKey)
+	if err != nil {
+		return nil, apperror.NewError("invalid token encryption key").AddError(err)
+	}
+
+	var plainBuf bytes.Buffer
+	cipher := security.NewAesCipher().WithPassphrase(keyBytes).Decrypt(r.Token, &plainBuf)
+	if cipher.Error != nil {
+		return nil, apperror.NewError("failed to decrypt record token").AddError(cipher.Error)
+	}
+
+	return newClient(plainBuf.String()), nil
 }
 
 // FetchZones returns all DNS zones accessible with the given token.
@@ -30,15 +51,21 @@ func FetchZones(ctx context.Context, token string) ([]*hcloud.Zone, error) {
 
 // FetchRecord looks up the A RRSet for the given record in Hetzner.
 func FetchRecord(ctx context.Context, r *schema.Record) (*hcloud.ZoneRRSet, bool, error) {
-	c := newClient(r.Token)
+	c, err := clientForRecord(r)
+	if err != nil {
+		return nil, false, apperror.Wrap(err)
+	}
 	return findResourceRecordSet(ctx, c, r)
 }
 
 // UpdateRecord creates or overwrites the A RRSet for r with addr.Ipv4,
 // then saves address_id + last_refresh to the DB.
 func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) error {
-	c := newClient(r.Token)
-	err := upsertResourceRecordSet(ctx, c, r, addr.Ipv4.String)
+	c, err := clientForRecord(r)
+	if err != nil {
+		return apperror.Wrap(err)
+	}
+	err = upsertResourceRecordSet(ctx, c, r, addr.Ipv4.String)
 	if err != nil {
 		return apperror.Wrap(err)
 	}
@@ -63,7 +90,10 @@ func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) e
 
 // DeleteRecord removes the A RRSet for r from Hetzner.
 func DeleteRecord(ctx context.Context, r *schema.Record) error {
-	c := newClient(r.Token)
+	c, err := clientForRecord(r)
+	if err != nil {
+		return apperror.Wrap(err)
+	}
 	rrset, found, err := findResourceRecordSet(ctx, c, r)
 	if err != nil {
 		return apperror.Wrap(err)

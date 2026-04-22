@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/hex"
 	"path/filepath"
 
 	"github.com/robfig/cron"
@@ -8,6 +9,7 @@ import (
 	"github.com/valentin-kaiser/go-core/config"
 	"github.com/valentin-kaiser/go-core/flag"
 	"github.com/valentin-kaiser/go-core/logging/log"
+	"github.com/valentin-kaiser/go-core/security"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
@@ -21,6 +23,7 @@ type App struct {
 	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
 	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
 	Database        string   `usage:"database connection DSN" json:"database"`
+	EncryptionKey   string   `usage:"hex-encoded 32-byte AES-256 key used to encrypt Hetzner API tokens at rest" json:"encryption_key"`
 }
 
 func Init() {
@@ -71,6 +74,21 @@ func Init() {
 	err = config.Read()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read configuration")
+	}
+
+	c := Get()
+	keyBytes, err := hex.DecodeString(c.EncryptionKey)
+	if err != nil || len(keyBytes) != 32 {
+		keyBytes, err = security.GetRandomBytes(32)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to generate encryption key")
+		}
+
+		c.EncryptionKey = hex.EncodeToString(keyBytes)
+		err = Write(&c)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to persist generated encryption key to configuration file")
+		}
 	}
 }
 

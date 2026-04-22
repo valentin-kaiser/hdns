@@ -421,14 +421,10 @@ export class ConfigDrawerComponent implements OnInit {
       next: (cfg) => {
         this.form.patchValue({
           logLevel: cfg.logLevel,
-          webPort: cfg.webPort,
-          certificatePath: cfg.certificatePath,
-          keyPath: cfg.keyPath,
           refreshCron: cfg.refreshCron,
           dnsServers: cfg.dnsServers ?? [],
           ipv4Resolvers: cfg.ipv4Resolvers ?? [],
           ipv6Resolvers: cfg.ipv6Resolvers ?? [],
-          database: cfg.database,
         });
         this.loading.set(false);
       },
@@ -443,14 +439,10 @@ export class ConfigDrawerComponent implements OnInit {
     const v = this.form.getRawValue();
     const payload: Configuration = {
       logLevel: v.logLevel ?? 0,
-      webPort: v.webPort ?? 443,
-      certificatePath: v.certificatePath ?? '',
-      keyPath: v.keyPath ?? '',
       refreshCron: v.refreshCron ?? '',
       dnsServers: v.dnsServers ?? [],
       ipv4Resolvers: v.ipv4Resolvers ?? [],
       ipv6Resolvers: v.ipv6Resolvers ?? [],
-      database: v.database ?? '',
     };
     this.saving = true;
     this.api.updateConfig(payload).subscribe({

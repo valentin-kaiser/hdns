@@ -36,7 +36,7 @@ CREATE TABLE
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        token VARCHAR(255) NOT NULL,
+        token VARCHAR(255) NOT NULL COMMENT 'AES-256-GCM encrypted Hetzner API token (base64url-encoded nonce+ciphertext+tag)',
         zone_id BIGINT NOT NULL DEFAULT 0,
         domain VARCHAR(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
