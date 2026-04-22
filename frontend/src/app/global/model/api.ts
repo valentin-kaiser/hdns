@@ -74,14 +74,10 @@ export interface ResolutionResult {
 
 export interface Configuration {
   logLevel: number;
-  webPort: number;
-  certificatePath: string;
-  keyPath: string;
   refreshCron: string;
   dnsServers: string[];
   ipv4Resolvers: string[];
   ipv6Resolvers: string[];
-  database: string;
 }
 
 export interface LogEntry {
@@ -1051,7 +1047,7 @@ function createBaseResolutionResult(): ResolutionResult {
 export const ResolutionResult: MessageFns<ResolutionResult> = {
   encode(message: ResolutionResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.resolutions) {
-      Resolution.encode(v!, writer.uint32(18).fork()).join();
+      Resolution.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -1063,8 +1059,8 @@ export const ResolutionResult: MessageFns<ResolutionResult> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 2: {
-          if (tag !== 18) {
+        case 1: {
+          if (tag !== 10) {
             break;
           }
 
@@ -1107,17 +1103,7 @@ export const ResolutionResult: MessageFns<ResolutionResult> = {
 };
 
 function createBaseConfiguration(): Configuration {
-  return {
-    logLevel: 0,
-    webPort: 0,
-    certificatePath: "",
-    keyPath: "",
-    refreshCron: "",
-    dnsServers: [],
-    ipv4Resolvers: [],
-    ipv6Resolvers: [],
-    database: "",
-  };
+  return { logLevel: 0, refreshCron: "", dnsServers: [], ipv4Resolvers: [], ipv6Resolvers: [] };
 }
 
 export const Configuration: MessageFns<Configuration> = {
@@ -1125,29 +1111,17 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.logLevel !== 0) {
       writer.uint32(8).int32(message.logLevel);
     }
-    if (message.webPort !== 0) {
-      writer.uint32(16).int32(message.webPort);
-    }
-    if (message.certificatePath !== "") {
-      writer.uint32(26).string(message.certificatePath);
-    }
-    if (message.keyPath !== "") {
-      writer.uint32(34).string(message.keyPath);
-    }
     if (message.refreshCron !== "") {
-      writer.uint32(42).string(message.refreshCron);
+      writer.uint32(18).string(message.refreshCron);
     }
     for (const v of message.dnsServers) {
-      writer.uint32(50).string(v!);
+      writer.uint32(26).string(v!);
     }
     for (const v of message.ipv4Resolvers) {
-      writer.uint32(58).string(v!);
+      writer.uint32(34).string(v!);
     }
     for (const v of message.ipv6Resolvers) {
-      writer.uint32(66).string(v!);
-    }
-    if (message.database !== "") {
-      writer.uint32(74).string(message.database);
+      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -1168,11 +1142,11 @@ export const Configuration: MessageFns<Configuration> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.webPort = reader.int32();
+          message.refreshCron = reader.string();
           continue;
         }
         case 3: {
@@ -1180,7 +1154,7 @@ export const Configuration: MessageFns<Configuration> = {
             break;
           }
 
-          message.certificatePath = reader.string();
+          message.dnsServers.push(reader.string());
           continue;
         }
         case 4: {
@@ -1188,7 +1162,7 @@ export const Configuration: MessageFns<Configuration> = {
             break;
           }
 
-          message.keyPath = reader.string();
+          message.ipv4Resolvers.push(reader.string());
           continue;
         }
         case 5: {
@@ -1196,39 +1170,7 @@ export const Configuration: MessageFns<Configuration> = {
             break;
           }
 
-          message.refreshCron = reader.string();
-          continue;
-        }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.dnsServers.push(reader.string());
-          continue;
-        }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.ipv4Resolvers.push(reader.string());
-          continue;
-        }
-        case 8: {
-          if (tag !== 66) {
-            break;
-          }
-
           message.ipv6Resolvers.push(reader.string());
-          continue;
-        }
-        case 9: {
-          if (tag !== 74) {
-            break;
-          }
-
-          message.database = reader.string();
           continue;
         }
       }
@@ -1247,21 +1189,6 @@ export const Configuration: MessageFns<Configuration> = {
         : isSet(object.log_level)
         ? globalThis.Number(object.log_level)
         : 0,
-      webPort: isSet(object.webPort)
-        ? globalThis.Number(object.webPort)
-        : isSet(object.web_port)
-        ? globalThis.Number(object.web_port)
-        : 0,
-      certificatePath: isSet(object.certificatePath)
-        ? globalThis.String(object.certificatePath)
-        : isSet(object.certificate_path)
-        ? globalThis.String(object.certificate_path)
-        : "",
-      keyPath: isSet(object.keyPath)
-        ? globalThis.String(object.keyPath)
-        : isSet(object.key_path)
-        ? globalThis.String(object.key_path)
-        : "",
       refreshCron: isSet(object.refreshCron)
         ? globalThis.String(object.refreshCron)
         : isSet(object.refresh_cron)
@@ -1282,7 +1209,6 @@ export const Configuration: MessageFns<Configuration> = {
         : globalThis.Array.isArray(object?.ipv6_resolvers)
         ? object.ipv6_resolvers.map((e: any) => globalThis.String(e))
         : [],
-      database: isSet(object.database) ? globalThis.String(object.database) : "",
     };
   },
 
@@ -1290,15 +1216,6 @@ export const Configuration: MessageFns<Configuration> = {
     const obj: any = {};
     if (message.logLevel !== 0) {
       obj.logLevel = Math.round(message.logLevel);
-    }
-    if (message.webPort !== 0) {
-      obj.webPort = Math.round(message.webPort);
-    }
-    if (message.certificatePath !== "") {
-      obj.certificatePath = message.certificatePath;
-    }
-    if (message.keyPath !== "") {
-      obj.keyPath = message.keyPath;
     }
     if (message.refreshCron !== "") {
       obj.refreshCron = message.refreshCron;
@@ -1312,9 +1229,6 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.ipv6Resolvers?.length) {
       obj.ipv6Resolvers = message.ipv6Resolvers;
     }
-    if (message.database !== "") {
-      obj.database = message.database;
-    }
     return obj;
   },
 
@@ -1324,14 +1238,10 @@ export const Configuration: MessageFns<Configuration> = {
   fromPartial<I extends Exact<DeepPartial<Configuration>, I>>(object: I): Configuration {
     const message = createBaseConfiguration();
     message.logLevel = object.logLevel ?? 0;
-    message.webPort = object.webPort ?? 0;
-    message.certificatePath = object.certificatePath ?? "";
-    message.keyPath = object.keyPath ?? "";
     message.refreshCron = object.refreshCron ?? "";
     message.dnsServers = object.dnsServers?.map((e) => e) || [];
     message.ipv4Resolvers = object.ipv4Resolvers?.map((e) => e) || [];
     message.ipv6Resolvers = object.ipv6Resolvers?.map((e) => e) || [];
-    message.database = object.database ?? "";
     return message;
   },
 };

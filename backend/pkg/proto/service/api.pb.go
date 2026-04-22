@@ -617,7 +617,7 @@ func (x *Resolution) GetError() string {
 
 type ResolutionResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Resolutions   []*Resolution          `protobuf:"bytes,2,rep,name=resolutions,proto3" json:"resolutions,omitempty"`
+	Resolutions   []*Resolution          `protobuf:"bytes,1,rep,name=resolutions,proto3" json:"resolutions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -660,18 +660,14 @@ func (x *ResolutionResult) GetResolutions() []*Resolution {
 }
 
 type Configuration struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	LogLevel        int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
-	WebPort         int32                  `protobuf:"varint,2,opt,name=web_port,json=webPort,proto3" json:"web_port,omitempty"`
-	CertificatePath string                 `protobuf:"bytes,3,opt,name=certificate_path,json=certificatePath,proto3" json:"certificate_path,omitempty"`
-	KeyPath         string                 `protobuf:"bytes,4,opt,name=key_path,json=keyPath,proto3" json:"key_path,omitempty"`
-	RefreshCron     string                 `protobuf:"bytes,5,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
-	DnsServers      []string               `protobuf:"bytes,6,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
-	Ipv4Resolvers   []string               `protobuf:"bytes,7,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
-	Ipv6Resolvers   []string               `protobuf:"bytes,8,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
-	Database        string                 `protobuf:"bytes,9,opt,name=database,proto3" json:"database,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LogLevel      int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
+	RefreshCron   string                 `protobuf:"bytes,2,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
+	DnsServers    []string               `protobuf:"bytes,3,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
+	Ipv4Resolvers []string               `protobuf:"bytes,4,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
+	Ipv6Resolvers []string               `protobuf:"bytes,5,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Configuration) Reset() {
@@ -711,27 +707,6 @@ func (x *Configuration) GetLogLevel() int32 {
 	return 0
 }
 
-func (x *Configuration) GetWebPort() int32 {
-	if x != nil {
-		return x.WebPort
-	}
-	return 0
-}
-
-func (x *Configuration) GetCertificatePath() string {
-	if x != nil {
-		return x.CertificatePath
-	}
-	return ""
-}
-
-func (x *Configuration) GetKeyPath() string {
-	if x != nil {
-		return x.KeyPath
-	}
-	return ""
-}
-
 func (x *Configuration) GetRefreshCron() string {
 	if x != nil {
 		return x.RefreshCron
@@ -758,13 +733,6 @@ func (x *Configuration) GetIpv6Resolvers() []string {
 		return x.Ipv6Resolvers
 	}
 	return nil
-}
-
-func (x *Configuration) GetDatabase() string {
-	if x != nil {
-		return x.Database
-	}
-	return ""
 }
 
 type LogEntry struct {
@@ -880,18 +848,14 @@ const file_api_proto_rawDesc = "" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
 	"\x10ResolutionResult\x125\n" +
-	"\vresolutions\x18\x02 \x03(\v2\x13.service.ResolutionR\vresolutions\"\xbb\x02\n" +
+	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\xbe\x01\n" +
 	"\rConfiguration\x12\x1b\n" +
-	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12\x19\n" +
-	"\bweb_port\x18\x02 \x01(\x05R\awebPort\x12)\n" +
-	"\x10certificate_path\x18\x03 \x01(\tR\x0fcertificatePath\x12\x19\n" +
-	"\bkey_path\x18\x04 \x01(\tR\akeyPath\x12!\n" +
-	"\frefresh_cron\x18\x05 \x01(\tR\vrefreshCron\x12\x1f\n" +
-	"\vdns_servers\x18\x06 \x03(\tR\n" +
+	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12!\n" +
+	"\frefresh_cron\x18\x02 \x01(\tR\vrefreshCron\x12\x1f\n" +
+	"\vdns_servers\x18\x03 \x03(\tR\n" +
 	"dnsServers\x12%\n" +
-	"\x0eipv4_resolvers\x18\a \x03(\tR\ripv4Resolvers\x12%\n" +
-	"\x0eipv6_resolvers\x18\b \x03(\tR\ripv6Resolvers\x12\x1a\n" +
-	"\bdatabase\x18\t \x01(\tR\bdatabase\"X\n" +
+	"\x0eipv4_resolvers\x18\x04 \x03(\tR\ripv4Resolvers\x12%\n" +
+	"\x0eipv6_resolvers\x18\x05 \x03(\tR\ripv6Resolvers\"X\n" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
@@ -911,7 +875,7 @@ const file_api_proto_rawDesc = "" +
 	"\x11GetAddressHistory\x12\x0e.service.Empty\x1a\x17.service.AddressHistory\x122\n" +
 	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x123\n" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
-	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.ConfigurationB=H\x01Z9github.com/valentin-kaiser/hdns/backend/pkg/proto/serviceb\x06proto3"
+	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.ConfigurationB5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
