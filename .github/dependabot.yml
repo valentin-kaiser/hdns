@@ -10,7 +10,7 @@ updates:
       gomod-dev:
         dependency-type: "development"
     assignees:
-      - "Valentin-Kaiser"
+      - "valentin-kaiser"
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
@@ -21,10 +21,10 @@ updates:
       npm-dev:
         dependency-type: "development"
     assignees:
-      - "Valentin-Kaiser"
+      - "valentin-kaiser"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
     assignees:
-      - "Valentin-Kaiser"
+      - "valentin-kaiser"
