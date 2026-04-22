@@ -438,16 +438,13 @@ export class RecordsTableComponent implements OnInit {
   }
 
   refreshRecord(record: DnsRecord): void {
-    this.notify.loading();
     this.api.refreshRecord(record).subscribe({
       next: () => {
-        this.notify.dismiss();
         this.notify.message('Record refreshed.');
         this.loadWantedIp();
         this.load();
       },
       error: (err) => {
-        this.notify.dismiss();
         this.notify.error(err?.error, 'Refresh failed');
       },
     });
@@ -474,15 +471,12 @@ export class RecordsTableComponent implements OnInit {
   }
 
   private deleteRecord(record: DnsRecord, deleteFromHetzner: boolean): void {
-    this.notify.loading();
     this.api.deleteRecord(record, deleteFromHetzner).subscribe({
       next: () => {
-        this.notify.dismiss();
         this.notify.message('Record deleted.');
         this.load();
       },
       error: (err) => {
-        this.notify.dismiss();
         this.notify.error(err?.error, 'Delete failed');
       },
     });

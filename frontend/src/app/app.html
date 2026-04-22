@@ -18,12 +18,14 @@
   </button>
 </mat-toolbar>
 
-<div class="toolbar-brand-accent"></div>
+@if (isLoading()) {
+  <mat-progress-bar mode="indeterminate" class="toolbar-brand-accent-bar" />
+} @else {
+  <div class="toolbar-brand-accent"></div>
+}
 
 <main class="app-main">
   <router-outlet />
 </main>
-
-<app-loading />
 
 <app-config-drawer #configDrawer />

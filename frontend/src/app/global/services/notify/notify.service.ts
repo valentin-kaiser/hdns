@@ -15,7 +15,10 @@ export class NotifyService {
   /** Active notifications rendered by NotificationContainerComponent */
   readonly notifications = signal<NotificationItem[]>([]);
 
-  /** Current loading state. */
+  /** Number of in-flight requests driving the loading indicator. */
+  private loadingCount = 0;
+
+  /** Current loading state. True while any request is in flight. */
   readonly isLoading = signal<boolean>(false);
 
   constructor(
@@ -78,14 +81,18 @@ export class NotifyService {
     });
   }
 
-  /** Show the loading indicator. */
+  /** Show the loading indicator (increments the in-flight counter). */
   loading(): void {
+    this.loadingCount++;
     this.isLoading.set(true);
   }
 
-  /** Hide the loading indicator. */
+  /** Decrement the in-flight counter; hides the indicator when it reaches zero. */
   dismiss(): void {
-    this.isLoading.set(false);
+    this.loadingCount = Math.max(0, this.loadingCount - 1);
+    if (this.loadingCount === 0) {
+      this.isLoading.set(false);
+    }
   }
 
   private addNotification(partial: Omit<NotificationItem, 'id'>, duration: number): void {

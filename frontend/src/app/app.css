@@ -64,6 +64,15 @@
   background: var(--hdns-gradient-primary);
 }
 
+.toolbar-brand-accent-bar {
+  display: block;
+  width: 100%;
+  --mdc-linear-progress-track-height: 3px;
+  --mdc-linear-progress-active-indicator-height: 3px;
+  --mdc-linear-progress-active-indicator-color: var(--hdns-primary);
+  --mdc-linear-progress-track-color: transparent;
+}
+
 .app-main {
   min-height: calc(100vh - 59px);
   background: #13131a;
