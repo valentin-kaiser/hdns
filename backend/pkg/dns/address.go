@@ -43,15 +43,16 @@ func UpdateAddress(ctx context.Context) (*schema.Address, error) {
 			return apperror.Wrap(err)
 		}
 
-		addr.Ipv4 = sql.NullString{String: ipv4, Valid: ipv4 != ""}
-		addr.Ipv6 = sql.NullString{String: ipv6, Valid: ipv6 != ""}
-		addr.Current = true
-
 		_, err = q.CreateAddress(ctx, schema.CreateAddressParams{
-			Ipv4:    addr.Ipv4,
-			Ipv6:    addr.Ipv6,
-			Current: addr.Current,
+			Ipv4:    sql.NullString{String: ipv4, Valid: ipv4 != ""},
+			Ipv6:    sql.NullString{String: ipv6, Valid: ipv6 != ""},
+			Current: true,
 		})
+		if err != nil {
+			return apperror.Wrap(err)
+		}
+
+		addr, err = q.GetCurrentAddress(ctx)
 		if err != nil {
 			return apperror.Wrap(err)
 		}
