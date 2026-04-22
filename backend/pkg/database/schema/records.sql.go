@@ -58,7 +58,7 @@ func (q *Queries) DeleteRecord(ctx context.Context, id int64) error {
 
 const GetRecord = `-- name: GetRecord :one
 SELECT
-    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id, last_refresh
+    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id
 FROM
     records
 WHERE
@@ -80,14 +80,13 @@ func (q *Queries) GetRecord(ctx context.Context, id int64) (*Record, error) {
 		&i.Name,
 		&i.Ttl,
 		&i.AddressID,
-		&i.LastRefresh,
 	)
 	return &i, err
 }
 
 const ListRecords = `-- name: ListRecords :many
 SELECT
-    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id, last_refresh
+    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id
 FROM
     records
 ORDER BY
@@ -113,7 +112,6 @@ func (q *Queries) ListRecords(ctx context.Context) ([]*Record, error) {
 			&i.Name,
 			&i.Ttl,
 			&i.AddressID,
-			&i.LastRefresh,
 		); err != nil {
 			return nil, err
 		}
@@ -167,19 +165,17 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int
 const UpdateRecordAddress = `-- name: UpdateRecordAddress :exec
 UPDATE records
 SET
-    address_id = ?,
-    last_refresh = ?
+    address_id = ?
 WHERE
     id = ?
 `
 
 type UpdateRecordAddressParams struct {
-	AddressID   sql.NullInt64
-	LastRefresh sql.NullTime
-	ID          int64
+	AddressID sql.NullInt64
+	ID        int64
 }
 
 func (q *Queries) UpdateRecordAddress(ctx context.Context, arg UpdateRecordAddressParams) error {
-	_, err := q.db.ExecContext(ctx, UpdateRecordAddress, arg.AddressID, arg.LastRefresh, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateRecordAddress, arg.AddressID, arg.ID)
 	return err
 }

@@ -3,7 +3,6 @@ package dns
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/valentin-kaiser/go-core/apperror"
@@ -46,12 +45,10 @@ func UpdateRecord(ctx context.Context, r *schema.Record, addr *schema.Address) e
 	log.Info().Msgf("[DNS] record %s.%s updated successfully", r.Name, r.Domain)
 
 	r.AddressID = sql.NullInt64{Int64: addr.ID, Valid: true}
-	r.LastRefresh = sql.NullTime{Time: time.Now(), Valid: true}
 	err = database.HDNS().Query(func(q *schema.Queries) error {
 		err := q.UpdateRecordAddress(ctx, schema.UpdateRecordAddressParams{
-			AddressID:   r.AddressID,
-			LastRefresh: r.LastRefresh,
-			ID:          r.ID,
+			AddressID: r.AddressID,
+			ID:        r.ID,
 		})
 		if err != nil {
 			return apperror.Wrap(err)

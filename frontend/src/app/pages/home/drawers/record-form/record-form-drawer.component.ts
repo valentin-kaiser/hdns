@@ -69,8 +69,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
                 </mat-select>
                 @if (zonesLoading) {
                   <mat-hint>Loading zones...</mat-hint>
-                }
-                @if (zones.length === 0) {
+                } @else if (zones.length === 0) {
                   <mat-hint>No zones found for this token.</mat-hint>
                 }
               </mat-form-field>

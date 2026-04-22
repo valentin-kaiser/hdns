@@ -42,21 +42,8 @@ CREATE TABLE
         name VARCHAR(255) NOT NULL,
         ttl INT NOT NULL,
         address_id BIGINT NULL,
-        last_refresh TIMESTAMP NULL,
         UNIQUE KEY unique_record (zone_id, name),
         INDEX idx_token (token),
         INDEX idx_zone_id (zone_id),
         FOREIGN KEY (address_id) REFERENCES addresses (id) ON DELETE SET NULL
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-
--- Existing zone_id values are UUID strings from the old dns.hetzner.com API
--- and are incompatible with the new api.hetzner.cloud int64 zone IDs.
--- Clear all records to force re-setup via the UI.
-UPDATE records SET zone_id = 0, address_id = NULL, last_refresh = NULL;
-
--- +migrate Down
-DROP TABLE IF EXISTS releases;
-DROP TABLE IF EXISTS records;
-DROP TABLE IF EXISTS addresses;
-
-DROP DATABASE IF EXISTS hdns;

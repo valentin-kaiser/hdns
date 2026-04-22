@@ -65,7 +65,7 @@ import { AddressHistoryDrawerComponent } from '../../drawers/address-history/add
           @if (address()!.updatedAt) {
             <div class="address-row">
               <span class="address-label">Last updated</span>
-              <span class="address-value muted">{{ address()!.updatedAt | date: 'medium' }}</span>
+              <span class="address-value muted">{{ address()!.updatedAt | date: 'dd.MM.yyyy HH:mm' : 'UTC' }}</span>
             </div>
           }
         </div>

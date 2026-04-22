@@ -18,16 +18,15 @@ type Address struct {
 }
 
 type Record struct {
-	ID          int64
-	CreatedAt   sql.NullTime
-	UpdatedAt   sql.NullTime
-	Token       string
-	ZoneID      int64
-	Domain      string
-	Name        string
-	Ttl         int32
-	AddressID   sql.NullInt64
-	LastRefresh sql.NullTime
+	ID        int64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	Token     string
+	ZoneID    int64
+	Domain    string
+	Name      string
+	Ttl       int32
+	AddressID sql.NullInt64
 }
 
 type Release struct {

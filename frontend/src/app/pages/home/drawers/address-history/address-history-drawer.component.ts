@@ -27,7 +27,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
             @for (a of addresses; track a.updatedAt) {
               <div class="history-row" [class.current]="a.current">
                 <div class="history-meta">
-                  <span class="history-date">{{ a.updatedAt | date: 'medium' }}</span>
+                  <span class="history-date">{{ a.updatedAt | date: 'dd.MM.yyyy HH:mm' : 'UTC' }}</span>
                   @if (a.current) {
                     <span class="current-badge">Current</span>
                   }

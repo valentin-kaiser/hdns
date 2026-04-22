@@ -42,8 +42,7 @@ WHERE
 -- name: UpdateRecordAddress :exec
 UPDATE records
 SET
-    address_id = ?,
-    last_refresh = ?
+    address_id = ?
 WHERE
     id = ?;
 

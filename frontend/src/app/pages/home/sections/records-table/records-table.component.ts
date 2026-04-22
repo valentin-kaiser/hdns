@@ -63,10 +63,10 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="lastRefresh">
-              <th mat-header-cell *matHeaderCellDef>Last Refresh</th>
+            <ng-container matColumnDef="updatedAt">
+              <th mat-header-cell *matHeaderCellDef>Last Updated</th>
               <td mat-cell *matCellDef="let r" class="muted">
-                {{ r.lastRefresh ? (r.lastRefresh | date: 'short') : '—' }}
+                {{ r.updatedAt ? (r.updatedAt | date: 'dd.MM.yyyy HH:mm' : 'UTC') : '—' }}
               </td>
             </ng-container>
 
@@ -79,10 +79,10 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let r" class="actions-cell">
                 <div class="actions-row">
-                  <button mat-button (click)="refreshRecord(r)">
+                  <button mat-button class="primary-item" (click)="refreshRecord(r)">
                     <mat-icon>refresh</mat-icon> Refresh
                   </button>
-                  <button mat-button (click)="resolveDrawer.open(r)">
+                  <button mat-button class="primary-item" (click)="resolveDrawer.open(r)">
                     <mat-icon>travel_explore</mat-icon> Resolve
                   </button>
                   <button mat-button class="danger-item" (click)="delete(r)">
@@ -196,12 +196,18 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
       .danger-item mat-icon {
         color: var(--hdns-danger) !important;
       }
+      .primary-item {
+        color: var(--hdns-primary) !important;
+      }
+      .primary-item mat-icon {
+        color: var(--hdns-primary) !important;
+      }
     `,
   ],
 })
 export class RecordsTableComponent implements OnInit {
   readonly records = signal<DnsRecord[]>([]);
-  columns = ['name', 'domain', 'address', 'lastRefresh', 'ttl', 'actions'];
+  columns = ['name', 'domain', 'address', 'updatedAt', 'ttl', 'actions'];
 
   @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
 

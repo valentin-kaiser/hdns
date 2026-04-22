@@ -29,15 +29,14 @@ func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.Rec
 	list := &service.RecordList{}
 	for _, record := range records {
 		proto := &service.Record{
-			Id:          record.ID,
-			CreatedAt:   record.CreatedAt.Time.UnixMilli(),
-			UpdatedAt:   record.UpdatedAt.Time.UnixMilli(),
-			ZoneId:      record.ZoneID,
-			Domain:      record.Domain,
-			Name:        record.Name,
-			Ttl:         uint32(record.Ttl),
-			AddressId:   record.AddressID.Int64,
-			LastRefresh: record.LastRefresh.Time.UnixMilli(),
+			Id:        record.ID,
+			CreatedAt: record.CreatedAt.Time.UnixMilli(),
+			UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
+			ZoneId:    record.ZoneID,
+			Domain:    record.Domain,
+			Name:      record.Name,
+			Ttl:       uint32(record.Ttl),
+			AddressId: record.AddressID.Int64,
 		}
 
 		if record.AddressID.Valid {
@@ -136,16 +135,15 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 	}
 
 	proto := &service.Record{
-		Id:          record.ID,
-		CreatedAt:   record.CreatedAt.Time.UnixMilli(),
-		UpdatedAt:   record.UpdatedAt.Time.UnixMilli(),
-		Token:       record.Token,
-		ZoneId:      record.ZoneID,
-		Domain:      record.Domain,
-		Name:        record.Name,
-		Ttl:         uint32(record.Ttl),
-		AddressId:   record.AddressID.Int64,
-		LastRefresh: record.LastRefresh.Time.UnixMilli(),
+		Id:        record.ID,
+		CreatedAt: record.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
+		Token:     record.Token,
+		ZoneId:    record.ZoneID,
+		Domain:    record.Domain,
+		Name:      record.Name,
+		Ttl:       uint32(record.Ttl),
+		AddressId: record.AddressID.Int64,
 	}
 
 	if record.AddressID.Valid {
@@ -233,15 +231,14 @@ func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*servic
 	}
 
 	proto := &service.Record{
-		Id:          record.ID,
-		CreatedAt:   record.CreatedAt.Time.UnixMilli(),
-		UpdatedAt:   record.UpdatedAt.Time.UnixMilli(),
-		ZoneId:      record.ZoneID,
-		Domain:      record.Domain,
-		Name:        record.Name,
-		Ttl:         uint32(record.Ttl),
-		AddressId:   record.AddressID.Int64,
-		LastRefresh: record.LastRefresh.Time.UnixMilli(),
+		Id:        record.ID,
+		CreatedAt: record.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
+		ZoneId:    record.ZoneID,
+		Domain:    record.Domain,
+		Name:      record.Name,
+		Ttl:       uint32(record.Ttl),
+		AddressId: record.AddressID.Int64,
 	}
 
 	if record.AddressID.Valid {
