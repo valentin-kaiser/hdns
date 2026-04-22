@@ -82,7 +82,6 @@ message Record {
   uint32  ttl          = 8;
   int64   address_id   = 9;
   Address address      = 10;
-  int64   last_refresh = 11;
 }
 
 message RecordList {
