@@ -1451,6 +1451,15 @@ export const HDNSDefinition = {
       responseStream: false,
       options: {},
     },
+    /** FetchHetznerRecord returns the A record currently defined in Hetzner for this record. */
+    fetchHetznerRecord: {
+      name: "FetchHetznerRecord",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: Address as typeof Address,
+      responseStream: false,
+      options: {},
+    },
     /** ResolveRecord resolves the record's domain. */
     resolveRecord: {
       name: "ResolveRecord",

@@ -905,14 +905,15 @@ const file_api_proto_rawDesc = "" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\xd4\x05\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\x8d\x06\n" +
 	"\x04HDNS\x123\n" +
 	"\bGetZones\x12\x14.service.ZoneRequest\x1a\x11.service.ZoneList\x123\n" +
 	"\n" +
 	"GetRecords\x12\x10.service.Request\x1a\x13.service.RecordList\x120\n" +
 	"\fUpsertRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x125\n" +
 	"\fDeleteRecord\x12\x15.service.RecordDelete\x1a\x0e.service.Empty\x121\n" +
-	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x12;\n" +
+	"\rRefreshRecord\x12\x0f.service.Record\x1a\x0f.service.Record\x127\n" +
+	"\x12FetchHetznerRecord\x12\x0f.service.Record\x1a\x10.service.Address\x12;\n" +
 	"\rResolveRecord\x12\x0f.service.Record\x1a\x19.service.ResolutionResult\x12=\n" +
 	"\x13StreamResolveRecord\x12\x0f.service.Record\x1a\x13.service.Resolution0\x01\x123\n" +
 	"\rStreamAddress\x12\x0e.service.Empty\x1a\x10.service.Address0\x01\x12.\n" +
@@ -964,29 +965,31 @@ var file_api_proto_depIdxs = []int32{
 	5,  // 8: service.HDNS.UpsertRecord:input_type -> service.Record
 	7,  // 9: service.HDNS.DeleteRecord:input_type -> service.RecordDelete
 	5,  // 10: service.HDNS.RefreshRecord:input_type -> service.Record
-	5,  // 11: service.HDNS.ResolveRecord:input_type -> service.Record
-	5,  // 12: service.HDNS.StreamResolveRecord:input_type -> service.Record
-	0,  // 13: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 14: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 15: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 16: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 17: service.HDNS.GetConfig:input_type -> service.Empty
-	12, // 18: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	9,  // 19: service.HDNS.GetZones:output_type -> service.ZoneList
-	6,  // 20: service.HDNS.GetRecords:output_type -> service.RecordList
-	5,  // 21: service.HDNS.UpsertRecord:output_type -> service.Record
-	0,  // 22: service.HDNS.DeleteRecord:output_type -> service.Empty
-	5,  // 23: service.HDNS.RefreshRecord:output_type -> service.Record
-	11, // 24: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	10, // 25: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
-	3,  // 26: service.HDNS.StreamAddress:output_type -> service.Address
-	3,  // 27: service.HDNS.GetAddress:output_type -> service.Address
-	4,  // 28: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	3,  // 29: service.HDNS.RefreshAddress:output_type -> service.Address
-	12, // 30: service.HDNS.GetConfig:output_type -> service.Configuration
-	12, // 31: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	19, // [19:32] is the sub-list for method output_type
-	6,  // [6:19] is the sub-list for method input_type
+	5,  // 11: service.HDNS.FetchHetznerRecord:input_type -> service.Record
+	5,  // 12: service.HDNS.ResolveRecord:input_type -> service.Record
+	5,  // 13: service.HDNS.StreamResolveRecord:input_type -> service.Record
+	0,  // 14: service.HDNS.StreamAddress:input_type -> service.Empty
+	0,  // 15: service.HDNS.GetAddress:input_type -> service.Empty
+	0,  // 16: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	0,  // 17: service.HDNS.RefreshAddress:input_type -> service.Empty
+	0,  // 18: service.HDNS.GetConfig:input_type -> service.Empty
+	12, // 19: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	9,  // 20: service.HDNS.GetZones:output_type -> service.ZoneList
+	6,  // 21: service.HDNS.GetRecords:output_type -> service.RecordList
+	5,  // 22: service.HDNS.UpsertRecord:output_type -> service.Record
+	0,  // 23: service.HDNS.DeleteRecord:output_type -> service.Empty
+	5,  // 24: service.HDNS.RefreshRecord:output_type -> service.Record
+	3,  // 25: service.HDNS.FetchHetznerRecord:output_type -> service.Address
+	11, // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	10, // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	3,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
+	3,  // 29: service.HDNS.GetAddress:output_type -> service.Address
+	4,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	3,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
+	12, // 32: service.HDNS.GetConfig:output_type -> service.Configuration
+	12, // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	20, // [20:34] is the sub-list for method output_type
+	6,  // [6:20] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
