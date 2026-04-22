@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { AddressCardComponent } from './sections/address-card/address-card.component';
 import { RecordsTableComponent } from './sections/records-table/records-table.component';
 

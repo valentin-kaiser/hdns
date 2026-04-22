@@ -48,10 +48,10 @@ import { NotificationItem } from '../../global/services/notify/notify.model';
     .toast-card {
       display: flex;
       align-items: stretch;
-      border-radius: var(--launch-radius-sm);
+      border-radius: var(--hdns-radius-sm);
       background: var(--launch-surface-card);
       border: 1px solid var(--launch-border-color);
-      box-shadow: var(--launch-shadow-lg);
+      box-shadow: var(--hdns-shadow-lg);
       overflow: hidden;
       min-width: 300px;
       max-width: 420px;
@@ -60,7 +60,7 @@ import { NotificationItem } from '../../global/services/notify/notify.model';
     .toast-accent-bar {
       width: 4px;
       flex-shrink: 0;
-      background: var(--launch-info-alt);
+      background: var(--hdns-info);
     }
 
     .toast-card.toast-error .toast-accent-bar {
@@ -80,7 +80,7 @@ import { NotificationItem } from '../../global/services/notify/notify.model';
       font-size: 18px;
       line-height: 1;
       flex-shrink: 0;
-      color: var(--launch-info-alt);
+      color: var(--hdns-info);
     }
 
     .toast-card.toast-error .toast-icon {
@@ -124,7 +124,7 @@ import { NotificationItem } from '../../global/services/notify/notify.model';
       padding: 0;
       border: none;
       background: transparent;
-      border-radius: var(--launch-radius-xs);
+      border-radius: var(--hdns-radius-xs);
       cursor: pointer;
       color: var(--launch-text-muted);
       transition: background 120ms ease, color 120ms ease;
@@ -136,7 +136,7 @@ import { NotificationItem } from '../../global/services/notify/notify.model';
       }
 
       &:hover {
-        background: var(--launch-neutral-bg);
+        background: var(--hdns-neutral-hover);
         color: var(--launch-text-primary);
       }
     }

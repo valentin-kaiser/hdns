@@ -40,7 +40,6 @@ export class NotifyService {
    */
   error(msg: string, title?: string, duration = 5000): void {
     const displayMessage = this.extractErrorMessage(msg);
-    console.log('ERROR', msg, '=>', displayMessage);
     this.addNotification(
       { kind: 'error', message: displayMessage, title, rawError: msg },
       duration,
@@ -63,8 +62,8 @@ export class NotifyService {
   warning(config: Warning): void {
     this.dialog.open(WarningDialogComponent, {
       data: config,
-      panelClass: 'launch-dialog',
-      backdropClass: 'launch-backdrop',
+      panelClass: 'hdns-dialog',
+      backdropClass: 'hdns-backdrop',
     });
   }
 
@@ -74,7 +73,7 @@ export class NotifyService {
   presentErrorDetailModal(error: string, title?: string): void {
     this.dialog.open(ErrorComponent, {
       data: { message: error, title },
-      panelClass: ['launch-dialog', 'auto-height'],
+      panelClass: ['hdns-dialog', 'auto-height'],
       width: '480px',
     });
   }

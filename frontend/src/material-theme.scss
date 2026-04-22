@@ -104,4 +104,15 @@ $hdns-theme: mat.m2-define-dark-theme((
   --hdns-primary:        #ff6600;
   --hdns-primary-tint:   rgba(255, 102, 0, 0.12);
   --hdns-primary-hover:  #e05a00;
+
+  // Radius scale
+  --hdns-radius-xs:      4px;
+  --hdns-radius-sm:      8px;
+
+  // Elevation
+  --hdns-shadow-lg:      0 4px 20px rgba(0, 0, 0, 0.6);
+
+  // Info / neutral helpers
+  --hdns-info:           #4a9eff;
+  --hdns-neutral-hover:  rgba(255, 255, 255, 0.06);
 }

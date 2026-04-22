@@ -26,12 +26,12 @@ html, body {
 }
 
 /* ── Material dialog overrides ──────────────────────────────────────────── */
-.launch-dialog .mat-mdc-dialog-container {
+.hdns-dialog .mat-mdc-dialog-container {
   border-radius: 12px !important;
   overflow: hidden;
 }
 
-.launch-backdrop {
+.hdns-backdrop {
   background: rgba(0, 0, 0, 0.4);
 }
 
