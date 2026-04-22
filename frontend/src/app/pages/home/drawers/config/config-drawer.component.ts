@@ -13,6 +13,7 @@ import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 
 const LOG_LEVELS = [
+  { value: -1, label: 'Trace' },
   { value: 0, label: 'Debug' },
   { value: 1, label: 'Info' },
   { value: 2, label: 'Warning' },
@@ -43,9 +44,7 @@ const LOG_LEVELS = [
       <div class="drawer-body" content>
         @if (loading()) {
           <div class="loading-msg">Loading configuration…</div>
-        }
-
-        @if (!loading()) {
+        } @else {
           <form [formGroup]="form" class="config-form">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Log Level</mat-label>
@@ -219,10 +218,10 @@ const LOG_LEVELS = [
         <button
           mat-flat-button
           color="primary"
-          [disabled]="form.invalid || saving"
+          [disabled]="form.invalid || saving()"
           (click)="save()"
         >
-          {{ saving ? 'Saving…' : 'Save' }}
+          {{ saving() ? 'Saving…' : 'Save' }}
         </button>
       </div>
     </app-drawer>
@@ -428,7 +427,7 @@ export class ConfigDrawerComponent implements OnInit {
   @ViewChild('drawer') drawer!: DrawerComponent;
 
   loading = signal(true);
-  saving = false;
+  saving = signal(false);
   logLevels = LOG_LEVELS;
 
   private readonly fb = inject(FormBuilder);
@@ -474,17 +473,18 @@ export class ConfigDrawerComponent implements OnInit {
   }
 
   open() {
+    this.loading.set(true);
     this.drawer.open();
     this.api.getConfig().subscribe({
       next: (cfg) => {
+        this.loading.set(false);
         this.form.patchValue({
-          logLevel: cfg.logLevel,
+          logLevel: cfg.logLevel ?? 0,
           refreshCron: cfg.refreshCron,
           dnsServers: cfg.dnsServers ?? [],
           ipv4Resolvers: cfg.ipv4Resolvers ?? [],
           ipv6Resolvers: cfg.ipv6Resolvers ?? [],
         });
-        this.loading.set(false);
       },
       error: (err) => {
         this.loading.set(false);
@@ -502,15 +502,15 @@ export class ConfigDrawerComponent implements OnInit {
       ipv4Resolvers: v.ipv4Resolvers ?? [],
       ipv6Resolvers: v.ipv6Resolvers ?? [],
     };
-    this.saving = true;
+    this.saving.set(true);
     this.api.updateConfig(payload).subscribe({
       next: () => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.message('Configuration saved.');
         this.drawer.close();
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.error(err?.error, 'Save failed');
       },
     });
