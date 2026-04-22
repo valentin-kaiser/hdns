@@ -5,11 +5,9 @@ FROM node:24-alpine AS frontend
 COPY . /app
 WORKDIR /app/frontend
 
-RUN npm install -g @angular/cli@latest
+RUN npm i
 
-RUN npm ci
-
-RUN ng build
+RUN npx ng build
 
 FROM golang:1.26-alpine AS backend
 
