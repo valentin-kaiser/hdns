@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/hex"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/valentin-kaiser/go-core/apperror"
@@ -26,9 +25,9 @@ func newClient(token string) *hcloud.Client {
 // clientForRecord decrypts the stored token and returns a Hetzner client.
 // r.Token is AES-256-GCM encrypted at rest; this function decrypts it before use.
 func clientForRecord(r *schema.Record) (*hcloud.Client, error) {
-	keyBytes, err := hex.DecodeString(config.Get().EncryptionKey)
-	if err != nil {
-		return nil, apperror.NewError("invalid token encryption key").AddError(err)
+	keyBytes := config.EncryptionKey()
+	if len(keyBytes) != 32 {
+		return nil, apperror.NewError("invalid token encryption key")
 	}
 
 	var plainBuf bytes.Buffer

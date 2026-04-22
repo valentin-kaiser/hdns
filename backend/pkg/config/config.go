@@ -1,8 +1,9 @@
 package config
 
 import (
-	"encoding/hex"
+	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/robfig/cron"
 	"github.com/valentin-kaiser/go-core/apperror"
@@ -11,6 +12,15 @@ import (
 	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/go-core/security"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
+)
+
+// encryptionKeyFile is the filename used to persist the AES-256 encryption
+// key on disk, relative to the application data directory.
+const encryptionKeyFile = ".key"
+
+var (
+	mutex sync.RWMutex
+	key   []byte
 )
 
 type App struct {
@@ -23,7 +33,6 @@ type App struct {
 	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
 	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
 	Database        string   `usage:"database connection DSN" json:"database"`
-	EncryptionKey   string   `usage:"hex-encoded 32-byte AES-256 key used to encrypt Hetzner API tokens at rest" json:"encryption_key"`
 }
 
 func Init() {
@@ -76,20 +85,57 @@ func Init() {
 		log.Fatal().Err(err).Msg("failed to read configuration")
 	}
 
-	c := Get()
-	keyBytes, err := hex.DecodeString(c.EncryptionKey)
-	if err != nil || len(keyBytes) != 32 {
-		keyBytes, err = security.GetRandomBytes(32)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to generate encryption key")
-		}
-
-		c.EncryptionKey = hex.EncodeToString(keyBytes)
-		err = Write(&c)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to persist generated encryption key to configuration file")
-		}
+	err = loadEncryptionKey()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load encryption key")
 	}
+}
+
+// EncryptionKey returns the raw 32-byte AES-256 key used to encrypt
+// Hetzner API tokens at rest. The key is loaded from or generated into
+// the ".key" file inside the application data directory.
+func EncryptionKey() []byte {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return key
+}
+
+// loadEncryptionKey reads the encryption key from disk, creating and
+// persisting a new random key if the file does not yet exist.
+func loadEncryptionKey() error {
+	path := filepath.Join(flag.Path, encryptionKeyFile)
+
+	data, err := os.ReadFile(path)
+	switch {
+	case err == nil:
+		if len(data) != 32 {
+			return apperror.NewError("encryption key file has unexpected size").AddError(err)
+		}
+		mutex.Lock()
+		key = data
+		mutex.Unlock()
+		return nil
+	case !os.IsNotExist(err):
+		return apperror.NewError("failed to read encryption key file").AddError(err)
+	}
+
+	keyBytes, err := security.GetRandomBytes(32)
+	if err != nil {
+		return apperror.NewError("failed to generate encryption key").AddError(err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return apperror.NewError("failed to create encryption key directory").AddError(err)
+	}
+
+	if err := os.WriteFile(path, keyBytes, 0o600); err != nil {
+		return apperror.NewError("failed to persist encryption key").AddError(err)
+	}
+
+	mutex.Lock()
+	key = keyBytes
+	mutex.Unlock()
+	return nil
 }
 
 func Get() App {
