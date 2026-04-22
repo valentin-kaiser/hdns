@@ -243,7 +243,6 @@ type Record struct {
 	Ttl           uint32                 `protobuf:"varint,8,opt,name=ttl,proto3" json:"ttl,omitempty"`
 	AddressId     int64                  `protobuf:"varint,9,opt,name=address_id,json=addressId,proto3" json:"address_id,omitempty"`
 	Address       *Address               `protobuf:"bytes,10,opt,name=address,proto3" json:"address,omitempty"`
-	LastRefresh   int64                  `protobuf:"varint,11,opt,name=last_refresh,json=lastRefresh,proto3" json:"last_refresh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -346,13 +345,6 @@ func (x *Record) GetAddress() *Address {
 		return x.Address
 	}
 	return nil
-}
-
-func (x *Record) GetLastRefresh() int64 {
-	if x != nil {
-		return x.LastRefresh
-	}
-	return 0
 }
 
 type RecordList struct {
@@ -853,7 +845,7 @@ const file_api_proto_rawDesc = "" +
 	"\x04ipv6\x18\x05 \x01(\tR\x04ipv6\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"@\n" +
 	"\x0eAddressHistory\x12.\n" +
-	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xb1\x02\n" +
+	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\x8e\x02\n" +
 	"\x06Record\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -868,8 +860,7 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"address_id\x18\t \x01(\x03R\taddressId\x12*\n" +
 	"\aaddress\x18\n" +
-	" \x01(\v2\x10.service.AddressR\aaddress\x12!\n" +
-	"\flast_refresh\x18\v \x01(\x03R\vlastRefresh\"7\n" +
+	" \x01(\v2\x10.service.AddressR\aaddress\"7\n" +
 	"\n" +
 	"RecordList\x12)\n" +
 	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"g\n" +

@@ -40,7 +40,6 @@ export interface Record {
   ttl: number;
   addressId: number;
   address: Address | undefined;
-  lastRefresh: number;
 }
 
 export interface RecordList {
@@ -414,7 +413,6 @@ function createBaseRecord(): Record {
     ttl: 0,
     addressId: 0,
     address: undefined,
-    lastRefresh: 0,
   };
 }
 
@@ -449,9 +447,6 @@ export const Record: MessageFns<Record> = {
     }
     if (message.address !== undefined) {
       Address.encode(message.address, writer.uint32(82).fork()).join();
-    }
-    if (message.lastRefresh !== 0) {
-      writer.uint32(88).int64(message.lastRefresh);
     }
     return writer;
   },
@@ -543,14 +538,6 @@ export const Record: MessageFns<Record> = {
           message.address = Address.decode(reader, reader.uint32());
           continue;
         }
-        case 11: {
-          if (tag !== 88) {
-            break;
-          }
-
-          message.lastRefresh = longToNumber(reader.int64());
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -588,11 +575,6 @@ export const Record: MessageFns<Record> = {
         ? globalThis.Number(object.address_id)
         : 0,
       address: isSet(object.address) ? Address.fromJSON(object.address) : undefined,
-      lastRefresh: isSet(object.lastRefresh)
-        ? globalThis.Number(object.lastRefresh)
-        : isSet(object.last_refresh)
-        ? globalThis.Number(object.last_refresh)
-        : 0,
     };
   },
 
@@ -628,9 +610,6 @@ export const Record: MessageFns<Record> = {
     if (message.address !== undefined) {
       obj.address = Address.toJSON(message.address);
     }
-    if (message.lastRefresh !== 0) {
-      obj.lastRefresh = Math.round(message.lastRefresh);
-    }
     return obj;
   },
 
@@ -651,7 +630,6 @@ export const Record: MessageFns<Record> = {
     message.address = (object.address !== undefined && object.address !== null)
       ? Address.fromPartial(object.address)
       : undefined;
-    message.lastRefresh = object.lastRefresh ?? 0;
     return message;
   },
 };
