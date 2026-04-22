@@ -39,7 +39,7 @@ COPY --from=backend /app/hdns /app/hdns
 RUN apk add --no-cache ca-certificates tzdata curl
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-CMD curl -f https://localhost || exit 1
+CMD curl -fk https://localhost || exit 1
 
 EXPOSE 443/tcp
 

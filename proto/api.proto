@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package service;
 
-option go_package = "github.com/valentin-kaiser/hdns/backend/pkg/proto/service";
+option go_package = "github.com/valentin-kaiser/hdns/pkg/proto/service";
 
 option optimize_for = SPEED;
 
@@ -111,7 +111,7 @@ message Resolution {
 }
 
 message ResolutionResult {
-  repeated Resolution resolutions = 2;
+  repeated Resolution resolutions = 1;
 }
 
 message Configuration {
