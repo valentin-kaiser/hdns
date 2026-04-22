@@ -116,14 +116,10 @@ message ResolutionResult {
 
 message Configuration {
   int32           log_level        = 1;
-  int32           web_port         = 2;
-  string          certificate_path = 3;
-  string          key_path         = 4;
-  string          refresh_cron     = 5;
-  repeated string dns_servers      = 6;
-  repeated string ipv4_resolvers   = 7;
-  repeated string ipv6_resolvers   = 8;
-  string          database         = 9;
+  string          refresh_cron     = 2;
+  repeated string dns_servers      = 3;
+  repeated string ipv4_resolvers   = 4;
+  repeated string ipv6_resolvers   = 5;
 }
 
 message LogEntry {
