@@ -10,21 +10,22 @@ LIMIT
 
 -- name: ListRecords :many
 SELECT
-    *
+    r.*
 FROM
-    records
+    records as r
+WHERE
+    CASE
+        WHEN sqlc.narg ('search') IS NOT NULL THEN r.name LIKE CONCAT('%', sqlc.narg ('search'), '%')
+        OR r.domain LIKE CONCAT('%', sqlc.narg ('search'), '%')
+        ELSE TRUE
+    END
 ORDER BY
-    id DESC;
+    r.domain ASC,
+    r.name ASC;
 
 -- name: CreateRecord :execlastid
 INSERT INTO
-    records (
-        token,
-        zone_id,
-        domain,
-        name,
-        ttl
-    )
+    records (token, zone_id, domain, name, ttl)
 VALUES
     (?, ?, ?, ?, ?);
 

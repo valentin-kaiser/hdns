@@ -8,7 +8,7 @@ import (
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
-func (s *Server) GetZones(ctx context.Context, in *service.Request) (*service.ZoneList, error) {
+func (s *Server) GetZones(ctx context.Context, in *service.ZoneRequest) (*service.ZoneList, error) {
 	zones, err := dns.FetchZones(ctx, in.Token)
 	if err != nil {
 		return nil, apperror.Wrap(err)

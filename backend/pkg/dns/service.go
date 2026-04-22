@@ -48,7 +48,7 @@ func Refresh(ctx context.Context) error {
 	}
 	var records []*schema.Record
 	err = database.HDNS().Query(func(q *schema.Queries) error {
-		records, err = q.ListRecords(ctx)
+		records, err = q.ListRecords(ctx, schema.ListRecordsParams{})
 		if err != nil {
 			return apperror.Wrap(err)
 		}

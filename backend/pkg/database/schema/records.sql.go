@@ -12,13 +12,7 @@ import (
 
 const CreateRecord = `-- name: CreateRecord :execlastid
 INSERT INTO
-    records (
-        token,
-        zone_id,
-        domain,
-        name,
-        ttl
-    )
+    records (token, zone_id, domain, name, ttl)
 VALUES
     (?, ?, ?, ?, ?)
 `
@@ -86,15 +80,26 @@ func (q *Queries) GetRecord(ctx context.Context, id int64) (*Record, error) {
 
 const ListRecords = `-- name: ListRecords :many
 SELECT
-    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id
+    r.id, r.created_at, r.updated_at, r.token, r.zone_id, r.domain, r.name, r.ttl, r.address_id
 FROM
-    records
+    records as r
+WHERE
+    CASE
+        WHEN ? IS NOT NULL THEN r.name LIKE CONCAT('%', ?, '%')
+        OR r.domain LIKE CONCAT('%', ?, '%')
+        ELSE TRUE
+    END
 ORDER BY
-    id DESC
+    r.domain ASC,
+    r.name ASC
 `
 
-func (q *Queries) ListRecords(ctx context.Context) ([]*Record, error) {
-	rows, err := q.db.QueryContext(ctx, ListRecords)
+type ListRecordsParams struct {
+	Search interface{}
+}
+
+func (q *Queries) ListRecords(ctx context.Context, arg ListRecordsParams) ([]*Record, error) {
+	rows, err := q.db.QueryContext(ctx, ListRecords, arg.Search, arg.Search, arg.Search)
 	if err != nil {
 		return nil, err
 	}

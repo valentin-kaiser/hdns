@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/hex"
 	"strings"
 	"time"
@@ -16,12 +17,18 @@ import (
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
 
-func (s *Server) GetRecords(ctx context.Context, _ *service.Empty) (*service.RecordList, error) {
+func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.RecordList, error) {
+	if in == nil {
+		return nil, apperror.NewError("request is required")
+	}
+
 	var records []*schema.Record
 	var addresses []*schema.Address
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
-		records, err = q.ListRecords(ctx)
+		records, err = q.ListRecords(ctx, schema.ListRecordsParams{
+			Search: sql.NullString{String: in.Search, Valid: in.Search != ""},
+		})
 		if err != nil {
 			return apperror.NewError("failed to fetch records from database").AddError(err)
 		}
