@@ -83,6 +83,10 @@ func RefreshRecord(ctx context.Context, record *schema.Record) error {
 		return err
 	}
 
+	if !current.Ipv4.Valid {
+		return apperror.NewError("current address has no valid IPv4; skipping A record update")
+	}
+
 	rrset, found, err := FetchRecord(ctx, record)
 	if err != nil {
 		return err
