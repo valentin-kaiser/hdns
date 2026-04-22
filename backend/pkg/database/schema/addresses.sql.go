@@ -146,7 +146,7 @@ func (q *Queries) ResetCurrentAddresses(ctx context.Context) error {
 	return err
 }
 
-const UpdateAddress = `-- name: UpdateAddress :execlastid
+const UpdateAddress = `-- name: UpdateAddress :exec
 UPDATE addresses
 SET
     ipv4 = ?,
@@ -163,15 +163,12 @@ type UpdateAddressParams struct {
 	ID      int64
 }
 
-func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, UpdateAddress,
+func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) error {
+	_, err := q.db.ExecContext(ctx, UpdateAddress,
 		arg.Ipv4,
 		arg.Ipv6,
 		arg.Current,
 		arg.ID,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	return err
 }

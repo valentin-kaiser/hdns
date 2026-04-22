@@ -126,7 +126,7 @@ func (q *Queries) ListRecords(ctx context.Context) ([]*Record, error) {
 	return items, nil
 }
 
-const UpdateRecord = `-- name: UpdateRecord :execlastid
+const UpdateRecord = `-- name: UpdateRecord :exec
 UPDATE records
 SET
     token = ?,
@@ -147,8 +147,8 @@ type UpdateRecordParams struct {
 	ID     int64
 }
 
-func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, UpdateRecord,
+func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) error {
+	_, err := q.db.ExecContext(ctx, UpdateRecord,
 		arg.Token,
 		arg.ZoneID,
 		arg.Domain,
@@ -156,10 +156,7 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) (int
 		arg.Ttl,
 		arg.ID,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	return err
 }
 
 const UpdateRecordAddress = `-- name: UpdateRecordAddress :exec

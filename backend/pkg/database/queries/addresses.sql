@@ -34,7 +34,7 @@ INSERT INTO
 VALUES
     (?, ?, ?);
 
--- name: UpdateAddress :execlastid
+-- name: UpdateAddress :exec
 UPDATE addresses
 SET
     ipv4 = ?,

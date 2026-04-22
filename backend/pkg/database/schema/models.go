@@ -21,6 +21,7 @@ type Record struct {
 	ID        int64
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	// AES-256-GCM encrypted Hetzner API token (base64url-encoded nonce+ciphertext+tag)
 	Token     string
 	ZoneID    int64
 	Domain    string

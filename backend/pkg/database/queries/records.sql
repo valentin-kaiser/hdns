@@ -28,7 +28,7 @@ INSERT INTO
 VALUES
     (?, ?, ?, ?, ?);
 
--- name: UpdateRecord :execlastid
+-- name: UpdateRecord :exec
 UPDATE records
 SET
     token = ?,

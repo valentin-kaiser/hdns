@@ -120,7 +120,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				return apperror.NewError("failed to create record in database").AddError(err)
 			}
 		default:
-			_, err := q.UpdateRecord(ctx, schema.UpdateRecordParams{
+			err = q.UpdateRecord(ctx, schema.UpdateRecordParams{
 				ID:     in.Id,
 				Token:  encryptedToken,
 				ZoneID: in.ZoneId,

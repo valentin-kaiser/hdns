@@ -3,17 +3,17 @@ build: prod
 .PHONY: build prod repair lint schema
 
 prod: 
-	$(MAKE) repair -C application/frontend
-	$(MAKE) prod -C application/frontend
-	$(MAKE) repair -C application/backend
-	$(MAKE) prod -C application/backend
+	$(MAKE) repair -C frontend
+	$(MAKE) prod -C frontend
+	$(MAKE) repair -C backend
+	$(MAKE) prod -C backend
 
 repair:
-	$(MAKE) repair -C application/backend/
-	$(MAKE) repair -C application/frontend/
+	$(MAKE) repair -C backend/
+	$(MAKE) repair -C frontend/
 
 lint:
-	$(MAKE) lint -C application/backend/
+	$(MAKE) lint -C backend/
 
 schema:
-	$(MAKE) schema -C application/backend/pkg/database/
+	$(MAKE) schema -C backend/pkg/database/

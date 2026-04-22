@@ -20,7 +20,7 @@ service HDNS {
   // DeleteRecord deletes a record.
   rpc DeleteRecord (RecordDelete) returns (Empty);
 
-  // RefreshRecord the record's address.
+  // RefreshRecord refreshes the record's address.
   rpc RefreshRecord (Record) returns (Record);
 
   // ResolveRecord resolves the record's domain.
