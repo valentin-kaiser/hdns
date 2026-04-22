@@ -1,0 +1,29 @@
+<mat-toolbar class="app-toolbar">
+  <div class="toolbar-brand">
+    <img src="assets/hdns-icon.png" class="brand-logo" alt="HDNS" />
+    <span class="brand-wordmark">HDNS</span>
+  </div>
+
+  <span class="toolbar-spacer"></span>
+
+  @if (currentAddress()) {
+    <div class="toolbar-live">
+      <span class="live-dot"></span>
+      <span class="live-address">{{ currentAddress()!.ipv4 || currentAddress()!.ipv6 }}</span>
+    </div>
+  }
+
+  <button mat-icon-button (click)="configDrawer.open()" matTooltip="Settings" aria-label="Open settings">
+    <mat-icon>settings</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="toolbar-brand-accent"></div>
+
+<main class="app-main">
+  <router-outlet />
+</main>
+
+<app-loading />
+
+<app-config-drawer #configDrawer />

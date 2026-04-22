@@ -1,0 +1,143 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* ── Local fonts (offline-capable) ──────────────────────────────────────── */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource-variable/roboto-mono';
+@import 'material-icons/iconfont/material-icons.css';
+@import 'material-symbols/outlined.css';
+
+@import "tailwindcss";
+
+/* ── Global resets & typography ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background: #13131a;
+  color: var(--launch-text-primary);
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+/* ── Material dialog overrides ──────────────────────────────────────────── */
+.hdns-dialog .mat-mdc-dialog-container {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.hdns-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* ── Loading overlay ────────────────────────────────────────────────────── */
+.loading-overlay-panel {
+  pointer-events: none;
+}
+
+/* ── Card utility ───────────────────────────────────────────────────────── */
+.hdns-card {
+  background: var(--hdns-card-bg);
+  border-radius: var(--hdns-card-radius);
+  box-shadow: var(--hdns-card-shadow);
+  border: var(--hdns-card-border);
+}
+
+/* ── Page container ─────────────────────────────────────────────────────── */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Dark Material overrides ────────────────────────────────────────────── */
+.mat-mdc-table {
+  background: transparent !important;
+}
+
+.mat-mdc-header-row {
+  background: #16161e !important;
+}
+
+.mat-mdc-header-cell {
+  color: var(--launch-text-muted) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom-color: var(--launch-border-color) !important;
+}
+
+.mat-mdc-cell {
+  color: var(--launch-text-primary) !important;
+  border-bottom-color: var(--launch-border-color) !important;
+}
+
+/* ── Primary button tint ────────────────────────────────────────────────── */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  background-color: var(--hdns-primary) !important;
+}
+
+/* ── Stepper overrides ──────────────────────────────────────────────────── */
+.mat-stepper-vertical {
+  background: transparent !important;
+}
+
+.mat-step-header {
+  background: transparent !important;
+}
+
+.mat-step-header:hover {
+  background: var(--hdns-primary-tint) !important;
+}
+
+.mat-vertical-content-container {
+  margin-left: 20px !important;
+  border-left: 1px solid var(--launch-border-color) !important;
+  padding-left: 16px !important;
+}
+
+.mat-vertical-stepper-content {
+  padding: 0 !important;
+}
+
+.mat-step-label {
+  color: var(--launch-text-secondary) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+.mat-step-label.mat-step-label-active {
+  color: var(--launch-text-primary) !important;
+}
+
+.mat-step-label.mat-step-label-selected {
+  color: var(--hdns-primary) !important;
+  font-weight: 600 !important;
+}
+
+.mat-step-icon {
+  background-color: var(--launch-border-color) !important;
+}
+
+.mat-step-icon-selected,
+.mat-step-icon-state-edit,
+.mat-step-icon-state-done {
+  background-color: var(--hdns-primary) !important;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2c2c3a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+

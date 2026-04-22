@@ -1,0 +1,7 @@
+<ng-template #drawer let-side="side">
+  <aside [class]="animate ? 'panel animate' : 'panel'" [attr.data-side]="side">
+    <div class="panel-container">
+      <ng-content></ng-content>
+    </div>
+  </aside>
+</ng-template>

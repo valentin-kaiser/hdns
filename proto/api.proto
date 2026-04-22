@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "github.com/valentin-kaiser/hdns/pkg/proto/service";
+
+option optimize_for = SPEED;
+
+// HDNS is the main service for HDNS.
+service HDNS {
+  // GetZones returns all zones.
+  rpc GetZones (Request) returns (ZoneList);
+
+  // GetRecords returns all records.
+  rpc GetRecords (Empty) returns (RecordList);
+
+  // UpsertRecord creates or updates a record.
+  rpc UpsertRecord (Record) returns (Record);
+
+  // DeleteRecord deletes a record.
+  rpc DeleteRecord (RecordDelete) returns (Empty);
+
+  // RefreshRecord refreshes the record's address.
+  rpc RefreshRecord (Record) returns (Record);
+
+  // ResolveRecord resolves the record's domain.
+  rpc ResolveRecord (Record) returns (ResolutionResult);
+
+  // StreamResolveRecord streams the resolution results for the record.
+  rpc StreamResolveRecord (Record) returns (stream Resolution);
+
+  // StreamAddress streams the current address.
+  rpc StreamAddress (Empty) returns (stream Address);
+
+  // GetAddress returns the current address.
+  rpc GetAddress (Empty) returns (Address);
+
+  // GetAddressHistory returns the address history.
+  rpc GetAddressHistory (Empty) returns (AddressHistory);
+
+  // RefreshAddress refreshes the current address.
+  rpc RefreshAddress (Empty) returns (Address);
+
+  // GetConfig returns the current configuration.
+  rpc GetConfig (Empty) returns (Configuration);
+
+  // UpdateConfig updates the current configuration.
+  rpc UpdateConfig (Configuration) returns (Configuration);
+}
+
+message Empty {
+
+}
+
+message Request {
+  string token = 1;
+}
+
+// Address represents an IP address.
+message Address {
+  int64  id         = 1;
+  int64  created_at = 2;
+  int64  updated_at = 3;
+  string ipv4       = 4;
+  string ipv6       = 5;
+  bool   current    = 6;
+}
+
+message AddressHistory {
+  repeated Address addresses = 1;
+}
+
+// Record represents a DNS record.
+message Record {
+  int64   id           = 1;
+  int64   created_at   = 2;
+  int64   updated_at   = 3;
+  string  token        = 4;
+  int64   zone_id      = 5;
+  string  domain       = 6;
+  string  name         = 7;
+  uint32  ttl          = 8;
+  int64   address_id   = 9;
+  Address address      = 10;
+}
+
+message RecordList {
+  repeated Record records = 1;
+}
+
+message RecordDelete {
+  Record record              = 1;
+  bool   delete_from_hetzner = 2;
+}
+
+message Zone {
+  int64  id           = 1;
+  string name         = 2;
+  int64  record_count = 3;
+}
+
+message ZoneList {
+  repeated Zone zones = 1;
+}
+
+message Resolution {
+  string          server        = 1;
+  repeated string addresses     = 2;
+  int64           response_time = 3;
+  string          error         = 4;
+}
+
+message ResolutionResult {
+  repeated Resolution resolutions = 1;
+}
+
+message Configuration {
+  int32           log_level        = 1;
+  string          refresh_cron     = 2;
+  repeated string dns_servers      = 3;
+  repeated string ipv4_resolvers   = 4;
+  repeated string ipv6_resolvers   = 5;
+}
+
+message LogEntry {
+  int64  timestamp = 1;
+  int32  level     = 2;
+  string message   = 3;
+}

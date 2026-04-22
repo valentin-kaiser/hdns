@@ -1,0 +1,118 @@
+// ── Material 3 theme — HDNS brand palette ───────────────────────────────────
+@use '@angular/material' as mat;
+
+// Custom brand palette — primary: #ff6600 (orange)
+$hdns-primary: mat.m2-define-palette((
+  50:  #fff3e0,
+  100: #ffe0b2,
+  200: #ffcc80,
+  300: #ffb74d,
+  400: #ffa726,
+  500: #ff6600,
+  600: #e05a00,
+  700: #bf4600,
+  800: #9e3500,
+  900: #7c2600,
+  contrast: (
+    50:  rgba(0,0,0,0.87),
+    100: rgba(0,0,0,0.87),
+    200: rgba(0,0,0,0.87),
+    300: rgba(0,0,0,0.87),
+    400: rgba(0,0,0,0.87),
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+  )
+), 500, 300, 700);
+
+// Secondary/accent: #a8001c (dark red)
+$hdns-accent: mat.m2-define-palette((
+  50:  #fce4ec,
+  100: #f8bbd0,
+  200: #f48fb1,
+  300: #f06292,
+  400: #ec407a,
+  500: #a8001c,
+  600: #880016,
+  700: #680011,
+  800: #48000c,
+  900: #280006,
+  contrast: (
+    50:  rgba(0,0,0,0.87),
+    100: rgba(0,0,0,0.87),
+    200: rgba(0,0,0,0.87),
+    300: rgba(0,0,0,0.87),
+    400: rgba(0,0,0,0.87),
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+  )
+), 500, 300, 700);
+
+$hdns-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$hdns-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $hdns-primary,
+    accent: $hdns-accent,
+    warn: $hdns-warn,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: "'Inter', 'Roboto', sans-serif",
+  ),
+  density: 0,
+));
+
+@include mat.all-component-themes($hdns-theme);
+@include mat.core();
+
+// ── Design tokens ────────────────────────────────────────────────────────────
+:root {
+  // Launch / shared component tokens
+  --launch-surface-card:     #1e1e26;
+  --launch-border-color:     #2c2c3a;
+  --launch-text-primary:     #eeeef2;
+  --launch-text-secondary:   #a0a0b8;
+  --launch-text-muted:       #5c5c78;
+  --launch-accent:           #ff6600;
+  --launch-accent-hover:     #e05a00;
+  --launch-error:            #ff4d5e;
+  --launch-error-light:      #ff6b78;
+  --launch-warning-icon:     #ffc107;
+  --launch-overlay-shadow:   rgba(0, 0, 0, 0.5);
+
+  // Brand gradient accents (header band only)
+  --hdns-gradient-primary:   linear-gradient(135deg, #ff6600 0%, #e05a00 100%);
+  --hdns-gradient-secondary: linear-gradient(135deg, #a8001c 0%, #d92442 100%);
+
+  // Card helpers
+  --hdns-card-radius:    12px;
+  --hdns-card-shadow:    0 2px 8px rgba(0, 0, 0, 0.4);
+  --hdns-card-border:    1px solid #2c2c3a;
+  --hdns-card-bg:        #1e1e26;
+
+  // Status colors
+  --hdns-success:  #2dd36f;
+  --hdns-warning:  #ffc107;
+  --hdns-danger:   #ff4d5e;
+
+  // Primary interactive
+  --hdns-primary:        #ff6600;
+  --hdns-primary-tint:   rgba(255, 102, 0, 0.12);
+  --hdns-primary-hover:  #e05a00;
+
+  // Radius scale
+  --hdns-radius-xs:      4px;
+  --hdns-radius-sm:      8px;
+
+  // Elevation
+  --hdns-shadow-lg:      0 4px 20px rgba(0, 0, 0, 0.6);
+
+  // Info / neutral helpers
+  --hdns-info:           #4a9eff;
+  --hdns-neutral-hover:  rgba(255, 255, 255, 0.06);
+}

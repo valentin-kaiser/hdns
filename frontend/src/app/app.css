@@ -1,0 +1,70 @@
+.app-toolbar {
+  background: #16161e;
+  border-bottom: 1px solid var(--launch-border-color);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.4);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 56px;
+  padding: 0 24px;
+}
+
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo {
+  height: 28px;
+  width: auto;
+}
+
+.brand-wordmark {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--hdns-primary);
+}
+
+@media (max-width: 600px) {
+  .brand-wordmark {
+    display: none;
+  }
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+  font-size: 0.8125rem;
+  color: var(--launch-text-secondary);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hdns-success);
+  box-shadow: 0 0 0 2px rgba(45, 211, 111, 0.25);
+}
+
+.live-address {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.toolbar-brand-accent {
+  height: 3px;
+  background: var(--hdns-gradient-primary);
+}
+
+.app-main {
+  min-height: calc(100vh - 59px);
+  background: #13131a;
+}

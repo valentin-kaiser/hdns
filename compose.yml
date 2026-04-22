@@ -1,8 +1,34 @@
 services:
-  hetzner-dyndns:
-    container_name: hetzner-dyndns
+  hdns:
+    container_name: hdns
     image: ghcr.io/valentin-kaiser/hdns:latest
+    tty: true
     ports:
-      - "8080:8080"
+      - "443:443"
     volumes:
-      - ./data:/data
+      - ./data:/app/data
+    depends_on:
+      hdns-db:
+        condition: service_healthy
+    environment:
+      - HDNS_DATABASE=hdns:hdns@tcp(hdns-db:3306)/hdns?parseTime=true
+
+  hdns-db:
+    image: mariadb:11
+    container_name: hdns-db
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: hdns
+      MARIADB_USER: hdns
+      MARIADB_PASSWORD: hdns
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db-data:
