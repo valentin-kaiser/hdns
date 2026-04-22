@@ -14,8 +14,8 @@ import (
 // HDNSServer is the server API for HDNS service.
 type HDNSServer interface {
 	Descriptor() protoreflect.FileDescriptor
-	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
-	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
+	GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error)
+	GetRecords(ctx context.Context, in *Request) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
@@ -35,11 +35,11 @@ func (UnimplementedHDNSServer) Descriptor() protoreflect.FileDescriptor {
 	return File_api_proto
 }
 
-func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *Request) (*ZoneList, error) {
+func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error) {
 	return nil, errors.New("method HDNS.GetZones not implemented")
 }
 
-func (UnimplementedHDNSServer) GetRecords(ctx context.Context, in *Empty) (*RecordList, error) {
+func (UnimplementedHDNSServer) GetRecords(ctx context.Context, in *Request) (*RecordList, error) {
 	return nil, errors.New("method HDNS.GetRecords not implemented")
 }
 
@@ -98,8 +98,8 @@ var _ HDNSServer = (*UnimplementedHDNSServer)(nil)
 
 // HDNSClientDefinition is the client API for HDNS service.
 type HDNSClientDefinition interface {
-	GetZones(ctx context.Context, in *Request) (*ZoneList, error)
-	GetRecords(ctx context.Context, in *Empty) (*RecordList, error)
+	GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error)
+	GetRecords(ctx context.Context, in *Request) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
@@ -131,7 +131,7 @@ func NewHDNSClient(baseURL string, opts ...jrpc.ClientOption) (*HDNSClient, erro
 	}, nil
 }
 
-func (c *HDNSClient) GetZones(ctx context.Context, in *Request) (*ZoneList, error) {
+func (c *HDNSClient) GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error) {
 	u := c.baseURL.JoinPath("HDNS", "GetZones")
 	out := &ZoneList{}
 	err := c.client.Call(ctx, u, in, out, nil)
@@ -141,7 +141,7 @@ func (c *HDNSClient) GetZones(ctx context.Context, in *Request) (*ZoneList, erro
 	return out, nil
 }
 
-func (c *HDNSClient) GetRecords(ctx context.Context, in *Empty) (*RecordList, error) {
+func (c *HDNSClient) GetRecords(ctx context.Context, in *Request) (*RecordList, error) {
 	u := c.baseURL.JoinPath("HDNS", "GetRecords")
 	out := &RecordList{}
 	err := c.client.Call(ctx, u, in, out, nil)

@@ -11,6 +11,10 @@ export interface Empty {
 }
 
 export interface Request {
+  search: string;
+}
+
+export interface ZoneRequest {
   token: string;
 }
 
@@ -130,13 +134,13 @@ export const Empty: MessageFns<Empty> = {
 };
 
 function createBaseRequest(): Request {
-  return { token: "" };
+  return { search: "" };
 }
 
 export const Request: MessageFns<Request> = {
   encode(message: Request, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
+    if (message.search !== "") {
+      writer.uint32(10).string(message.search);
     }
     return writer;
   },
@@ -145,6 +149,64 @@ export const Request: MessageFns<Request> = {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.search = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Request {
+    return { search: isSet(object.search) ? globalThis.String(object.search) : "" };
+  },
+
+  toJSON(message: Request): unknown {
+    const obj: any = {};
+    if (message.search !== "") {
+      obj.search = message.search;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Request>, I>>(base?: I): Request {
+    return Request.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Request>, I>>(object: I): Request {
+    const message = createBaseRequest();
+    message.search = object.search ?? "";
+    return message;
+  },
+};
+
+function createBaseZoneRequest(): ZoneRequest {
+  return { token: "" };
+}
+
+export const ZoneRequest: MessageFns<ZoneRequest> = {
+  encode(message: ZoneRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.token !== "") {
+      writer.uint32(10).string(message.token);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ZoneRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseZoneRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -165,11 +227,11 @@ export const Request: MessageFns<Request> = {
     return message;
   },
 
-  fromJSON(object: any): Request {
+  fromJSON(object: any): ZoneRequest {
     return { token: isSet(object.token) ? globalThis.String(object.token) : "" };
   },
 
-  toJSON(message: Request): unknown {
+  toJSON(message: ZoneRequest): unknown {
     const obj: any = {};
     if (message.token !== "") {
       obj.token = message.token;
@@ -177,11 +239,11 @@ export const Request: MessageFns<Request> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Request>, I>>(base?: I): Request {
-    return Request.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ZoneRequest>, I>>(base?: I): ZoneRequest {
+    return ZoneRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Request>, I>>(object: I): Request {
-    const message = createBaseRequest();
+  fromPartial<I extends Exact<DeepPartial<ZoneRequest>, I>>(object: I): ZoneRequest {
+    const message = createBaseZoneRequest();
     message.token = object.token ?? "";
     return message;
   },
@@ -1347,7 +1409,7 @@ export const HDNSDefinition = {
     /** GetZones returns all zones. */
     getZones: {
       name: "GetZones",
-      requestType: Request as typeof Request,
+      requestType: ZoneRequest as typeof ZoneRequest,
       requestStream: false,
       responseType: ZoneList as typeof ZoneList,
       responseStream: false,
@@ -1356,7 +1418,7 @@ export const HDNSDefinition = {
     /** GetRecords returns all records. */
     getRecords: {
       name: "GetRecords",
-      requestType: Empty as typeof Empty,
+      requestType: Request as typeof Request,
       requestStream: false,
       responseType: RecordList as typeof RecordList,
       responseStream: false,
