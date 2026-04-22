@@ -3,8 +3,8 @@ package dns
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
 	"github.com/valentin-kaiser/go-core/apperror"
+	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/go-core/queue"
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
