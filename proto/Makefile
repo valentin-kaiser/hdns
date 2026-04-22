@@ -30,9 +30,9 @@ proto-go:
 	@mkdir -p $(GO_GEN_DIR)
 	$(PROTOC) -I $(PROTO_PATH) \
 	  --go_out=$(GO_GEN_DIR) \
-	  --go_opt=module=github.com/valentin-kaiser/hdns/backend/pkg/proto \
+	  --go_opt=module=github.com/valentin-kaiser/hdns/pkg/proto \
 	  --go-jrpc_out=$(GO_GEN_DIR) \
-	  --go-jrpc_opt=module=github.com/valentin-kaiser/hdns/backend/pkg/proto \
+	  --go-jrpc_opt=module=github.com/valentin-kaiser/hdns/pkg/proto \
 	  $(PROTO_FILES)
 
 proto-ts:
