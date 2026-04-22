@@ -37,7 +37,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
     DrawerComponent,
   ],
   template: `
-    <app-drawer #drawer [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
+    <app-drawer #drawer (closed)="drawer.close()" [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
       <div class="drawer-header">
         <h3 class="drawer-title">{{ record ? 'Edit Record' : 'Add Record' }}</h3>
       </div>

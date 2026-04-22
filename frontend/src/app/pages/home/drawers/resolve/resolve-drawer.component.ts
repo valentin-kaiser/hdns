@@ -14,7 +14,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
   standalone: true,
   imports: [CommonModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, DrawerComponent],
   template: `
-    <app-drawer #drawer [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
+    <app-drawer #drawer (closed)="drawer.close()" [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
     <div class="drawer-header" header>
       <h3 class="drawer-title">Resolve: {{ record?.name }}.{{ record?.domain }}</h3>
     </div>

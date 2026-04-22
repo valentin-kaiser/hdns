@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,9 +31,11 @@ const LOG_LEVELS = [
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
+    CdkDropList,
+    CdkDrag,
   ],
   template: `
-    <app-drawer #drawer [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
+    <app-drawer #drawer (closed)="drawer.close()" [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
       <div class="drawer-header" header>
         <h3 class="drawer-title">Configuration</h3>
       </div>
@@ -83,9 +86,14 @@ const LOG_LEVELS = [
               @if ((form.value.dnsServers ?? []).length === 0) {
                 <div class="list-empty">No DNS servers configured.</div>
               } @else {
-                <div class="list-items">
+                <div
+                  class="list-items"
+                  cdkDropList
+                  (cdkDropListDropped)="onDrop('dnsServers', $event)"
+                >
                   @for (s of form.value.dnsServers; track $index; let i = $index) {
-                    <div class="list-item">
+                    <div class="list-item" cdkDrag cdkDragLockAxis="y">
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ s }}</span>
                       <button
@@ -128,9 +136,14 @@ const LOG_LEVELS = [
               @if ((form.value.ipv4Resolvers ?? []).length === 0) {
                 <div class="list-empty">No IPv4 resolvers configured.</div>
               } @else {
-                <div class="list-items">
+                <div
+                  class="list-items"
+                  cdkDropList
+                  (cdkDropListDropped)="onDrop('ipv4Resolvers', $event)"
+                >
                   @for (r of form.value.ipv4Resolvers; track $index; let i = $index) {
-                    <div class="list-item">
+                    <div class="list-item" cdkDrag cdkDragLockAxis="y">
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ r }}</span>
                       <button
@@ -173,9 +186,14 @@ const LOG_LEVELS = [
               @if ((form.value.ipv6Resolvers ?? []).length === 0) {
                 <div class="list-empty">No IPv6 resolvers configured.</div>
               } @else {
-                <div class="list-items">
+                <div
+                  class="list-items"
+                  cdkDropList
+                  (cdkDropListDropped)="onDrop('ipv6Resolvers', $event)"
+                >
                   @for (r of form.value.ipv6Resolvers; track $index; let i = $index) {
-                    <div class="list-item">
+                    <div class="list-item" cdkDrag cdkDragLockAxis="y">
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ r }}</span>
                       <button
@@ -357,12 +375,42 @@ const LOG_LEVELS = [
         flex-shrink: 0;
         width: 32px;
         height: 32px;
-        line-height: 32px;
+        padding: 0;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .remove-btn mat-icon {
         font-size: 18px;
         width: 18px;
         height: 18px;
+        line-height: 18px;
+        margin: 0;
+      }
+      .drag-handle {
+        flex-shrink: 0;
+        cursor: grab;
+        color: var(--launch-text-muted);
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        user-select: none;
+        touch-action: none;
+      }
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+      .list-item.cdk-drag-preview {
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+        border-color: var(--hdns-primary);
+        background: #1a1a22;
+      }
+      .list-item.cdk-drag-placeholder {
+        opacity: 0.3;
+      }
+      .list-items.cdk-drop-list-dragging .list-item:not(.cdk-drag-placeholder) {
+        transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
       }
       .drawer-footer {
         flex-shrink: 0;
@@ -413,6 +461,16 @@ export class ConfigDrawerComponent implements OnInit {
   removeFromArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers', index: number): void {
     const current: string[] = this.form.get(field)!.value ?? [];
     this.form.get(field)!.setValue(current.filter((_, i) => i !== index));
+  }
+
+  onDrop(
+    field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers',
+    event: CdkDragDrop<string[]>,
+  ): void {
+    if (event.previousIndex === event.currentIndex) return;
+    const current: string[] = [...((this.form.get(field)!.value as string[]) ?? [])];
+    moveItemInArray(current, event.previousIndex, event.currentIndex);
+    this.form.get(field)!.setValue(current);
   }
 
   open() {

@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -18,12 +21,15 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
     MatCheckboxModule,
+    MatFormFieldModule,
+    MatInputModule,
     RecordFormDrawerComponent,
     ResolveDrawerComponent,
   ],
@@ -37,10 +43,34 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
             <span class="record-count">{{ records().length }}</span>
           }
         </div>
-        <button mat-flat-button color="primary" (click)="recordDrawer.open()">
-          <mat-icon>add</mat-icon>
-          Add record
-        </button>
+        <div class="card-actions">
+          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              type="search"
+              placeholder="Search by name or domain"
+              [ngModel]="searchTerm()"
+              (ngModelChange)="searchTerm.set($event); load($event)"
+            />
+            @if (searchTerm()) {
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                class="clear-button"
+                aria-label="Clear search"
+                (click)="searchTerm.set(''); load('')"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="recordDrawer.open()">
+            <mat-icon>add</mat-icon>
+            Add record
+          </button>
+        </div>
       </div>
 
       @if (records().length > 0) {
@@ -96,6 +126,11 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
             <tr mat-row *matRowDef="let row; columns: columns"></tr>
           </table>
         </div>
+      } @else if (records().length > 0) {
+        <div class="empty-state">
+          <mat-icon>search_off</mat-icon>
+          <p>No records match "{{ searchTerm() }}".</p>
+        </div>
       } @else {
         <div class="empty-state">
           <mat-icon>dns</mat-icon>
@@ -127,6 +162,41 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
         display: flex;
         align-items: center;
         gap: 8px;
+      }
+      .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .search-field {
+        width: 280px;
+        max-width: 100%;
+        font-size: 0.875rem;
+      }
+      .search-field ::ng-deep .mat-mdc-text-field-wrapper {
+        height: 40px;
+      }
+      .search-field ::ng-deep .mat-mdc-form-field-infix {
+        min-height: 40px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+      .search-field .clear-button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+      }
+      .search-field .clear-button mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+      }
+      .search-field mat-icon[matPrefix] {
+        color: var(--launch-text-muted);
+        margin-right: 6px;
       }
       .card-icon {
         color: var(--hdns-primary);
@@ -207,6 +277,7 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
 })
 export class RecordsTableComponent implements OnInit {
   readonly records = signal<DnsRecord[]>([]);
+  readonly searchTerm = signal<string>('');
   columns = ['name', 'domain', 'address', 'updatedAt', 'ttl', 'actions'];
 
   @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
@@ -220,11 +291,15 @@ export class RecordsTableComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.api.getRecords().subscribe({
-      next: (res) => this.records.set(res.records ?? []),
-      error: (err) => this.notify.error(err?.error, 'Failed to load records'),
-    });
+  load(search?: string): void {
+    this.api
+      .getRecords({
+        search: search,
+      })
+      .subscribe({
+        next: (res) => this.records.set(res.records ?? []),
+        error: (err) => this.notify.error(err?.error, 'Failed to load records'),
+      });
   }
 
   refreshRecord(record: DnsRecord): void {

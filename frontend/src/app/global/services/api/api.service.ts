@@ -29,6 +29,7 @@ import {
   Resolution,
   ResolutionResult,
   ZoneList,
+  ZoneRequest,
 } from '../../model/api';
 import { LoggerService } from '../logger/logger.service';
 
@@ -63,12 +64,12 @@ export class ApiService {
     this.buildURL();
   }
 
-  public getZones(req: Request): Observable<ZoneList> {
+  public getZones(req: ZoneRequest): Observable<ZoneList> {
     return this.rpc<ZoneList>('getZones', req);
   }
 
-  public getRecords(): Observable<RecordList> {
-    return this.rpc<RecordList>('getRecords', {});
+  public getRecords(req: Request): Observable<RecordList> {
+    return this.rpc<RecordList>('getRecords', req);
   }
 
   public upsertRecord(record: Record): Observable<Record> {
