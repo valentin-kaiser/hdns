@@ -275,6 +275,35 @@ func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*servic
 	return proto, nil
 }
 
+func (s *Server) FetchHetznerRecord(ctx context.Context, in *service.Record) (*service.Address, error) {
+	if in == nil {
+		return nil, apperror.NewError("record is required")
+	}
+
+	var record *schema.Record
+	err := database.HDNS().Query(func(q *schema.Queries) error {
+		var err error
+		record, err = q.GetRecord(ctx, in.Id)
+		if err != nil {
+			return apperror.NewError("failed to fetch record from database").AddError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, apperror.Wrap(err)
+	}
+
+	rrset, found, err := dns.FetchRecord(ctx, record)
+	if err != nil {
+		return nil, apperror.NewError("failed to fetch record from Hetzner").AddError(err)
+	}
+	if !found || len(rrset.Records) == 0 {
+		return &service.Address{}, nil
+	}
+
+	return &service.Address{Ipv4: rrset.Records[0].Value}, nil
+}
+
 func (s *Server) ResolveRecord(ctx context.Context, in *service.Record) (*service.ResolutionResult, error) {
 	if in == nil {
 		return nil, apperror.NewError("record is required")
