@@ -7,7 +7,6 @@ require (
 	github.com/hetznercloud/hcloud-go/v2 v2.37.0
 	github.com/miekg/dns v1.1.72
 	github.com/robfig/cron v1.2.0
-	github.com/rs/zerolog v1.35.1
 	github.com/rubenv/sql-migrate v1.8.1
 	github.com/valentin-kaiser/go-core v1.9.2
 	google.golang.org/protobuf v1.36.11
@@ -40,6 +39,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.11.0 // indirect
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
