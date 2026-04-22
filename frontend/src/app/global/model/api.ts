@@ -1380,7 +1380,7 @@ export const HDNSDefinition = {
       responseStream: false,
       options: {},
     },
-    /** RefreshRecord the record's address. */
+    /** RefreshRecord refreshes the record's address. */
     refreshRecord: {
       name: "RefreshRecord",
       requestType: Record as typeof Record,
