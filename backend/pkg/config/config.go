@@ -126,15 +126,11 @@ func (c *App) Validate() error {
 
 func (c *App) ToProto() *service.Configuration {
 	return &service.Configuration{
-		LogLevel:        int32(c.LogLevel),
-		WebPort:         int32(c.WebPort),
-		CertificatePath: c.CertificatePath,
-		KeyPath:         c.KeyPath,
-		RefreshCron:     c.RefreshCron,
-		DnsServers:      c.DNSServers,
-		Ipv4Resolvers:   c.IPv4Resolvers,
-		Ipv6Resolvers:   c.IPv6Resolvers,
-		Database:        c.Database,
+		LogLevel:      int32(c.LogLevel),
+		RefreshCron:   c.RefreshCron,
+		DnsServers:    c.DNSServers,
+		Ipv4Resolvers: c.IPv4Resolvers,
+		Ipv6Resolvers: c.IPv6Resolvers,
 	}
 }
 
@@ -143,13 +139,9 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 		return nil
 	}
 	c.LogLevel = int(pc.LogLevel)
-	c.WebPort = int16(pc.WebPort)
-	c.CertificatePath = pc.CertificatePath
-	c.KeyPath = pc.KeyPath
 	c.RefreshCron = pc.RefreshCron
 	c.DNSServers = pc.DnsServers
 	c.IPv4Resolvers = pc.Ipv4Resolvers
 	c.IPv6Resolvers = pc.Ipv6Resolvers
-	c.Database = pc.Database
 	return c
 }

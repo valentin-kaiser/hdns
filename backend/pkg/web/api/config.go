@@ -14,12 +14,19 @@ func (s *Server) GetConfig(ctx context.Context, in *service.Empty) (*service.Con
 }
 
 func (s *Server) UpdateConfig(ctx context.Context, in *service.Configuration) (*service.Configuration, error) {
-	c := (&config.App{}).FromProto(in)
-	if c == nil {
-		return nil, apperror.NewError("invalid configuration provided")
+	c := &config.App{
+		LogLevel:        config.Get().LogLevel,
+		WebPort:         config.Get().WebPort,
+		CertificatePath: config.Get().CertificatePath,
+		KeyPath:         config.Get().KeyPath,
+		RefreshCron:     config.Get().RefreshCron,
+		DNSServers:      config.Get().DNSServers,
+		IPv4Resolvers:   config.Get().IPv4Resolvers,
+		IPv6Resolvers:   config.Get().IPv6Resolvers,
+		Database:        config.Get().Database,
 	}
 
-	err := c.Validate()
+	err := c.FromProto(in).Validate()
 	if err != nil {
 		return nil, apperror.Wrap(err)
 	}
