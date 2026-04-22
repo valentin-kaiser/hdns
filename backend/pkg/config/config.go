@@ -41,7 +41,7 @@ func Init() {
 			// Konsole
 			"ns3.second-ns.de:53",
 			"ns1.your-server.de:53",
-			"ns.second.ns.com:53",
+			"ns.second-ns.com:53",
 			// Public
 			"9.9.9.9:53",
 			"1.1.1.1:53",
