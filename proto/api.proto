@@ -23,6 +23,9 @@ service HDNS {
   // RefreshRecord refreshes the record's address.
   rpc RefreshRecord (Record) returns (Record);
 
+  // FetchHetznerRecord returns the A record currently defined in Hetzner for this record.
+  rpc FetchHetznerRecord (Record) returns (Address);
+
   // ResolveRecord resolves the record's domain.
   rpc ResolveRecord (Record) returns (ResolutionResult);
 
