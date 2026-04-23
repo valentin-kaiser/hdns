@@ -8,7 +8,7 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/robfig/cron v1.2.0
 	github.com/rubenv/sql-migrate v1.8.1
-	github.com/valentin-kaiser/go-core v1.9.2
+	github.com/valentin-kaiser/go-core v1.9.3
 	google.golang.org/protobuf v1.36.11
 )
 
