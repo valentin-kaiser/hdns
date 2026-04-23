@@ -82,6 +82,16 @@ export interface Configuration {
   dnsServers: string[];
   ipv4Resolvers: string[];
   ipv6Resolvers: string[];
+  /**
+   * User-facing notification settings. SMTP transport (host, port, auth, TLS,
+   * from address, ...) is intentionally NOT part of this message and is
+   * configured via the YAML file only.
+   */
+  notificationsEnabled: boolean;
+  notificationsOnSuccess: boolean;
+  notificationsRecipients: string[];
+  notificationsCooldownMinutes: number;
+  notificationsSubjectPrefix: string;
 }
 
 export interface LogEntry {
@@ -1165,7 +1175,18 @@ export const ResolutionResult: MessageFns<ResolutionResult> = {
 };
 
 function createBaseConfiguration(): Configuration {
-  return { logLevel: 0, refreshCron: "", dnsServers: [], ipv4Resolvers: [], ipv6Resolvers: [] };
+  return {
+    logLevel: 0,
+    refreshCron: "",
+    dnsServers: [],
+    ipv4Resolvers: [],
+    ipv6Resolvers: [],
+    notificationsEnabled: false,
+    notificationsOnSuccess: false,
+    notificationsRecipients: [],
+    notificationsCooldownMinutes: 0,
+    notificationsSubjectPrefix: "",
+  };
 }
 
 export const Configuration: MessageFns<Configuration> = {
@@ -1184,6 +1205,21 @@ export const Configuration: MessageFns<Configuration> = {
     }
     for (const v of message.ipv6Resolvers) {
       writer.uint32(42).string(v!);
+    }
+    if (message.notificationsEnabled !== false) {
+      writer.uint32(48).bool(message.notificationsEnabled);
+    }
+    if (message.notificationsOnSuccess !== false) {
+      writer.uint32(56).bool(message.notificationsOnSuccess);
+    }
+    for (const v of message.notificationsRecipients) {
+      writer.uint32(66).string(v!);
+    }
+    if (message.notificationsCooldownMinutes !== 0) {
+      writer.uint32(72).int32(message.notificationsCooldownMinutes);
+    }
+    if (message.notificationsSubjectPrefix !== "") {
+      writer.uint32(82).string(message.notificationsSubjectPrefix);
     }
     return writer;
   },
@@ -1235,6 +1271,46 @@ export const Configuration: MessageFns<Configuration> = {
           message.ipv6Resolvers.push(reader.string());
           continue;
         }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.notificationsEnabled = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.notificationsOnSuccess = reader.bool();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.notificationsRecipients.push(reader.string());
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.notificationsCooldownMinutes = reader.int32();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.notificationsSubjectPrefix = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1271,6 +1347,31 @@ export const Configuration: MessageFns<Configuration> = {
         : globalThis.Array.isArray(object?.ipv6_resolvers)
         ? object.ipv6_resolvers.map((e: any) => globalThis.String(e))
         : [],
+      notificationsEnabled: isSet(object.notificationsEnabled)
+        ? globalThis.Boolean(object.notificationsEnabled)
+        : isSet(object.notifications_enabled)
+        ? globalThis.Boolean(object.notifications_enabled)
+        : false,
+      notificationsOnSuccess: isSet(object.notificationsOnSuccess)
+        ? globalThis.Boolean(object.notificationsOnSuccess)
+        : isSet(object.notifications_on_success)
+        ? globalThis.Boolean(object.notifications_on_success)
+        : false,
+      notificationsRecipients: globalThis.Array.isArray(object?.notificationsRecipients)
+        ? object.notificationsRecipients.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.notifications_recipients)
+        ? object.notifications_recipients.map((e: any) => globalThis.String(e))
+        : [],
+      notificationsCooldownMinutes: isSet(object.notificationsCooldownMinutes)
+        ? globalThis.Number(object.notificationsCooldownMinutes)
+        : isSet(object.notifications_cooldown_minutes)
+        ? globalThis.Number(object.notifications_cooldown_minutes)
+        : 0,
+      notificationsSubjectPrefix: isSet(object.notificationsSubjectPrefix)
+        ? globalThis.String(object.notificationsSubjectPrefix)
+        : isSet(object.notifications_subject_prefix)
+        ? globalThis.String(object.notifications_subject_prefix)
+        : "",
     };
   },
 
@@ -1291,6 +1392,21 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.ipv6Resolvers?.length) {
       obj.ipv6Resolvers = message.ipv6Resolvers;
     }
+    if (message.notificationsEnabled !== false) {
+      obj.notificationsEnabled = message.notificationsEnabled;
+    }
+    if (message.notificationsOnSuccess !== false) {
+      obj.notificationsOnSuccess = message.notificationsOnSuccess;
+    }
+    if (message.notificationsRecipients?.length) {
+      obj.notificationsRecipients = message.notificationsRecipients;
+    }
+    if (message.notificationsCooldownMinutes !== 0) {
+      obj.notificationsCooldownMinutes = Math.round(message.notificationsCooldownMinutes);
+    }
+    if (message.notificationsSubjectPrefix !== "") {
+      obj.notificationsSubjectPrefix = message.notificationsSubjectPrefix;
+    }
     return obj;
   },
 
@@ -1304,6 +1420,11 @@ export const Configuration: MessageFns<Configuration> = {
     message.dnsServers = object.dnsServers?.map((e) => e) || [];
     message.ipv4Resolvers = object.ipv4Resolvers?.map((e) => e) || [];
     message.ipv6Resolvers = object.ipv6Resolvers?.map((e) => e) || [];
+    message.notificationsEnabled = object.notificationsEnabled ?? false;
+    message.notificationsOnSuccess = object.notificationsOnSuccess ?? false;
+    message.notificationsRecipients = object.notificationsRecipients?.map((e) => e) || [];
+    message.notificationsCooldownMinutes = object.notificationsCooldownMinutes ?? 0;
+    message.notificationsSubjectPrefix = object.notificationsSubjectPrefix ?? "";
     return message;
   },
 };

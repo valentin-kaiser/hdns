@@ -710,8 +710,16 @@ type Configuration struct {
 	DnsServers    []string               `protobuf:"bytes,3,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
 	Ipv4Resolvers []string               `protobuf:"bytes,4,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
 	Ipv6Resolvers []string               `protobuf:"bytes,5,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// User-facing notification settings. SMTP transport (host, port, auth, TLS,
+	// from address, ...) is intentionally NOT part of this message and is
+	// configured via the YAML file only.
+	NotificationsEnabled         bool     `protobuf:"varint,6,opt,name=notifications_enabled,json=notificationsEnabled,proto3" json:"notifications_enabled,omitempty"`
+	NotificationsOnSuccess       bool     `protobuf:"varint,7,opt,name=notifications_on_success,json=notificationsOnSuccess,proto3" json:"notifications_on_success,omitempty"`
+	NotificationsRecipients      []string `protobuf:"bytes,8,rep,name=notifications_recipients,json=notificationsRecipients,proto3" json:"notifications_recipients,omitempty"`
+	NotificationsCooldownMinutes int32    `protobuf:"varint,9,opt,name=notifications_cooldown_minutes,json=notificationsCooldownMinutes,proto3" json:"notifications_cooldown_minutes,omitempty"`
+	NotificationsSubjectPrefix   string   `protobuf:"bytes,10,opt,name=notifications_subject_prefix,json=notificationsSubjectPrefix,proto3" json:"notifications_subject_prefix,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *Configuration) Reset() {
@@ -777,6 +785,41 @@ func (x *Configuration) GetIpv6Resolvers() []string {
 		return x.Ipv6Resolvers
 	}
 	return nil
+}
+
+func (x *Configuration) GetNotificationsEnabled() bool {
+	if x != nil {
+		return x.NotificationsEnabled
+	}
+	return false
+}
+
+func (x *Configuration) GetNotificationsOnSuccess() bool {
+	if x != nil {
+		return x.NotificationsOnSuccess
+	}
+	return false
+}
+
+func (x *Configuration) GetNotificationsRecipients() []string {
+	if x != nil {
+		return x.NotificationsRecipients
+	}
+	return nil
+}
+
+func (x *Configuration) GetNotificationsCooldownMinutes() int32 {
+	if x != nil {
+		return x.NotificationsCooldownMinutes
+	}
+	return 0
+}
+
+func (x *Configuration) GetNotificationsSubjectPrefix() string {
+	if x != nil {
+		return x.NotificationsSubjectPrefix
+	}
+	return ""
 }
 
 type LogEntry struct {
@@ -894,14 +937,20 @@ const file_api_proto_rawDesc = "" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
 	"\x10ResolutionResult\x125\n" +
-	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\xbe\x01\n" +
+	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\xf0\x03\n" +
 	"\rConfiguration\x12\x1b\n" +
 	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12!\n" +
 	"\frefresh_cron\x18\x02 \x01(\tR\vrefreshCron\x12\x1f\n" +
 	"\vdns_servers\x18\x03 \x03(\tR\n" +
 	"dnsServers\x12%\n" +
 	"\x0eipv4_resolvers\x18\x04 \x03(\tR\ripv4Resolvers\x12%\n" +
-	"\x0eipv6_resolvers\x18\x05 \x03(\tR\ripv6Resolvers\"X\n" +
+	"\x0eipv6_resolvers\x18\x05 \x03(\tR\ripv6Resolvers\x123\n" +
+	"\x15notifications_enabled\x18\x06 \x01(\bR\x14notificationsEnabled\x128\n" +
+	"\x18notifications_on_success\x18\a \x01(\bR\x16notificationsOnSuccess\x129\n" +
+	"\x18notifications_recipients\x18\b \x03(\tR\x17notificationsRecipients\x12D\n" +
+	"\x1enotifications_cooldown_minutes\x18\t \x01(\x05R\x1cnotificationsCooldownMinutes\x12@\n" +
+	"\x1cnotifications_subject_prefix\x18\n" +
+	" \x01(\tR\x1anotificationsSubjectPrefix\"X\n" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
