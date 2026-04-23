@@ -16,6 +16,7 @@ import (
 	"github.com/valentin-kaiser/hdns/pkg/config"
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/dns"
+	mailpkg "github.com/valentin-kaiser/hdns/pkg/mail"
 	"github.com/valentin-kaiser/hdns/pkg/web"
 )
 
@@ -45,6 +46,14 @@ func init() {
 		if o.WebPort != n.WebPort {
 			log.Info().Msg("restarting web server due to address/port change")
 			go web.Restart()
+		}
+		if o.RefreshCron != n.RefreshCron {
+			log.Info().Msg("restarting DNS refresh cron job due to schedule change")
+			go dns.Restart(context.Background())
+		}
+		if o.Mail.Changed(&n.Mail) || o.Notifications.Enabled != n.Notifications.Enabled {
+			log.Info().Msg("restarting mail manager due to mail/notification config change")
+			go mailpkg.Restart(context.Background())
 		}
 		return nil
 	})
@@ -87,6 +96,10 @@ func main() {
 	go database.Connect()
 	database.HDNS().AwaitConnection()
 
+	if err := mailpkg.Start(context.Background()); err != nil {
+		log.Error().Err(err).Msg("failed to start mail manager")
+	}
+
 	err := dns.Refresh(context.Background())
 	if err != nil {
 		log.Error().Err(err).Msg("failed to perform initial DNS refresh")
@@ -111,6 +124,10 @@ func main() {
 		},
 		func() error {
 			dns.Stop()
+			return nil
+		},
+		func() error {
+			mailpkg.Stop(context.Background())
 			return nil
 		},
 		func() error {

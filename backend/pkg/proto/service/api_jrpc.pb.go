@@ -19,6 +19,7 @@ type HDNSServer interface {
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
+	FetchHetznerRecord(ctx context.Context, in *Record) (*Address, error)
 	ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error)
 	StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error
 	StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error
@@ -53,6 +54,10 @@ func (UnimplementedHDNSServer) DeleteRecord(ctx context.Context, in *RecordDelet
 
 func (UnimplementedHDNSServer) RefreshRecord(ctx context.Context, in *Record) (*Record, error) {
 	return nil, errors.New("method HDNS.RefreshRecord not implemented")
+}
+
+func (UnimplementedHDNSServer) FetchHetznerRecord(ctx context.Context, in *Record) (*Address, error) {
+	return nil, errors.New("method HDNS.FetchHetznerRecord not implemented")
 }
 
 func (UnimplementedHDNSServer) ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error) {
@@ -103,6 +108,7 @@ type HDNSClientDefinition interface {
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
 	RefreshRecord(ctx context.Context, in *Record) (*Record, error)
+	FetchHetznerRecord(ctx context.Context, in *Record) (*Address, error)
 	ResolveRecord(ctx context.Context, in *Record) (*ResolutionResult, error)
 	StreamResolveRecord(ctx context.Context, in *Record, out chan<- *Resolution) error
 	StreamAddress(ctx context.Context, in *Empty, out chan<- *Address) error
@@ -174,6 +180,16 @@ func (c *HDNSClient) DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty
 func (c *HDNSClient) RefreshRecord(ctx context.Context, in *Record) (*Record, error) {
 	u := c.baseURL.JoinPath("HDNS", "RefreshRecord")
 	out := &Record{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) FetchHetznerRecord(ctx context.Context, in *Record) (*Address, error) {
+	u := c.baseURL.JoinPath("HDNS", "FetchHetznerRecord")
+	out := &Address{}
 	err := c.client.Call(ctx, u, in, out, nil)
 	if err != nil {
 		return nil, err

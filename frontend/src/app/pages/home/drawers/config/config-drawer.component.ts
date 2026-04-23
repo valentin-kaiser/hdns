@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
 import { Configuration } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
@@ -32,6 +33,7 @@ const LOG_LEVELS = [
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
+    MatSlideToggleModule,
     CdkDropList,
     CdkDrag,
   ],
@@ -200,6 +202,80 @@ const LOG_LEVELS = [
                         mat-icon-button
                         class="remove-btn"
                         (click)="removeFromArray('ipv6Resolvers', i)"
+                        aria-label="Remove entry"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+            <div class="list-section notifications-section">
+              <div class="list-header">
+                <label class="list-label">Notifications</label>
+              </div>
+              <div class="notifications-hint">
+                SMTP transport (host, credentials, encryption) is configured via the YAML file only and cannot be changed from here.
+              </div>
+              <div class="toggle-row">
+                <mat-slide-toggle formControlName="notificationsEnabled">
+                  Enable email notifications on failure
+                </mat-slide-toggle>
+              </div>
+              <div class="toggle-row">
+                <mat-slide-toggle formControlName="notificationsOnSuccess">
+                  Also notify when records are updated successfully
+                </mat-slide-toggle>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Cooldown (minutes)</mat-label>
+                <input matInput type="number" min="0" formControlName="notificationsCooldownMinutes" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Subject prefix</mat-label>
+                <input matInput formControlName="notificationsSubjectPrefix" placeholder="[hdns]" />
+              </mat-form-field>
+              <div class="list-header">
+                <label class="list-label" style="text-transform:none;letter-spacing:0">Recipients</label>
+                <span class="list-count">{{ (form.value.notificationsRecipients ?? []).length }}</span>
+              </div>
+              <div class="add-row">
+                <input
+                  #recipientInput
+                  class="list-input"
+                  type="email"
+                  placeholder="name@example.com"
+                  (keydown.enter)="addRecipient(recipientInput.value); recipientInput.value = ''"
+                />
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="add-btn"
+                  (click)="addRecipient(recipientInput.value); recipientInput.value = ''"
+                  aria-label="Add recipient"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              @if ((form.value.notificationsRecipients ?? []).length === 0) {
+                <div class="list-empty">No recipients configured.</div>
+              } @else {
+                <div
+                  class="list-items"
+                  cdkDropList
+                  (cdkDropListDropped)="onDrop('notificationsRecipients', $event)"
+                >
+                  @for (r of form.value.notificationsRecipients; track $index; let i = $index) {
+                    <div class="list-item" cdkDrag cdkDragLockAxis="y">
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
+                      <span class="list-index">{{ i + 1 }}</span>
+                      <span class="list-value">{{ r }}</span>
+                      <button
+                        type="button"
+                        mat-icon-button
+                        class="remove-btn"
+                        (click)="removeFromArray('notificationsRecipients', i)"
                         aria-label="Remove entry"
                       >
                         <mat-icon>close</mat-icon>
@@ -411,6 +487,17 @@ const LOG_LEVELS = [
       .list-items.cdk-drop-list-dragging .list-item:not(.cdk-drag-placeholder) {
         transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
       }
+      .notifications-hint {
+        font-size: 0.75rem;
+        color: var(--launch-text-muted);
+        margin-bottom: 12px;
+        line-height: 1.4;
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
       .drawer-footer {
         flex-shrink: 0;
         padding: 12px 24px;
@@ -443,6 +530,11 @@ export class ConfigDrawerComponent implements OnInit {
     dnsServers: [[] as string[]],
     ipv4Resolvers: [[] as string[]],
     ipv6Resolvers: [[] as string[]],
+    notificationsEnabled: [false],
+    notificationsOnSuccess: [false],
+    notificationsCooldownMinutes: [60, [Validators.min(0)]],
+    notificationsSubjectPrefix: ['[hdns]'],
+    notificationsRecipients: [[] as string[]],
     database: [{ value: '', disabled: true }],
   });
 
@@ -450,20 +542,30 @@ export class ConfigDrawerComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  addToArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers', value: string): void {
+  addToArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients', value: string): void {
     const trimmed = value.trim();
     if (!trimmed) return;
     const current: string[] = this.form.get(field)!.value ?? [];
     this.form.get(field)!.setValue([...current, trimmed]);
   }
 
-  removeFromArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers', index: number): void {
+  addRecipient(value: string): void {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      this.notify.error(undefined, 'Invalid email address');
+      return;
+    }
+    this.addToArray('notificationsRecipients', trimmed);
+  }
+
+  removeFromArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients', index: number): void {
     const current: string[] = this.form.get(field)!.value ?? [];
     this.form.get(field)!.setValue(current.filter((_, i) => i !== index));
   }
 
   onDrop(
-    field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers',
+    field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients',
     event: CdkDragDrop<string[]>,
   ): void {
     if (event.previousIndex === event.currentIndex) return;
@@ -484,6 +586,11 @@ export class ConfigDrawerComponent implements OnInit {
           dnsServers: cfg.dnsServers ?? [],
           ipv4Resolvers: cfg.ipv4Resolvers ?? [],
           ipv6Resolvers: cfg.ipv6Resolvers ?? [],
+          notificationsEnabled: cfg.notificationsEnabled ?? false,
+          notificationsOnSuccess: cfg.notificationsOnSuccess ?? false,
+          notificationsCooldownMinutes: cfg.notificationsCooldownMinutes ?? 60,
+          notificationsSubjectPrefix: cfg.notificationsSubjectPrefix ?? '[hdns]',
+          notificationsRecipients: cfg.notificationsRecipients ?? [],
         });
       },
       error: (err) => {
@@ -501,6 +608,11 @@ export class ConfigDrawerComponent implements OnInit {
       dnsServers: v.dnsServers ?? [],
       ipv4Resolvers: v.ipv4Resolvers ?? [],
       ipv6Resolvers: v.ipv6Resolvers ?? [],
+      notificationsEnabled: v.notificationsEnabled ?? false,
+      notificationsOnSuccess: v.notificationsOnSuccess ?? false,
+      notificationsCooldownMinutes: v.notificationsCooldownMinutes ?? 0,
+      notificationsSubjectPrefix: v.notificationsSubjectPrefix ?? '',
+      notificationsRecipients: v.notificationsRecipients ?? [],
     };
     this.saving.set(true);
     this.api.updateConfig(payload).subscribe({

@@ -3,13 +3,14 @@ import { ApplicationRef, Component, createComponent, EnvironmentInjector, inject
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { LoadingComponent } from './components/loading/loading.component';
 import { NotificationContainerComponent } from './components/notification-container/notification-container.component';
 import { ApiService } from './global/services/api/api.service';
+import { NotifyService } from './global/services/notify/notify.service';
 import { ConfigDrawerComponent } from './pages/home/drawers/config/config-drawer.component';
 
 @Component({
@@ -20,14 +21,16 @@ import { ConfigDrawerComponent } from './pages/home/drawers/config/config-drawer
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
+    MatProgressBarModule,
     CommonModule,
-    LoadingComponent,
     ConfigDrawerComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App implements OnInit, OnDestroy {
+  readonly isLoading = inject(NotifyService).isLoading;
+
   private readonly addressStream = inject(ApiService).streamAddress();
   readonly currentAddress = toSignal(this.addressStream.messages$, { initialValue: null });
 

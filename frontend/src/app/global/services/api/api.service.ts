@@ -85,6 +85,10 @@ export class ApiService {
     return this.rpc<Record>('refreshRecord', record);
   }
 
+  public fetchHetznerRecord(record: Record): Observable<Address> {
+    return this.rpc<Address>('fetchHetznerRecord', record);
+  }
+
   public resolveRecord(record: Record): Observable<ResolutionResult> {
     return this.rpc<ResolutionResult>('resolveRecord', record);
   }

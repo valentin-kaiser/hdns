@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
@@ -30,6 +31,7 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatProgressSpinnerModule,
     RecordFormDrawerComponent,
     ResolveDrawerComponent,
   ],
@@ -86,10 +88,39 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               <td mat-cell *matCellDef="let r">{{ r.domain }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="address">
-              <th mat-header-cell *matHeaderCellDef>Resolved IP</th>
+            <ng-container matColumnDef="ip">
+              <th mat-header-cell *matHeaderCellDef>
+                <span matTooltip="Wanted public IP / Hetzner / Resolved">IP</span>
+              </th>
               <td mat-cell *matCellDef="let r">
-                <span class="mono">{{ r.address?.ipv4 || r.address?.ipv6 || '—' }}</span>
+                @if (loadingHetzner().has(r.id) || loadingResolved().has(r.id)) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <div class="ip-cell">
+                    <span class="mono ip-line ip-wanted" matTooltip="Wanted public IP (this machine)">
+                      <mat-icon class="diff-icon">public</mat-icon>
+                      {{ wantedIp() || '—' }}
+                    </span>
+                    @if (hetznerIps().get(r.id) && hetznerIps().get(r.id) !== wantedIp()) {
+                      <span
+                        class="mono ip-line ip-diff ip-hetzner"
+                        matTooltip="Currently defined in Hetzner DNS"
+                      >
+                        <mat-icon class="diff-icon">cloud</mat-icon>
+                        {{ hetznerIps().get(r.id) }}
+                      </span>
+                    }
+                    @if (resolvedIps().get(r.id) && resolvedIps().get(r.id) !== wantedIp()) {
+                      <span
+                        class="mono ip-line ip-diff ip-resolved"
+                        matTooltip="Currently resolved via public DNS"
+                      >
+                        <mat-icon class="diff-icon">travel_explore</mat-icon>
+                        {{ resolvedIps().get(r.id) }}
+                      </span>
+                    }
+                  </div>
+                }
               </td>
             </ng-container>
 
@@ -226,6 +257,42 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
         font-family: 'Roboto Mono', monospace;
         font-size: 0.8125rem;
       }
+      .ip-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        line-height: 1.2;
+      }
+      .ip-line {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .ip-diff {
+        font-size: 0.6875rem;
+      }
+      .ip-line .diff-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+      }
+      .ip-diff .diff-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        line-height: 12px;
+      }
+      .ip-wanted {
+        color: var(--hdns-primary, #1976d2);
+      }
+      .ip-hetzner {
+        color: var(--hdns-danger, #d32f2f);
+      }
+      .ip-resolved {
+        color: var(--hdns-warning, #ed6c02);
+      }
       .muted {
         color: var(--launch-text-muted);
         font-size: 0.8125rem;
@@ -278,7 +345,12 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
 export class RecordsTableComponent implements OnInit {
   readonly records = signal<DnsRecord[]>([]);
   readonly searchTerm = signal<string>('');
-  columns = ['name', 'domain', 'address', 'updatedAt', 'ttl', 'actions'];
+  readonly wantedIp = signal<string>('');
+  readonly hetznerIps = signal<Map<number, string>>(new Map());
+  readonly resolvedIps = signal<Map<number, string>>(new Map());
+  readonly loadingHetzner = signal<Set<number>>(new Set());
+  readonly loadingResolved = signal<Set<number>>(new Set());
+  columns = ['name', 'domain', 'ip', 'updatedAt', 'ttl', 'actions'];
 
   @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
 
@@ -288,7 +360,15 @@ export class RecordsTableComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadWantedIp();
     this.load();
+  }
+
+  private loadWantedIp(): void {
+    this.api.getAddress().subscribe({
+      next: (addr) => this.wantedIp.set(addr?.ipv4 || addr?.ipv6 || ''),
+      error: () => this.wantedIp.set(''),
+    });
   }
 
   load(search?: string): void {
@@ -297,21 +377,74 @@ export class RecordsTableComponent implements OnInit {
         search: search,
       })
       .subscribe({
-        next: (res) => this.records.set(res.records ?? []),
+        next: (res) => {
+          const records = res.records ?? [];
+          this.records.set(records);
+          this.hetznerIps.set(new Map());
+          this.resolvedIps.set(new Map());
+          for (const r of records) {
+            this.loadHetznerIp(r);
+            this.loadResolvedIp(r);
+          }
+        },
         error: (err) => this.notify.error(err?.error, 'Failed to load records'),
       });
   }
 
+  private loadHetznerIp(record: DnsRecord): void {
+    const loading = new Set(this.loadingHetzner());
+    loading.add(record.id);
+    this.loadingHetzner.set(loading);
+    this.api.fetchHetznerRecord(record).subscribe({
+      next: (addr) => {
+        const map = new Map(this.hetznerIps());
+        map.set(record.id, addr?.ipv4 || addr?.ipv6 || '');
+        this.hetznerIps.set(map);
+        this.clearLoading(this.loadingHetzner, record.id);
+      },
+      error: () => this.clearLoading(this.loadingHetzner, record.id),
+    });
+  }
+
+  private loadResolvedIp(record: DnsRecord): void {
+    const loading = new Set(this.loadingResolved());
+    loading.add(record.id);
+    this.loadingResolved.set(loading);
+    this.api.resolveRecord(record).subscribe({
+      next: (res) => {
+        const ip = this.pickResolvedAddress(res?.resolutions ?? []);
+        const map = new Map(this.resolvedIps());
+        map.set(record.id, ip);
+        this.resolvedIps.set(map);
+        this.clearLoading(this.loadingResolved, record.id);
+      },
+      error: () => this.clearLoading(this.loadingResolved, record.id),
+    });
+  }
+
+  private pickResolvedAddress(resolutions: { addresses?: string[]; error?: string }[]): string {
+    for (const r of resolutions) {
+      if (!r.error && r.addresses && r.addresses.length > 0) {
+        return r.addresses[0];
+      }
+    }
+    return '';
+  }
+
+  private clearLoading(sig: { (): Set<number>; set: (v: Set<number>) => void }, id: number): void {
+    const next = new Set(sig());
+    next.delete(id);
+    sig.set(next);
+  }
+
   refreshRecord(record: DnsRecord): void {
-    this.notify.loading();
     this.api.refreshRecord(record).subscribe({
       next: () => {
-        this.notify.dismiss();
         this.notify.message('Record refreshed.');
+        this.loadWantedIp();
         this.load();
       },
       error: (err) => {
-        this.notify.dismiss();
         this.notify.error(err?.error, 'Refresh failed');
       },
     });
@@ -338,15 +471,12 @@ export class RecordsTableComponent implements OnInit {
   }
 
   private deleteRecord(record: DnsRecord, deleteFromHetzner: boolean): void {
-    this.notify.loading();
     this.api.deleteRecord(record, deleteFromHetzner).subscribe({
       next: () => {
-        this.notify.dismiss();
         this.notify.message('Record deleted.');
         this.load();
       },
       error: (err) => {
-        this.notify.dismiss();
         this.notify.error(err?.error, 'Delete failed');
       },
     });

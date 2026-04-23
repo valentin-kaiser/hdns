@@ -210,15 +210,12 @@ export class AddressCardComponent implements OnInit, OnDestroy {
 
   refresh(): void {
     this.refreshing.set(true);
-    this.notify.loading();
     this.api.refreshAddress().subscribe({
       next: () => {
-        this.notify.dismiss();
         this.notify.message('Address refreshed successfully.');
         this.refreshing.set(false);
       },
       error: (err) => {
-        this.notify.dismiss();
         this.notify.error(err?.error, 'Refresh failed');
         this.refreshing.set(false);
       },

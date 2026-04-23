@@ -23,6 +23,9 @@ service HDNS {
   // RefreshRecord refreshes the record's address.
   rpc RefreshRecord (Record) returns (Record);
 
+  // FetchHetznerRecord returns the A record currently defined in Hetzner for this record.
+  rpc FetchHetznerRecord (Record) returns (Address);
+
   // ResolveRecord resolves the record's domain.
   rpc ResolveRecord (Record) returns (ResolutionResult);
 
@@ -124,6 +127,15 @@ message Configuration {
   repeated string dns_servers    = 3;
   repeated string ipv4_resolvers = 4;
   repeated string ipv6_resolvers = 5;
+
+  // User-facing notification settings. SMTP transport (host, port, auth, TLS,
+  // from address, ...) is intentionally NOT part of this message and is
+  // configured via the YAML file only.
+  bool            notifications_enabled          = 6;
+  bool            notifications_on_success       = 7;
+  repeated string notifications_recipients       = 8;
+  int32           notifications_cooldown_minutes = 9;
+  string          notifications_subject_prefix   = 10;
 }
 
 message LogEntry {
