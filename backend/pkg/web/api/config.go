@@ -14,16 +14,22 @@ func (s *Server) GetConfig(ctx context.Context, in *service.Empty) (*service.Con
 }
 
 func (s *Server) UpdateConfig(ctx context.Context, in *service.Configuration) (*service.Configuration, error) {
+	current := config.Get()
 	c := &config.App{
-		LogLevel:        config.Get().LogLevel,
-		WebPort:         config.Get().WebPort,
-		CertificatePath: config.Get().CertificatePath,
-		KeyPath:         config.Get().KeyPath,
-		RefreshCron:     config.Get().RefreshCron,
-		DNSServers:      config.Get().DNSServers,
-		IPv4Resolvers:   config.Get().IPv4Resolvers,
-		IPv6Resolvers:   config.Get().IPv6Resolvers,
-		Database:        config.Get().Database,
+		LogLevel:        current.LogLevel,
+		WebPort:         current.WebPort,
+		CertificatePath: current.CertificatePath,
+		KeyPath:         current.KeyPath,
+		RefreshCron:     current.RefreshCron,
+		DNSServers:      current.DNSServers,
+		IPv4Resolvers:   current.IPv4Resolvers,
+		IPv6Resolvers:   current.IPv6Resolvers,
+		Database:        current.Database,
+		// SMTP transport fields are not part of the proto and remain
+		// unchanged on UpdateConfig; FromProto only overwrites the
+		// Notifications subsection.
+		Mail:          current.Mail,
+		Notifications: current.Notifications,
 	}
 
 	err := c.FromProto(in).Validate()

@@ -10,6 +10,7 @@ import (
 	"github.com/valentin-kaiser/go-core/config"
 	"github.com/valentin-kaiser/go-core/flag"
 	"github.com/valentin-kaiser/go-core/logging/log"
+	"github.com/valentin-kaiser/go-core/mail"
 	"github.com/valentin-kaiser/go-core/security"
 	"github.com/valentin-kaiser/hdns/pkg/proto/service"
 )
@@ -24,15 +25,35 @@ var (
 )
 
 type App struct {
-	LogLevel        int      `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
-	WebPort         int16    `usage:"port to bind the web server to" json:"web_port"`
-	CertificatePath string   `usage:"path to the TLS certificate file" json:"certificate_file"`
-	KeyPath         string   `usage:"path to the TLS key file" json:"key_file"`
-	RefreshCron     string   `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
-	DNSServers      []string `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
-	IPv4Resolvers   []string `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
-	IPv6Resolvers   []string `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
-	Database        string   `usage:"database connection DSN" json:"database"`
+	LogLevel        int                  `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
+	WebPort         int16                `usage:"port to bind the web server to" json:"web_port"`
+	CertificatePath string               `usage:"path to the TLS certificate file" json:"certificate_file"`
+	KeyPath         string               `usage:"path to the TLS key file" json:"key_file"`
+	RefreshCron     string               `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
+	DNSServers      []string             `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
+	IPv4Resolvers   []string             `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
+	IPv6Resolvers   []string             `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
+	Database        string               `usage:"database connection DSN" json:"database"`
+	Mail            mail.ClientConfig    `usage:"SMTP transport configuration (YAML only; not exposed via the web UI)" json:"mail"`
+	Notifications   NotificationSettings `usage:"user-facing notification settings controlling when refresh reports are sent" json:"notifications"`
+}
+
+// NotificationSettings holds the user-facing notification behavior for DNS
+// refresh reports. SMTP transport lives in App.Mail and is intentionally not
+// part of this struct (and not exposed via the web UI).
+type NotificationSettings struct {
+	// Enabled toggles whether hdns attempts to send refresh reports at all.
+	Enabled bool `usage:"enable sending of DNS refresh report emails" json:"enabled"`
+	// NotifyOnSuccess also sends a report when at least one record was
+	// actually updated during a successful refresh run (no failures).
+	NotifyOnSuccess bool `usage:"also send a report when records were updated successfully" json:"notify_on_success"`
+	// Recipients is the list of addresses that receive the reports.
+	Recipients []string `usage:"recipient email addresses for refresh reports" json:"recipients"`
+	// CooldownMinutes is the minimum number of minutes between two
+	// dispatches of the same severity. 0 disables the cooldown.
+	CooldownMinutes int `usage:"minimum minutes between report emails of the same severity (0 = no cooldown)" json:"cooldown_minutes"`
+	// SubjectPrefix is prepended to the email subject.
+	SubjectPrefix string `usage:"prefix prepended to the subject of refresh report emails" json:"subject_prefix"`
 }
 
 func Init() {
@@ -72,6 +93,16 @@ func Init() {
 			"https://ipv6.icanhazip.com",
 		},
 		Database: "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true",
+		Mail: mail.ClientConfig{
+			Enabled: false,
+		},
+		Notifications: NotificationSettings{
+			Enabled:         false,
+			NotifyOnSuccess: false,
+			Recipients:      []string{},
+			CooldownMinutes: 60,
+			SubjectPrefix:   "[HDNS]",
+		},
 	}
 
 	err := config.Manager().WithName("hdns").Register(defaultConfig)
@@ -187,16 +218,43 @@ func (c *App) Validate() error {
 		return apperror.NewError("invalid refresh cron expression").AddError(err)
 	}
 
+	if c.Notifications.CooldownMinutes < 0 {
+		return apperror.NewError("notifications.cooldown_minutes must be >= 0")
+	}
+
+	if c.Notifications.Enabled {
+		if len(c.Notifications.Recipients) == 0 {
+			return apperror.NewError("notifications.recipients must not be empty when notifications are enabled")
+		}
+		if !c.Mail.Enabled {
+			return apperror.NewError("mail.client.enabled must be true when notifications are enabled")
+		}
+		if c.Mail.Host == "" {
+			return apperror.NewError("mail.client.host must be set when notifications are enabled")
+		}
+		if c.Mail.From == "" {
+			return apperror.NewError("mail.client.from must be set when notifications are enabled")
+		}
+		if err := c.Mail.Validate(); err != nil {
+			return apperror.NewError("invalid mail configuration").AddError(err)
+		}
+	}
+
 	return nil
 }
 
 func (c *App) ToProto() *service.Configuration {
 	return &service.Configuration{
-		LogLevel:      int32(c.LogLevel),
-		RefreshCron:   c.RefreshCron,
-		DnsServers:    c.DNSServers,
-		Ipv4Resolvers: c.IPv4Resolvers,
-		Ipv6Resolvers: c.IPv6Resolvers,
+		LogLevel:                     int32(c.LogLevel),
+		RefreshCron:                  c.RefreshCron,
+		DnsServers:                   c.DNSServers,
+		Ipv4Resolvers:                c.IPv4Resolvers,
+		Ipv6Resolvers:                c.IPv6Resolvers,
+		NotificationsEnabled:         c.Notifications.Enabled,
+		NotificationsOnSuccess:       c.Notifications.NotifyOnSuccess,
+		NotificationsRecipients:      c.Notifications.Recipients,
+		NotificationsCooldownMinutes: int32(c.Notifications.CooldownMinutes),
+		NotificationsSubjectPrefix:   c.Notifications.SubjectPrefix,
 	}
 }
 
@@ -209,5 +267,10 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 	c.DNSServers = pc.DnsServers
 	c.IPv4Resolvers = pc.Ipv4Resolvers
 	c.IPv6Resolvers = pc.Ipv6Resolvers
+	c.Notifications.Enabled = pc.NotificationsEnabled
+	c.Notifications.NotifyOnSuccess = pc.NotificationsOnSuccess
+	c.Notifications.Recipients = pc.NotificationsRecipients
+	c.Notifications.CooldownMinutes = int(pc.NotificationsCooldownMinutes)
+	c.Notifications.SubjectPrefix = pc.NotificationsSubjectPrefix
 	return c
 }
