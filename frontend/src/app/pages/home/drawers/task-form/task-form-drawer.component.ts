@@ -88,12 +88,15 @@ const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
           </div>
           @if (form.value.includeCertificate) {
             <div class="cert-hint">
-              On certificate renewal the issued certificate and private key are sent to the webhook.
+              On certificate renewal all four certificate files are sent to the webhook.
               Reference them in the body with
-              <code>{{ certPlaceholder }}</code> and
+              <code>{{ certPlaceholder }}</code>,
+              <code>{{ chainPlaceholder }}</code>,
+              <code>{{ fullchainPlaceholder }}</code> and
               <code>{{ keyPlaceholder }}</code>
-              (use the <code>_json</code> variants inside JSON). Leave the body empty to send a
-              default JSON payload <code>{{ defaultPayloadExample }}</code>.
+              (append <code>_json</code> to any placeholder for safe JSON embedding).
+              Leave the body empty to send the default JSON payload
+              <code>{{ defaultPayloadExample }}</code>.
             </div>
           }
 
@@ -199,9 +202,11 @@ export class TaskFormDrawerComponent {
   methods = HTTP_METHODS;
   saving = false;
   testing = false;
-  readonly certPlaceholder = '{{certificate}}';
+  readonly certPlaceholder = '{{cert}}';
+  readonly chainPlaceholder = '{{chain}}';
+  readonly fullchainPlaceholder = '{{fullchain}}';
   readonly keyPlaceholder = '{{private_key}}';
-  readonly defaultPayloadExample = '{ "certificate": …, "private_key": … }';
+  readonly defaultPayloadExample = '{ "cert": …, "chain": …, "fullchain": …, "private_key": … }';
 
   @Output() onSave = new EventEmitter<void>();
   @ViewChild('drawer') drawer!: DrawerComponent;

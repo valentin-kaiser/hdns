@@ -303,30 +303,38 @@ func certificateDir(record *schema.Record) string {
 	return filepath.Join(flag.Path, "certs", base)
 }
 
-// writeCertificateFiles persists the issued certificate chain and private key
-// to disk and returns their paths.
+// writeCertificateFiles persists the issued certificate material to disk,
+// mirroring the layout produced by certbot:
+//
+//	cert.pem      – leaf/domain certificate only
+//	chain.pem     – intermediate certificate(s) only
+//	fullchain.pem – cert.pem + chain.pem (leaf followed by intermediates)
+//	privkey.pem   – private key
+//
+// The function returns the paths to fullchain.pem and privkey.pem, which are
+// stored in the database and used by the task webhook system.
 func writeCertificateFiles(record *schema.Record, res *certificate.Resource) (string, string, error) {
 	dir := certificateDir(record)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", "", apperror.NewError("failed to create certificate directory").AddError(err)
 	}
 
-	certPath := filepath.Join(dir, "fullchain.pem")
-	keyPath := filepath.Join(dir, "privkey.pem")
-
-	// Build the chain as leaf + intermediates. res.Certificate contains only
-	// the leaf (Bundle: false) and res.IssuerCertificate contains the
-	// intermediates without the root CA, which is the correct presentation
-	// chain for TLS and matches what certbot produces.
-	fullchain := append(res.Certificate, res.IssuerCertificate...)
-	if err := os.WriteFile(certPath, fullchain, 0o600); err != nil {
-		return "", "", apperror.NewError("failed to write certificate file").AddError(err)
+	files := []struct {
+		name    string
+		content []byte
+	}{
+		{"cert.pem", res.Certificate},
+		{"chain.pem", res.IssuerCertificate},
+		{"fullchain.pem", append(res.Certificate, res.IssuerCertificate...)},
+		{"privkey.pem", res.PrivateKey},
 	}
-	if err := os.WriteFile(keyPath, res.PrivateKey, 0o600); err != nil {
-		return "", "", apperror.NewError("failed to write key file").AddError(err)
+	for _, f := range files {
+		if err := os.WriteFile(filepath.Join(dir, f.name), f.content, 0o600); err != nil {
+			return "", "", apperror.NewError("failed to write " + f.name).AddError(err)
+		}
 	}
 
-	return certPath, keyPath, nil
+	return filepath.Join(dir, "fullchain.pem"), filepath.Join(dir, "privkey.pem"), nil
 }
 
 // parseLeafCertificate extracts the leaf certificate from a PEM-encoded chain.

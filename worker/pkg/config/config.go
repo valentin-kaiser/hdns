@@ -33,12 +33,20 @@ type ActionConfig struct {
 
 	// --- cert_save fields ---
 
-	// CertDir is the directory to write the certificate and key into.
-	CertDir string `yaml:"cert_dir" usage:"(cert_save) directory to write certificate and key files"`
-	// CertFile is the filename for the certificate PEM (default: cert.pem).
-	CertFile string `yaml:"cert_file" usage:"(cert_save) filename for the certificate PEM"`
-	// KeyFile is the filename for the private-key PEM (default: key.pem).
-	KeyFile string `yaml:"key_file" usage:"(cert_save) filename for the private-key PEM"`
+	// CertDir is the directory to write the certificate files into.
+	CertDir string `yaml:"cert_dir" usage:"(cert_save) directory to write certificate files"`
+	// CertFile is the filename for the leaf certificate only (cert.pem content).
+	// Leave empty to skip writing this file.
+	CertFile string `yaml:"cert_file" usage:"(cert_save) filename for the leaf certificate (omit to skip)"`
+	// ChainFile is the filename for the intermediate certificate(s) only (chain.pem content).
+	// Leave empty to skip writing this file.
+	ChainFile string `yaml:"chain_file" usage:"(cert_save) filename for the intermediate certificate(s) (omit to skip)"`
+	// FullchainFile is the filename for the full chain – leaf + intermediates (fullchain.pem content).
+	// Leave empty to skip writing this file.
+	FullchainFile string `yaml:"fullchain_file" usage:"(cert_save) filename for the full chain cert+intermediates (omit to skip)"`
+	// KeyFile is the filename for the private key (privkey.pem content).
+	// Leave empty to skip writing this file.
+	KeyFile string `yaml:"key_file" usage:"(cert_save) filename for the private key (omit to skip)"`
 
 	// --- service_restart fields ---
 
@@ -116,11 +124,8 @@ func (a *ActionConfig) defaults(taskName string, idx int) error {
 		if strings.TrimSpace(a.CertDir) == "" {
 			return fmt.Errorf("%s (cert_save): cert_dir must not be empty", loc)
 		}
-		if a.CertFile == "" {
-			a.CertFile = "cert.pem"
-		}
-		if a.KeyFile == "" {
-			a.KeyFile = "key.pem"
+		if a.CertFile == "" && a.ChainFile == "" && a.FullchainFile == "" && a.KeyFile == "" {
+			return fmt.Errorf("%s (cert_save): at least one of cert_file, chain_file, fullchain_file, key_file must be set", loc)
 		}
 	case ActionServiceRestart:
 		if strings.TrimSpace(a.ServiceName) == "" {
