@@ -15,10 +15,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
-import { Record as DnsRecord, Zone } from '../../../../global/model/api';
+import { Record as DnsRecord, RecordPurpose, Zone } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 
@@ -31,6 +32,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatButtonModule,
     MatIconModule,
     MatStepperModule,
@@ -87,6 +89,20 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
                 <mat-label>TTL (seconds)</mat-label>
                 <input matInput type="number" formControlName="ttl" min="1" />
               </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Purpose</mat-label>
+                <mat-select formControlName="purpose">
+                  <mat-option [value]="1">DDNS only</mat-option>
+                  <mat-option [value]="2">Certificate only</mat-option>
+                  <mat-option [value]="3">DDNS &amp; Certificate</mat-option>
+                </mat-select>
+                <mat-hint>Choose whether this record is updated with your IP, used for a certificate, or both.</mat-hint>
+              </mat-form-field>
+              @if (detailsGroup.value.purpose !== 1) {
+                <mat-slide-toggle formControlName="includeWildcard" class="toggle-field">
+                  Include wildcard (*) in certificate
+                </mat-slide-toggle>
+              }
             </form>
           </mat-step>
         </mat-stepper>
@@ -154,6 +170,9 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
       .full-width {
         width: 100%;
       }
+      .toggle-field {
+        margin: 4px 0 8px;
+      }
     `,
   ],
 })
@@ -189,6 +208,8 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
   detailsGroup = this.fb.group({
     name: ['', Validators.required],
     ttl: [60, [Validators.required, Validators.min(1)]],
+    purpose: [0, [Validators.required]],
+    includeWildcard: [false],
   });
 
   constructor() {
@@ -227,7 +248,12 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     if (this.record) {
       this.tokenGroup.patchValue({ token: this.record.token });
       this.zoneGroup.patchValue({ zoneId: this.record.zoneId });
-      this.detailsGroup.patchValue({ name: this.record.name, ttl: this.record.ttl });
+      this.detailsGroup.patchValue({
+        name: this.record.name,
+        ttl: this.record.ttl,
+        purpose: this.record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED,
+        includeWildcard: this.record.includeWildcard ?? false,
+      });
       const token = this.record.token;
       setTimeout(() => {
         if (token) this.loadZones(token);
@@ -237,7 +263,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     } else {
       this.tokenGroup.reset({ token: '' });
       this.zoneGroup.reset({ zoneId: 0 });
-      this.detailsGroup.reset({ name: '', ttl: 60 });
+      this.detailsGroup.reset({ name: '', ttl: 60, purpose: RecordPurpose.RECORD_PURPOSE_UNSPECIFIED, includeWildcard: false });
       this.zones = [];
       setTimeout(() => {
         if (this.stepper) this.stepper.selectedIndex = 0;
@@ -331,6 +357,8 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     const zoneId = this.zoneGroup.value.zoneId!;
     const name = this.detailsGroup.value.name!;
     const ttl = this.detailsGroup.value.ttl!;
+    const purpose = this.detailsGroup.value.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
+    const includeWildcard = purpose === RecordPurpose.RECORD_PURPOSE_UNSPECIFIED ? false : (this.detailsGroup.value.includeWildcard ?? false);
     const domain =
       this.zones.find((zone) => zone.id === zoneId)?.name?.trim() ??
       this.record?.domain?.trim() ??
@@ -348,12 +376,17 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
         domain: '',
         address: undefined,
         lastRefresh: 0,
+        purpose: RecordPurpose.RECORD_PURPOSE_UNSPECIFIED,
+        includeWildcard: false,
+        certificate: undefined,
       }),
       token,
       zoneId,
       domain,
       name,
       ttl,
+      purpose,
+      includeWildcard,
     };
     this.saving = true;
     this.api.upsertRecord(payload).subscribe({

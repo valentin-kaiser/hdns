@@ -1,35 +1,41 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal, signal } from '@angular/core';
 import {
-  Observable,
-  Subject,
-  catchError,
-  defer,
-  finalize,
-  repeat,
-  retry,
-  shareReplay,
-  takeUntil,
-  tap,
-  throwError,
-  timer,
+    Observable,
+    Subject,
+    catchError,
+    defer,
+    finalize,
+    repeat,
+    retry,
+    shareReplay,
+    takeUntil,
+    tap,
+    throwError,
+    timer,
 } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../../environments/environment';
 import {
-  Address,
-  AddressHistory,
-  Configuration,
-  Empty,
-  HDNSDefinition,
-  Record,
-  RecordDelete,
-  RecordList,
-  Request,
-  Resolution,
-  ResolutionResult,
-  ZoneList,
-  ZoneRequest,
+    Address,
+    AddressHistory,
+    Certificate,
+    CertificateList,
+    Configuration,
+    Empty,
+    HDNSDefinition,
+    Record,
+    RecordDelete,
+    RecordList,
+    Request,
+    Resolution,
+    ResolutionResult,
+    Task,
+    TaskDelete,
+    TaskList,
+    TaskResult,
+    ZoneList,
+    ZoneRequest,
 } from '../../model/api';
 import { LoggerService } from '../logger/logger.service';
 
@@ -119,6 +125,31 @@ export class ApiService {
 
   public updateConfig(config: Configuration): Observable<Configuration> {
     return this.rpc<Configuration>('updateConfig', config);
+  }
+
+  public getCertificates(): Observable<CertificateList> {
+    return this.rpc<CertificateList>('getCertificates', {});
+  }
+
+  public issueCertificate(record: Record): Observable<Certificate> {
+    return this.rpc<Certificate>('issueCertificate', record);
+  }
+
+  public getTasks(): Observable<TaskList> {
+    return this.rpc<TaskList>('getTasks', {});
+  }
+
+  public upsertTask(task: Task): Observable<Task> {
+    return this.rpc<Task>('upsertTask', task);
+  }
+
+  public deleteTask(id: number): Observable<Empty> {
+    const req: TaskDelete = { id };
+    return this.rpc<Empty>('deleteTask', req);
+  }
+
+  public testTask(task: Task): Observable<TaskResult> {
+    return this.rpc<TaskResult>('testTask', task);
   }
 
   /**

@@ -285,10 +285,38 @@ const LOG_LEVELS = [
                 </div>
               }
             </div>
+
+            <div class="list-section acme-section">
+              <div class="list-header">
+                <label class="list-label">Let's Encrypt (ACME)</label>
+              </div>
+              <div class="notifications-hint">
+                Issue certificates for records via the Hetzner DNS-01 challenge. The renewal
+                schedule is configured via the YAML file only.
+              </div>
+              <div class="toggle-row">
+                <mat-slide-toggle formControlName="acmeEnabled">
+                  Enable ACME certificate issuance
+                </mat-slide-toggle>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Account email</mat-label>
+                <input matInput type="email" formControlName="acmeEmail" placeholder="you@example.com" />
+                <mat-hint>Used for the Let's Encrypt account registration.</mat-hint>
+              </mat-form-field>
+              <div class="toggle-row">
+                <mat-slide-toggle formControlName="acmeStaging">
+                  Use staging environment (for testing)
+                </mat-slide-toggle>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Renew before expiry (days)</mat-label>
+                <input matInput type="number" min="1" formControlName="acmeRenewBeforeDays" />
+              </mat-form-field>
+            </div>
           </form>
         }
       </div>
-
       <div class="drawer-footer" footer>
         <button mat-stroked-button (click)="drawer.close()">Cancel</button>
         <button
@@ -535,6 +563,10 @@ export class ConfigDrawerComponent implements OnInit {
     notificationsCooldownMinutes: [60, [Validators.min(0)]],
     notificationsSubjectPrefix: ['[hdns]'],
     notificationsRecipients: [[] as string[]],
+    acmeEnabled: [false],
+    acmeEmail: ['', [Validators.email]],
+    acmeStaging: [true],
+    acmeRenewBeforeDays: [30, [Validators.min(1)]],
     database: [{ value: '', disabled: true }],
   });
 
@@ -591,6 +623,10 @@ export class ConfigDrawerComponent implements OnInit {
           notificationsCooldownMinutes: cfg.notificationsCooldownMinutes ?? 60,
           notificationsSubjectPrefix: cfg.notificationsSubjectPrefix ?? '[hdns]',
           notificationsRecipients: cfg.notificationsRecipients ?? [],
+          acmeEnabled: cfg.acmeEnabled ?? false,
+          acmeEmail: cfg.acmeEmail ?? '',
+          acmeStaging: cfg.acmeStaging ?? true,
+          acmeRenewBeforeDays: cfg.acmeRenewBeforeDays ?? 30,
         });
       },
       error: (err) => {
@@ -613,6 +649,10 @@ export class ConfigDrawerComponent implements OnInit {
       notificationsCooldownMinutes: v.notificationsCooldownMinutes ?? 0,
       notificationsSubjectPrefix: v.notificationsSubjectPrefix ?? '',
       notificationsRecipients: v.notificationsRecipients ?? [],
+      acmeEnabled: v.acmeEnabled ?? false,
+      acmeEmail: v.acmeEmail ?? '',
+      acmeStaging: v.acmeStaging ?? true,
+      acmeRenewBeforeDays: v.acmeRenewBeforeDays ?? 30,
     };
     this.saving.set(true);
     this.api.updateConfig(payload).subscribe({
