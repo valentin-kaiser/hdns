@@ -73,7 +73,7 @@ type WorkerConfig struct {
 	// Requests without a matching Authorization header are rejected with 401.
 	Secret string `yaml:"secret" usage:"shared Bearer token; every request must send 'Authorization: Bearer <secret>'"`
 	// Tasks is the list of named webhook tasks.
-	Tasks []TaskConfig `yaml:"tasks" usage:"list of named webhook tasks"`
+	Tasks []*TaskConfig `yaml:"tasks" usage:"list of named webhook tasks"`
 }
 
 // Validate is called by the go-core config manager after reading the YAML file.
@@ -147,7 +147,7 @@ func Init() {
 		Port:     8080,
 		LogLevel: 1,
 		Secret:   "",
-		Tasks:    []TaskConfig{},
+		Tasks:    []*TaskConfig{},
 	}
 
 	err := config.Manager().WithName("hdns-worker").Register(cfg)
@@ -213,7 +213,7 @@ func OnChange(f func(o *WorkerConfig, n *WorkerConfig) error) {
 func (c *WorkerConfig) TaskByName(name string) *TaskConfig {
 	for i := range c.Tasks {
 		if c.Tasks[i].Name == name {
-			return &c.Tasks[i]
+			return c.Tasks[i]
 		}
 	}
 	return nil

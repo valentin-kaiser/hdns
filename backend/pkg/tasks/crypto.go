@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/valentin-kaiser/go-core/apperror"
@@ -62,6 +61,5 @@ func DecodeHeaders(stored sql.NullString) (map[string]string, error) {
 		return nil, apperror.NewError("failed to parse task headers").AddError(err)
 	}
 
-	fmt.Printf("Decoded headers: %+v\n", headers)
 	return headers, nil
 }

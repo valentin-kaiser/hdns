@@ -104,7 +104,7 @@ func main() {
 
 		for _, t := range cfg.Tasks {
 			path := "/" + t.Name + "/"
-			srv.WithHandlerFunc(path, handler.Task(&t))
+			srv.WithHandlerFunc(path, handler.Task(t))
 			log.Debug().Msgf("[WORKER] registered route POST %s", path)
 		}
 

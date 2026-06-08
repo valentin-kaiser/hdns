@@ -139,7 +139,7 @@ tasks:
 ### Webhook endpoint
 
 ```
-POST /webhook/<task-name>
+POST /<task-name>
 Authorization: Bearer <secret>
 Content-Type: application/json
 

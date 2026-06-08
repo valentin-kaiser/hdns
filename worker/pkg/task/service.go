@@ -40,16 +40,22 @@ func restartServiceWindows(ctx context.Context, name string) error {
 
 	// Wait for the service to stop before starting it again; otherwise, sc start may fail with "service is already running" (1060).
 	// Wait timeout is 30s, which should be more than enough for any service to stop.
+	stopped := false
 	for i := 0; i < 30; i++ {
 		out, err := exec.CommandContext(ctx, "sc", "query", name).CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("service_restart: sc query %q state=inactive: %w\n%s", name, err, strings.TrimSpace(string(out)))
 		}
 		if bytes.Contains(out, []byte("STATE              : 1  STOPPED")) {
+			stopped = true
 			break
 		}
 		log.Info().Msgf("[WORKER] waiting for service %q to stop...", name)
 		time.Sleep(1 * time.Second)
+	}
+
+	if !stopped {
+		return fmt.Errorf("service_restart: timeout waiting for service %q to stop", name)
 	}
 
 	start := exec.CommandContext(ctx, "sc", "start", name)

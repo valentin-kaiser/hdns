@@ -266,11 +266,11 @@ export class RecordTasksDrawerComponent {
 
   triggerLabel(trigger: number): string {
     switch (trigger) {
-      case 0:
-        return 'On IP update';
       case 1:
-        return 'On cert renewal';
+        return 'On IP update';
       case 2:
+        return 'On cert renewal';
+      case 3:
         return 'On IP & cert';
       default:
         return 'Unknown';

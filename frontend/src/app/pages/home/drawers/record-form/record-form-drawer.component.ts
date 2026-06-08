@@ -208,7 +208,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
   detailsGroup = this.fb.group({
     name: ['', Validators.required],
     ttl: [60, [Validators.required, Validators.min(1)]],
-    purpose: [0, [Validators.required]],
+    purpose: [RecordPurpose.RECORD_PURPOSE_DDNS, [Validators.required]],
     includeWildcard: [false],
   });
 
@@ -251,7 +251,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
       this.detailsGroup.patchValue({
         name: this.record.name,
         ttl: this.record.ttl,
-        purpose: this.record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED,
+        purpose: this.record.purpose ?? RecordPurpose.RECORD_PURPOSE_DDNS,
         includeWildcard: this.record.includeWildcard ?? false,
       });
       const token = this.record.token;
@@ -263,7 +263,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     } else {
       this.tokenGroup.reset({ token: '' });
       this.zoneGroup.reset({ zoneId: 0 });
-      this.detailsGroup.reset({ name: '', ttl: 60, purpose: RecordPurpose.RECORD_PURPOSE_UNSPECIFIED, includeWildcard: false });
+      this.detailsGroup.reset({ name: '', ttl: 60, purpose: RecordPurpose.RECORD_PURPOSE_DDNS, includeWildcard: false });
       this.zones = [];
       setTimeout(() => {
         if (this.stepper) this.stepper.selectedIndex = 0;
