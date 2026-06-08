@@ -1,0 +1,87 @@
+---
+
+name: Release Binaries
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Upload Binaries
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: Set version variables
+        id: vars
+        run: |
+          echo "GIT_TAG=$(git describe --tags)" >> $GITHUB_OUTPUT
+          echo "GIT_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "GIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "BUILD_TIME=$(date +%FT%T%z)" >> $GITHUB_OUTPUT
+
+      - name: Build backend
+        working-directory: backend
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+          PACKAGE="github.com/valentin-kaiser/go-core/version"
+          LDFLAGS="-X ${PACKAGE}.GitTag=${{ steps.vars.outputs.GIT_TAG }} \
+            -X ${PACKAGE}.GitCommit=${{ steps.vars.outputs.GIT_COMMIT }} \
+            -X ${PACKAGE}.GitShort=${{ steps.vars.outputs.GIT_SHORT }} \
+            -X ${PACKAGE}.BuildDate=${{ steps.vars.outputs.BUILD_TIME }}"
+          go build -trimpath -ldflags="${LDFLAGS}" \
+            -o ../dist/hdns-${{ matrix.goos }}-${{ matrix.goarch }}${EXT} \
+            ./cmd
+
+      - name: Build worker
+        working-directory: worker
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+          PACKAGE="github.com/valentin-kaiser/go-core/version"
+          LDFLAGS="-X ${PACKAGE}.GitTag=${{ steps.vars.outputs.GIT_TAG }} \
+            -X ${PACKAGE}.GitCommit=${{ steps.vars.outputs.GIT_COMMIT }} \
+            -X ${PACKAGE}.GitShort=${{ steps.vars.outputs.GIT_SHORT }} \
+            -X ${PACKAGE}.BuildDate=${{ steps.vars.outputs.BUILD_TIME }}"
+          go build -trimpath -ldflags="${LDFLAGS}" \
+            -o ../dist/hdns-worker-${{ matrix.goos }}-${{ matrix.goarch }}${EXT} \
+            ./cmd
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/hdns-${{ matrix.goos }}-${{ matrix.goarch }}*
+            dist/hdns-worker-${{ matrix.goos }}-${{ matrix.goarch }}*

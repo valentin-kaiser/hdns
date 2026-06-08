@@ -11,10 +11,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
-import { Record as DnsRecord } from '../../../../global/model/api';
+import { Record as DnsRecord, RecordPurpose } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 import { RecordFormDrawerComponent } from '../../drawers/record-form/record-form-drawer.component';
+import { RecordTasksDrawerComponent } from '../../drawers/record-tasks/record-tasks-drawer.component';
 import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.component';
 
 @Component({
@@ -33,6 +34,7 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
     MatInputModule,
     MatProgressSpinnerModule,
     RecordFormDrawerComponent,
+    RecordTasksDrawerComponent,
     ResolveDrawerComponent,
   ],
   template: `
@@ -88,12 +90,21 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               <td mat-cell *matCellDef="let r">{{ r.domain }}</td>
             </ng-container>
 
+            <ng-container matColumnDef="purpose">
+              <th mat-header-cell *matHeaderCellDef>Purpose</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="purpose-badge">{{ purposeLabel(r.purpose) }}</span>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="ip">
               <th mat-header-cell *matHeaderCellDef>
                 <span matTooltip="Wanted public IP / Hetzner / Resolved">IP</span>
               </th>
               <td mat-cell *matCellDef="let r">
-                @if (loadingHetzner().has(r.id) || loadingResolved().has(r.id)) {
+                @if (!recordDoesDdns(r)) {
+                  <span class="muted">—</span>
+                } @else if (loadingHetzner().has(r.id) || loadingResolved().has(r.id)) {
                   <mat-spinner diameter="16"></mat-spinner>
                 } @else {
                   <div class="ip-cell">
@@ -124,6 +135,33 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="certificate">
+              <th mat-header-cell *matHeaderCellDef>Certificate</th>
+              <td mat-cell *matCellDef="let r">
+                @if (recordHasCert(r)) {
+                  @if (issuing().has(r.id)) {
+                    <mat-spinner diameter="16"></mat-spinner>
+                  } @else if (r.certificate) {
+                    <div class="cert-cell">
+                      <span class="cert-status" [class]="certStatusClass(r.certificate.status)" [matTooltip]="r.certificate.lastError">
+                        <mat-icon class="cert-icon">{{ certStatusIcon(r.certificate.status) }}</mat-icon>
+                        {{ r.certificate.status }}
+                      </span>
+                      @if (+r.certificate.notAfter) {
+                        <span class="cert-expiry" matTooltip="Expires">
+                          {{ r.certificate.notAfter | date: 'dd.MM.yyyy' : 'UTC' }}
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="muted">not issued</span>
+                  }
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="updatedAt">
               <th mat-header-cell *matHeaderCellDef>Last Updated</th>
               <td mat-cell *matCellDef="let r" class="muted">
@@ -139,17 +177,39 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let r" class="actions-cell">
-                <div class="actions-row">
-                  <button mat-button class="primary-item" (click)="refreshRecord(r)">
-                    <mat-icon>refresh</mat-icon> Refresh
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="actionsMenu"
+                  aria-label="Record actions"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  @if (recordDoesDdns(r)) {
+                    <button mat-menu-item class="primary-item" (click)="refreshRecord(r)">
+                      <mat-icon>refresh</mat-icon> Refresh
+                    </button>
+                    <button mat-menu-item class="primary-item" (click)="resolveDrawer.open(r)">
+                      <mat-icon>travel_explore</mat-icon> Resolve
+                    </button>
+                  }
+                  @if (recordHasCert(r)) {
+                    <button
+                      mat-menu-item
+                      class="primary-item"
+                      [disabled]="issuing().has(r.id)"
+                      (click)="issueCertificate(r)"
+                    >
+                      <mat-icon>verified</mat-icon> Issue cert
+                    </button>
+                  }
+                  <button mat-menu-item class="primary-item" (click)="tasksDrawer.open(r)">
+                    <mat-icon>webhook</mat-icon> Tasks
                   </button>
-                  <button mat-button class="primary-item" (click)="resolveDrawer.open(r)">
-                    <mat-icon>travel_explore</mat-icon> Resolve
-                  </button>
-                  <button mat-button class="danger-item" (click)="delete(r)">
+                  <button mat-menu-item class="danger-item" (click)="delete(r)">
                     <mat-icon>delete</mat-icon> Delete
                   </button>
-                </div>
+                </mat-menu>
               </td>
             </ng-container>
 
@@ -175,6 +235,9 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
 
     <!-- Resolve drawer -->
     <app-resolve-drawer #resolveDrawer />
+
+    <!-- Tasks drawer -->
+    <app-record-tasks-drawer #tasksDrawer />
   `,
   styles: [
     `
@@ -297,6 +360,51 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
         color: var(--launch-text-muted);
         font-size: 0.8125rem;
       }
+      .purpose-badge {
+        display: inline-block;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        color: var(--hdns-primary);
+        background: var(--hdns-primary-tint);
+        white-space: nowrap;
+      }
+      .cert-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        line-height: 1.2;
+      }
+      .cert-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8125rem;
+        text-transform: capitalize;
+      }
+      .cert-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+      }
+      .cert-valid {
+        color: var(--hdns-success, #2e7d32);
+      }
+      .cert-pending {
+        color: var(--hdns-warning, #ed6c02);
+      }
+      .cert-failed {
+        color: var(--hdns-danger, #d32f2f);
+      }
+      .cert-expiry {
+        font-size: 0.6875rem;
+        color: var(--launch-text-muted);
+      }
+      .cert-expiry.err {
+        color: var(--hdns-danger, #d32f2f);
+      }
       .actions-cell {
         white-space: nowrap;
         padding-right: 0;
@@ -350,9 +458,11 @@ export class RecordsTableComponent implements OnInit {
   readonly resolvedIps = signal<Map<number, string>>(new Map());
   readonly loadingHetzner = signal<Set<number>>(new Set());
   readonly loadingResolved = signal<Set<number>>(new Set());
-  columns = ['name', 'domain', 'ip', 'updatedAt', 'ttl', 'actions'];
+  readonly issuing = signal<Set<number>>(new Set());
+  columns = ['name', 'domain', 'purpose', 'ip', 'certificate', 'updatedAt', 'ttl', 'actions'];
 
   @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
+  @ViewChild('tasksDrawer') tasksDrawer!: RecordTasksDrawerComponent;
 
   constructor(
     private readonly api: ApiService,
@@ -383,6 +493,9 @@ export class RecordsTableComponent implements OnInit {
           this.hetznerIps.set(new Map());
           this.resolvedIps.set(new Map());
           for (const r of records) {
+            if (!this.recordDoesDdns(r)) {
+              continue;
+            }
             this.loadHetznerIp(r);
             this.loadResolvedIp(r);
           }
@@ -448,6 +561,96 @@ export class RecordsTableComponent implements OnInit {
         this.notify.error(err?.error, 'Refresh failed');
       },
     });
+  }
+
+  purposeLabel(purpose: number): string {
+    switch (purpose) {
+      case RecordPurpose.RECORD_PURPOSE_CERT:
+        return 'Certificate';
+      case RecordPurpose.RECORD_PURPOSE_BOTH:
+        return 'DDNS + Cert';
+      default:
+        return 'DDNS';
+    }
+  }
+
+  recordHasCert(record: DnsRecord): boolean {
+    const purpose = record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
+    return purpose === RecordPurpose.RECORD_PURPOSE_CERT || purpose === RecordPurpose.RECORD_PURPOSE_BOTH;
+  }
+
+  recordDoesDdns(record: DnsRecord): boolean {
+    const purpose = record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
+    return purpose === RecordPurpose.RECORD_PURPOSE_DDNS || purpose === RecordPurpose.RECORD_PURPOSE_BOTH;
+  }
+
+  certStatusClass(status: string): string {
+    switch (status) {
+      case 'valid':
+        return 'cert-valid';
+      case 'failed':
+        return 'cert-failed';
+      default:
+        return 'cert-pending';
+    }
+  }
+
+  certStatusIcon(status: string): string {
+    switch (status) {
+      case 'valid':
+        return 'verified';
+      case 'failed':
+        return 'error';
+      default:
+        return 'hourglass_empty';
+    }
+  }
+
+  issueCertificate(record: DnsRecord): void {
+    const next = new Set(this.issuing());
+    next.add(record.id);
+    this.issuing.set(next);
+    this.notify.message(`Issuing certificate for ${record.name}.${record.domain}…`);
+    this.api.issueCertificate(record).subscribe({
+      next: () => {
+        this.clearLoading(this.issuing, record.id);
+        this.notify.message('Certificate issuance started. This may take a moment…');
+        this.load();
+        this.pollCertificate(record.id);
+      },
+      error: (err) => {
+        this.clearLoading(this.issuing, record.id);
+        this.notify.error(err?.error, 'Certificate issuance failed');
+      },
+    });
+  }
+
+  // pollCertificate refreshes the record list until the certificate for the
+  // given record leaves the "pending" state, since issuance runs in the
+  // background on the server and can take ~30s.
+  private pollCertificate(recordId: number, attempt = 0): void {
+    const maxAttempts = 20;
+    if (attempt >= maxAttempts) {
+      return;
+    }
+    setTimeout(() => {
+      this.api.getRecords({ search: '' }).subscribe({
+        next: (res) => {
+          const records = res.records ?? [];
+          this.records.set(records);
+          const record = records.find((r) => r.id === recordId);
+          const status = record?.certificate?.status;
+          if (status && status !== 'pending') {
+            if (status === 'valid') {
+              this.notify.message('Certificate issued.');
+            }
+            return;
+          }
+          this.pollCertificate(recordId, attempt + 1);
+        },
+        error: () => this.pollCertificate(recordId, attempt + 1),
+      });
+    }, 3000);
   }
 
   delete(record: DnsRecord): void {

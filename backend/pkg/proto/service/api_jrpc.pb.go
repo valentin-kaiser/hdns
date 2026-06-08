@@ -26,6 +26,12 @@ type HDNSServer interface {
 	GetAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
+	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
+	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
+	UpsertTask(ctx context.Context, in *Task) (*Task, error)
+	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
+	TestTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
 }
@@ -84,6 +90,30 @@ func (UnimplementedHDNSServer) RefreshAddress(ctx context.Context, in *Empty) (*
 	return nil, errors.New("method HDNS.RefreshAddress not implemented")
 }
 
+func (UnimplementedHDNSServer) GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error) {
+	return nil, errors.New("method HDNS.GetCertificates not implemented")
+}
+
+func (UnimplementedHDNSServer) IssueCertificate(ctx context.Context, in *Record) (*Certificate, error) {
+	return nil, errors.New("method HDNS.IssueCertificate not implemented")
+}
+
+func (UnimplementedHDNSServer) GetTasks(ctx context.Context, in *Empty) (*TaskList, error) {
+	return nil, errors.New("method HDNS.GetTasks not implemented")
+}
+
+func (UnimplementedHDNSServer) UpsertTask(ctx context.Context, in *Task) (*Task, error) {
+	return nil, errors.New("method HDNS.UpsertTask not implemented")
+}
+
+func (UnimplementedHDNSServer) DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error) {
+	return nil, errors.New("method HDNS.DeleteTask not implemented")
+}
+
+func (UnimplementedHDNSServer) TestTask(ctx context.Context, in *Task) (*TaskResult, error) {
+	return nil, errors.New("method HDNS.TestTask not implemented")
+}
+
 func (UnimplementedHDNSServer) GetConfig(ctx context.Context, in *Empty) (*Configuration, error) {
 	return nil, errors.New("method HDNS.GetConfig not implemented")
 }
@@ -115,6 +145,12 @@ type HDNSClientDefinition interface {
 	GetAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetAddressHistory(ctx context.Context, in *Empty) (*AddressHistory, error)
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
+	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
+	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
+	UpsertTask(ctx context.Context, in *Task) (*Task, error)
+	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
+	TestTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
 }
@@ -242,6 +278,66 @@ func (c *HDNSClient) GetAddressHistory(ctx context.Context, in *Empty) (*Address
 func (c *HDNSClient) RefreshAddress(ctx context.Context, in *Empty) (*Address, error) {
 	u := c.baseURL.JoinPath("HDNS", "RefreshAddress")
 	out := &Address{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetCertificates")
+	out := &CertificateList{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) IssueCertificate(ctx context.Context, in *Record) (*Certificate, error) {
+	u := c.baseURL.JoinPath("HDNS", "IssueCertificate")
+	out := &Certificate{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetTasks(ctx context.Context, in *Empty) (*TaskList, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetTasks")
+	out := &TaskList{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) UpsertTask(ctx context.Context, in *Task) (*Task, error) {
+	u := c.baseURL.JoinPath("HDNS", "UpsertTask")
+	out := &Task{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error) {
+	u := c.baseURL.JoinPath("HDNS", "DeleteTask")
+	out := &Empty{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) TestTask(ctx context.Context, in *Task) (*TaskResult, error) {
+	u := c.baseURL.JoinPath("HDNS", "TestTask")
+	out := &TaskResult{}
 	err := c.client.Call(ctx, u, in, out, nil)
 	if err != nil {
 		return nil, err

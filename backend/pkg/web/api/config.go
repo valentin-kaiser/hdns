@@ -27,9 +27,11 @@ func (s *Server) UpdateConfig(ctx context.Context, in *service.Configuration) (*
 		Database:        current.Database,
 		// SMTP transport fields are not part of the proto and remain
 		// unchanged on UpdateConfig; FromProto only overwrites the
-		// Notifications subsection.
+		// Notifications subsection. ACME is seeded with the current values
+		// so that YAML-only fields (e.g. renew_cron) are preserved.
 		Mail:          current.Mail,
 		Notifications: current.Notifications,
+		ACME:          current.ACME,
 	}
 
 	err := c.FromProto(in).Validate()

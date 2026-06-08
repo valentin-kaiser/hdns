@@ -17,6 +17,23 @@ type Address struct {
 	Current   bool
 }
 
+type Certificate struct {
+	ID        int64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	RecordID  int64
+	// comma-separated list of certificate SANs
+	Domains string
+	// pending, valid, failed, expired
+	Status    string
+	NotBefore sql.NullTime
+	NotAfter  sql.NullTime
+	Serial    sql.NullString
+	LastError sql.NullString
+	CertPath  string
+	KeyPath   string
+}
+
 type Record struct {
 	ID        int64
 	CreatedAt sql.NullTime
@@ -28,6 +45,9 @@ type Record struct {
 	Name      string
 	Ttl       int32
 	AddressID sql.NullInt64
+	// 1=ddns, 2=cert, 3=both
+	Purpose         int8
+	IncludeWildcard bool
 }
 
 type Release struct {
@@ -38,4 +58,25 @@ type Release struct {
 	BuildDate sql.NullString
 	GoVersion sql.NullString
 	Platform  sql.NullString
+}
+
+type Task struct {
+	ID        int64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	RecordID  int64
+	Name      string
+	// 1=ip, 2=cert, 3=both
+	TriggerOn int8
+	Method    string
+	Url       string
+	// AES-256-GCM encrypted JSON object of HTTP headers (base64url-encoded nonce+ciphertext+tag)
+	Headers sql.NullString
+	Body    sql.NullString
+	// inject the issued certificate and private key into the webhook body
+	IncludeCertificate bool
+	Enabled            bool
+	LastRun            sql.NullTime
+	LastStatus         sql.NullString
+	LastError          sql.NullString
 }

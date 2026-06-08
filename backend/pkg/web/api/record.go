@@ -23,6 +23,7 @@ func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.
 
 	var records []*schema.Record
 	var addresses []*schema.Address
+	var certificates []*schema.Certificate
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
 		records, err = q.ListRecords(ctx, schema.ListRecordsParams{
@@ -35,6 +36,10 @@ func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.
 		if err != nil {
 			return apperror.NewError("failed to fetch addresses from database").AddError(err)
 		}
+		certificates, err = q.ListCertificates(ctx)
+		if err != nil {
+			return apperror.NewError("failed to fetch certificates from database").AddError(err)
+		}
 		return nil
 	})
 	if err != nil {
@@ -46,17 +51,24 @@ func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.
 		addrByID[a.ID] = a
 	}
 
+	certByRecord := make(map[int64]*schema.Certificate, len(certificates))
+	for _, c := range certificates {
+		certByRecord[c.RecordID] = c
+	}
+
 	list := &service.RecordList{}
 	for _, record := range records {
 		proto := &service.Record{
-			Id:        record.ID,
-			CreatedAt: record.CreatedAt.Time.UnixMilli(),
-			UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
-			ZoneId:    record.ZoneID,
-			Domain:    record.Domain,
-			Name:      record.Name,
-			Ttl:       uint32(record.Ttl),
-			AddressId: record.AddressID.Int64,
+			Id:              record.ID,
+			CreatedAt:       record.CreatedAt.Time.UnixMilli(),
+			UpdatedAt:       record.UpdatedAt.Time.UnixMilli(),
+			ZoneId:          record.ZoneID,
+			Domain:          record.Domain,
+			Name:            record.Name,
+			Ttl:             uint32(record.Ttl),
+			AddressId:       record.AddressID.Int64,
+			Purpose:         service.RecordPurpose(record.Purpose),
+			IncludeWildcard: record.IncludeWildcard,
 		}
 
 		if record.AddressID.Valid {
@@ -70,6 +82,10 @@ func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.
 					Current:   address.Current,
 				}
 			}
+		}
+
+		if cert, ok := certByRecord[record.ID]; ok {
+			proto.Certificate = certificateToProto(cert)
 		}
 
 		list.Records = append(list.Records, proto)
@@ -116,23 +132,27 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		switch in.Id {
 		case 0:
 			in.Id, err = q.CreateRecord(ctx, schema.CreateRecordParams{
-				Token:  encryptedToken,
-				ZoneID: in.ZoneId,
-				Domain: in.Domain,
-				Name:   in.Name,
-				Ttl:    int32(in.Ttl),
+				Token:           encryptedToken,
+				ZoneID:          in.ZoneId,
+				Domain:          in.Domain,
+				Name:            in.Name,
+				Ttl:             int32(in.Ttl),
+				Purpose:         int8(in.Purpose),
+				IncludeWildcard: in.IncludeWildcard,
 			})
 			if err != nil {
 				return apperror.NewError("failed to create record in database").AddError(err)
 			}
 		default:
 			err = q.UpdateRecord(ctx, schema.UpdateRecordParams{
-				ID:     in.Id,
-				Token:  encryptedToken,
-				ZoneID: in.ZoneId,
-				Domain: in.Domain,
-				Name:   in.Name,
-				Ttl:    int32(in.Ttl),
+				ID:              in.Id,
+				Token:           encryptedToken,
+				ZoneID:          in.ZoneId,
+				Domain:          in.Domain,
+				Name:            in.Name,
+				Ttl:             int32(in.Ttl),
+				Purpose:         int8(in.Purpose),
+				IncludeWildcard: in.IncludeWildcard,
 			})
 			if err != nil {
 				return apperror.NewError("failed to update record in database").AddError(err)
@@ -155,15 +175,25 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("failed to refresh record").AddError(err)
 	}
 
+	// Issue or renew the certificate in the background for cert-enabled
+	// records when ACME is configured.
+	if (record.Purpose == int8(dns.PurposeCert) || record.Purpose == int8(dns.PurposeBoth)) && config.Get().ACME.Enabled {
+		if err := dns.StartIssuance(record.ID); err != nil {
+			apperror.ErrorHandler(err, "failed to start certificate issuance for record")
+		}
+	}
+
 	proto := &service.Record{
-		Id:        record.ID,
-		CreatedAt: record.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
-		ZoneId:    record.ZoneID,
-		Domain:    record.Domain,
-		Name:      record.Name,
-		Ttl:       uint32(record.Ttl),
-		AddressId: record.AddressID.Int64,
+		Id:              record.ID,
+		CreatedAt:       record.CreatedAt.Time.UnixMilli(),
+		UpdatedAt:       record.UpdatedAt.Time.UnixMilli(),
+		ZoneId:          record.ZoneID,
+		Domain:          record.Domain,
+		Name:            record.Name,
+		Ttl:             uint32(record.Ttl),
+		AddressId:       record.AddressID.Int64,
+		Purpose:         service.RecordPurpose(record.Purpose),
+		IncludeWildcard: record.IncludeWildcard,
 	}
 
 	if record.AddressID.Valid {
@@ -251,14 +281,16 @@ func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*servic
 	}
 
 	proto := &service.Record{
-		Id:        record.ID,
-		CreatedAt: record.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: record.UpdatedAt.Time.UnixMilli(),
-		ZoneId:    record.ZoneID,
-		Domain:    record.Domain,
-		Name:      record.Name,
-		Ttl:       uint32(record.Ttl),
-		AddressId: record.AddressID.Int64,
+		Id:              record.ID,
+		CreatedAt:       record.CreatedAt.Time.UnixMilli(),
+		UpdatedAt:       record.UpdatedAt.Time.UnixMilli(),
+		ZoneId:          record.ZoneID,
+		Domain:          record.Domain,
+		Name:            record.Name,
+		Ttl:             uint32(record.Ttl),
+		AddressId:       record.AddressID.Int64,
+		Purpose:         service.RecordPurpose(record.Purpose),
+		IncludeWildcard: record.IncludeWildcard,
 	}
 
 	if record.AddressID.Valid {

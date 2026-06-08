@@ -21,6 +21,110 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type RecordPurpose int32
+
+const (
+	RecordPurpose_RECORD_PURPOSE_UNSPECIFIED RecordPurpose = 0
+	RecordPurpose_RECORD_PURPOSE_DDNS        RecordPurpose = 1
+	RecordPurpose_RECORD_PURPOSE_CERT        RecordPurpose = 2
+	RecordPurpose_RECORD_PURPOSE_BOTH        RecordPurpose = 3
+)
+
+// Enum value maps for RecordPurpose.
+var (
+	RecordPurpose_name = map[int32]string{
+		0: "RECORD_PURPOSE_UNSPECIFIED",
+		1: "RECORD_PURPOSE_DDNS",
+		2: "RECORD_PURPOSE_CERT",
+		3: "RECORD_PURPOSE_BOTH",
+	}
+	RecordPurpose_value = map[string]int32{
+		"RECORD_PURPOSE_UNSPECIFIED": 0,
+		"RECORD_PURPOSE_DDNS":        1,
+		"RECORD_PURPOSE_CERT":        2,
+		"RECORD_PURPOSE_BOTH":        3,
+	}
+)
+
+func (x RecordPurpose) Enum() *RecordPurpose {
+	p := new(RecordPurpose)
+	*p = x
+	return p
+}
+
+func (x RecordPurpose) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RecordPurpose) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_enumTypes[0].Descriptor()
+}
+
+func (RecordPurpose) Type() protoreflect.EnumType {
+	return &file_api_proto_enumTypes[0]
+}
+
+func (x RecordPurpose) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RecordPurpose.Descriptor instead.
+func (RecordPurpose) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{0}
+}
+
+type TaskTrigger int32
+
+const (
+	TaskTrigger_TASK_TRIGGER_UNSPECIFIED TaskTrigger = 0
+	TaskTrigger_TASK_TRIGGER_IP          TaskTrigger = 1
+	TaskTrigger_TASK_TRIGGER_CERT        TaskTrigger = 2
+	TaskTrigger_TASK_TRIGGER_BOTH        TaskTrigger = 3
+)
+
+// Enum value maps for TaskTrigger.
+var (
+	TaskTrigger_name = map[int32]string{
+		0: "TASK_TRIGGER_UNSPECIFIED",
+		1: "TASK_TRIGGER_IP",
+		2: "TASK_TRIGGER_CERT",
+		3: "TASK_TRIGGER_BOTH",
+	}
+	TaskTrigger_value = map[string]int32{
+		"TASK_TRIGGER_UNSPECIFIED": 0,
+		"TASK_TRIGGER_IP":          1,
+		"TASK_TRIGGER_CERT":        2,
+		"TASK_TRIGGER_BOTH":        3,
+	}
+)
+
+func (x TaskTrigger) Enum() *TaskTrigger {
+	p := new(TaskTrigger)
+	*p = x
+	return p
+}
+
+func (x TaskTrigger) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TaskTrigger) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_enumTypes[1].Descriptor()
+}
+
+func (TaskTrigger) Type() protoreflect.EnumType {
+	return &file_api_proto_enumTypes[1]
+}
+
+func (x TaskTrigger) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TaskTrigger.Descriptor instead.
+func (TaskTrigger) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{1}
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -276,19 +380,22 @@ func (x *AddressHistory) GetAddresses() []*Address {
 
 // Record represents a DNS record.
 type Record struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Token         string                 `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
-	ZoneId        int64                  `protobuf:"varint,5,opt,name=zone_id,json=zoneId,proto3" json:"zone_id,omitempty"`
-	Domain        string                 `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain,omitempty"`
-	Name          string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
-	Ttl           uint32                 `protobuf:"varint,8,opt,name=ttl,proto3" json:"ttl,omitempty"`
-	AddressId     int64                  `protobuf:"varint,9,opt,name=address_id,json=addressId,proto3" json:"address_id,omitempty"`
-	Address       *Address               `protobuf:"bytes,10,opt,name=address,proto3" json:"address,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAt       int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Token           string                 `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
+	ZoneId          int64                  `protobuf:"varint,5,opt,name=zone_id,json=zoneId,proto3" json:"zone_id,omitempty"`
+	Domain          string                 `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain,omitempty"`
+	Name            string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	Ttl             uint32                 `protobuf:"varint,8,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	AddressId       int64                  `protobuf:"varint,9,opt,name=address_id,json=addressId,proto3" json:"address_id,omitempty"`
+	Address         *Address               `protobuf:"bytes,10,opt,name=address,proto3" json:"address,omitempty"`
+	Purpose         RecordPurpose          `protobuf:"varint,11,opt,name=purpose,proto3,enum=service.RecordPurpose" json:"purpose,omitempty"`
+	IncludeWildcard bool                   `protobuf:"varint,12,opt,name=include_wildcard,json=includeWildcard,proto3" json:"include_wildcard,omitempty"`
+	Certificate     *Certificate           `protobuf:"bytes,13,opt,name=certificate,proto3" json:"certificate,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Record) Reset() {
@@ -391,6 +498,27 @@ func (x *Record) GetAddress() *Address {
 	return nil
 }
 
+func (x *Record) GetPurpose() RecordPurpose {
+	if x != nil {
+		return x.Purpose
+	}
+	return RecordPurpose_RECORD_PURPOSE_UNSPECIFIED
+}
+
+func (x *Record) GetIncludeWildcard() bool {
+	if x != nil {
+		return x.IncludeWildcard
+	}
+	return false
+}
+
+func (x *Record) GetCertificate() *Certificate {
+	if x != nil {
+		return x.Certificate
+	}
+	return nil
+}
+
 type RecordList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Records       []*Record              `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
@@ -487,6 +615,468 @@ func (x *RecordDelete) GetDeleteFromHetzner() bool {
 	return false
 }
 
+// Certificate represents an issued Let's Encrypt certificate.
+type Certificate struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	RecordId      int64                  `protobuf:"varint,4,opt,name=record_id,json=recordId,proto3" json:"record_id,omitempty"`
+	Domains       string                 `protobuf:"bytes,5,opt,name=domains,proto3" json:"domains,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	NotBefore     int64                  `protobuf:"varint,7,opt,name=not_before,json=notBefore,proto3" json:"not_before,omitempty"`
+	NotAfter      int64                  `protobuf:"varint,8,opt,name=not_after,json=notAfter,proto3" json:"not_after,omitempty"`
+	Serial        string                 `protobuf:"bytes,9,opt,name=serial,proto3" json:"serial,omitempty"`
+	LastError     string                 `protobuf:"bytes,10,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Certificate) Reset() {
+	*x = Certificate{}
+	mi := &file_api_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Certificate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Certificate) ProtoMessage() {}
+
+func (x *Certificate) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Certificate.ProtoReflect.Descriptor instead.
+func (*Certificate) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Certificate) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Certificate) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Certificate) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *Certificate) GetRecordId() int64 {
+	if x != nil {
+		return x.RecordId
+	}
+	return 0
+}
+
+func (x *Certificate) GetDomains() string {
+	if x != nil {
+		return x.Domains
+	}
+	return ""
+}
+
+func (x *Certificate) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Certificate) GetNotBefore() int64 {
+	if x != nil {
+		return x.NotBefore
+	}
+	return 0
+}
+
+func (x *Certificate) GetNotAfter() int64 {
+	if x != nil {
+		return x.NotAfter
+	}
+	return 0
+}
+
+func (x *Certificate) GetSerial() string {
+	if x != nil {
+		return x.Serial
+	}
+	return ""
+}
+
+func (x *Certificate) GetLastError() string {
+	if x != nil {
+		return x.LastError
+	}
+	return ""
+}
+
+type CertificateList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Certificates  []*Certificate         `protobuf:"bytes,1,rep,name=certificates,proto3" json:"certificates,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CertificateList) Reset() {
+	*x = CertificateList{}
+	mi := &file_api_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CertificateList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CertificateList) ProtoMessage() {}
+
+func (x *CertificateList) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CertificateList.ProtoReflect.Descriptor instead.
+func (*CertificateList) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CertificateList) GetCertificates() []*Certificate {
+	if x != nil {
+		return x.Certificates
+	}
+	return nil
+}
+
+// Task represents a webhook executed on IP or certificate renewal.
+type Task struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAt int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	RecordId  int64                  `protobuf:"varint,4,opt,name=record_id,json=recordId,proto3" json:"record_id,omitempty"`
+	Name      string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	TriggerOn TaskTrigger            `protobuf:"varint,6,opt,name=trigger_on,json=triggerOn,proto3,enum=service.TaskTrigger" json:"trigger_on,omitempty"`
+	Method    string                 `protobuf:"bytes,7,opt,name=method,proto3" json:"method,omitempty"`
+	Url       string                 `protobuf:"bytes,8,opt,name=url,proto3" json:"url,omitempty"`
+	// headers is a JSON object of HTTP headers. It is write-only and never
+	// returned populated to avoid exposing secrets.
+	Headers    string `protobuf:"bytes,9,opt,name=headers,proto3" json:"headers,omitempty"`
+	Body       string `protobuf:"bytes,10,opt,name=body,proto3" json:"body,omitempty"`
+	Enabled    bool   `protobuf:"varint,11,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	LastRun    int64  `protobuf:"varint,12,opt,name=last_run,json=lastRun,proto3" json:"last_run,omitempty"`
+	LastStatus string `protobuf:"bytes,13,opt,name=last_status,json=lastStatus,proto3" json:"last_status,omitempty"`
+	LastError  string `protobuf:"bytes,14,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
+	// include_certificate injects the issued certificate and private key into the
+	// webhook body via the {{certificate}} and {{private_key}} placeholders.
+	IncludeCertificate bool `protobuf:"varint,15,opt,name=include_certificate,json=includeCertificate,proto3" json:"include_certificate,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *Task) Reset() {
+	*x = Task{}
+	mi := &file_api_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Task) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Task) ProtoMessage() {}
+
+func (x *Task) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Task.ProtoReflect.Descriptor instead.
+func (*Task) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Task) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Task) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Task) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *Task) GetRecordId() int64 {
+	if x != nil {
+		return x.RecordId
+	}
+	return 0
+}
+
+func (x *Task) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Task) GetTriggerOn() TaskTrigger {
+	if x != nil {
+		return x.TriggerOn
+	}
+	return TaskTrigger_TASK_TRIGGER_UNSPECIFIED
+}
+
+func (x *Task) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *Task) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Task) GetHeaders() string {
+	if x != nil {
+		return x.Headers
+	}
+	return ""
+}
+
+func (x *Task) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+func (x *Task) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Task) GetLastRun() int64 {
+	if x != nil {
+		return x.LastRun
+	}
+	return 0
+}
+
+func (x *Task) GetLastStatus() string {
+	if x != nil {
+		return x.LastStatus
+	}
+	return ""
+}
+
+func (x *Task) GetLastError() string {
+	if x != nil {
+		return x.LastError
+	}
+	return ""
+}
+
+func (x *Task) GetIncludeCertificate() bool {
+	if x != nil {
+		return x.IncludeCertificate
+	}
+	return false
+}
+
+type TaskList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tasks         []*Task                `protobuf:"bytes,1,rep,name=tasks,proto3" json:"tasks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaskList) Reset() {
+	*x = TaskList{}
+	mi := &file_api_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskList) ProtoMessage() {}
+
+func (x *TaskList) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaskList.ProtoReflect.Descriptor instead.
+func (*TaskList) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *TaskList) GetTasks() []*Task {
+	if x != nil {
+		return x.Tasks
+	}
+	return nil
+}
+
+type TaskDelete struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaskDelete) Reset() {
+	*x = TaskDelete{}
+	mi := &file_api_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskDelete) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskDelete) ProtoMessage() {}
+
+func (x *TaskDelete) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaskDelete.ProtoReflect.Descriptor instead.
+func (*TaskDelete) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *TaskDelete) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type TaskResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaskResult) Reset() {
+	*x = TaskResult{}
+	mi := &file_api_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskResult) ProtoMessage() {}
+
+func (x *TaskResult) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaskResult.ProtoReflect.Descriptor instead.
+func (*TaskResult) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *TaskResult) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *TaskResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 type Zone struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -498,7 +1088,7 @@ type Zone struct {
 
 func (x *Zone) Reset() {
 	*x = Zone{}
-	mi := &file_api_proto_msgTypes[8]
+	mi := &file_api_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +1100,7 @@ func (x *Zone) String() string {
 func (*Zone) ProtoMessage() {}
 
 func (x *Zone) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[8]
+	mi := &file_api_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +1113,7 @@ func (x *Zone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Zone.ProtoReflect.Descriptor instead.
 func (*Zone) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{8}
+	return file_api_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Zone) GetId() int64 {
@@ -556,7 +1146,7 @@ type ZoneList struct {
 
 func (x *ZoneList) Reset() {
 	*x = ZoneList{}
-	mi := &file_api_proto_msgTypes[9]
+	mi := &file_api_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -568,7 +1158,7 @@ func (x *ZoneList) String() string {
 func (*ZoneList) ProtoMessage() {}
 
 func (x *ZoneList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[9]
+	mi := &file_api_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -581,7 +1171,7 @@ func (x *ZoneList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneList.ProtoReflect.Descriptor instead.
 func (*ZoneList) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{9}
+	return file_api_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ZoneList) GetZones() []*Zone {
@@ -603,7 +1193,7 @@ type Resolution struct {
 
 func (x *Resolution) Reset() {
 	*x = Resolution{}
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -615,7 +1205,7 @@ func (x *Resolution) String() string {
 func (*Resolution) ProtoMessage() {}
 
 func (x *Resolution) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[10]
+	mi := &file_api_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -628,7 +1218,7 @@ func (x *Resolution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resolution.ProtoReflect.Descriptor instead.
 func (*Resolution) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{10}
+	return file_api_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Resolution) GetServer() string {
@@ -668,7 +1258,7 @@ type ResolutionResult struct {
 
 func (x *ResolutionResult) Reset() {
 	*x = ResolutionResult{}
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -680,7 +1270,7 @@ func (x *ResolutionResult) String() string {
 func (*ResolutionResult) ProtoMessage() {}
 
 func (x *ResolutionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[11]
+	mi := &file_api_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +1283,7 @@ func (x *ResolutionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolutionResult.ProtoReflect.Descriptor instead.
 func (*ResolutionResult) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ResolutionResult) GetResolutions() []*Resolution {
@@ -718,13 +1308,18 @@ type Configuration struct {
 	NotificationsRecipients      []string `protobuf:"bytes,8,rep,name=notifications_recipients,json=notificationsRecipients,proto3" json:"notifications_recipients,omitempty"`
 	NotificationsCooldownMinutes int32    `protobuf:"varint,9,opt,name=notifications_cooldown_minutes,json=notificationsCooldownMinutes,proto3" json:"notifications_cooldown_minutes,omitempty"`
 	NotificationsSubjectPrefix   string   `protobuf:"bytes,10,opt,name=notifications_subject_prefix,json=notificationsSubjectPrefix,proto3" json:"notifications_subject_prefix,omitempty"`
-	unknownFields                protoimpl.UnknownFields
-	sizeCache                    protoimpl.SizeCache
+	// ACME / Let's Encrypt settings for DNS-01 certificate issuance.
+	AcmeEnabled         bool   `protobuf:"varint,11,opt,name=acme_enabled,json=acmeEnabled,proto3" json:"acme_enabled,omitempty"`
+	AcmeEmail           string `protobuf:"bytes,12,opt,name=acme_email,json=acmeEmail,proto3" json:"acme_email,omitempty"`
+	AcmeStaging         bool   `protobuf:"varint,13,opt,name=acme_staging,json=acmeStaging,proto3" json:"acme_staging,omitempty"`
+	AcmeRenewBeforeDays int32  `protobuf:"varint,14,opt,name=acme_renew_before_days,json=acmeRenewBeforeDays,proto3" json:"acme_renew_before_days,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Configuration) Reset() {
 	*x = Configuration{}
-	mi := &file_api_proto_msgTypes[12]
+	mi := &file_api_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +1331,7 @@ func (x *Configuration) String() string {
 func (*Configuration) ProtoMessage() {}
 
 func (x *Configuration) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[12]
+	mi := &file_api_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +1344,7 @@ func (x *Configuration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Configuration.ProtoReflect.Descriptor instead.
 func (*Configuration) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{12}
+	return file_api_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Configuration) GetLogLevel() int32 {
@@ -822,6 +1417,34 @@ func (x *Configuration) GetNotificationsSubjectPrefix() string {
 	return ""
 }
 
+func (x *Configuration) GetAcmeEnabled() bool {
+	if x != nil {
+		return x.AcmeEnabled
+	}
+	return false
+}
+
+func (x *Configuration) GetAcmeEmail() string {
+	if x != nil {
+		return x.AcmeEmail
+	}
+	return ""
+}
+
+func (x *Configuration) GetAcmeStaging() bool {
+	if x != nil {
+		return x.AcmeStaging
+	}
+	return false
+}
+
+func (x *Configuration) GetAcmeRenewBeforeDays() int32 {
+	if x != nil {
+		return x.AcmeRenewBeforeDays
+	}
+	return 0
+}
+
 type LogEntry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamp     int64                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
@@ -833,7 +1456,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_api_proto_msgTypes[13]
+	mi := &file_api_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +1468,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[13]
+	mi := &file_api_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1481,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{13}
+	return file_api_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *LogEntry) GetTimestamp() int64 {
@@ -902,7 +1525,7 @@ const file_api_proto_rawDesc = "" +
 	"\x04ipv6\x18\x05 \x01(\tR\x04ipv6\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"@\n" +
 	"\x0eAddressHistory\x12.\n" +
-	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\x8e\x02\n" +
+	"\taddresses\x18\x01 \x03(\v2\x10.service.AddressR\taddresses\"\xa3\x03\n" +
 	"\x06Record\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -917,13 +1540,65 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"address_id\x18\t \x01(\x03R\taddressId\x12*\n" +
 	"\aaddress\x18\n" +
-	" \x01(\v2\x10.service.AddressR\aaddress\"7\n" +
+	" \x01(\v2\x10.service.AddressR\aaddress\x120\n" +
+	"\apurpose\x18\v \x01(\x0e2\x16.service.RecordPurposeR\apurpose\x12)\n" +
+	"\x10include_wildcard\x18\f \x01(\bR\x0fincludeWildcard\x126\n" +
+	"\vcertificate\x18\r \x01(\v2\x14.service.CertificateR\vcertificate\"7\n" +
 	"\n" +
 	"RecordList\x12)\n" +
 	"\arecords\x18\x01 \x03(\v2\x0f.service.RecordR\arecords\"g\n" +
 	"\fRecordDelete\x12'\n" +
 	"\x06record\x18\x01 \x01(\v2\x0f.service.RecordR\x06record\x12.\n" +
-	"\x13delete_from_hetzner\x18\x02 \x01(\bR\x11deleteFromHetzner\"M\n" +
+	"\x13delete_from_hetzner\x18\x02 \x01(\bR\x11deleteFromHetzner\"\x9d\x02\n" +
+	"\vCertificate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x02 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x1b\n" +
+	"\trecord_id\x18\x04 \x01(\x03R\brecordId\x12\x18\n" +
+	"\adomains\x18\x05 \x01(\tR\adomains\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"not_before\x18\a \x01(\x03R\tnotBefore\x12\x1b\n" +
+	"\tnot_after\x18\b \x01(\x03R\bnotAfter\x12\x16\n" +
+	"\x06serial\x18\t \x01(\tR\x06serial\x12\x1d\n" +
+	"\n" +
+	"last_error\x18\n" +
+	" \x01(\tR\tlastError\"K\n" +
+	"\x0fCertificateList\x128\n" +
+	"\fcertificates\x18\x01 \x03(\v2\x14.service.CertificateR\fcertificates\"\xb8\x03\n" +
+	"\x04Task\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x02 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\x12\x1b\n" +
+	"\trecord_id\x18\x04 \x01(\x03R\brecordId\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\x123\n" +
+	"\n" +
+	"trigger_on\x18\x06 \x01(\x0e2\x14.service.TaskTriggerR\ttriggerOn\x12\x16\n" +
+	"\x06method\x18\a \x01(\tR\x06method\x12\x10\n" +
+	"\x03url\x18\b \x01(\tR\x03url\x12\x18\n" +
+	"\aheaders\x18\t \x01(\tR\aheaders\x12\x12\n" +
+	"\x04body\x18\n" +
+	" \x01(\tR\x04body\x12\x18\n" +
+	"\aenabled\x18\v \x01(\bR\aenabled\x12\x19\n" +
+	"\blast_run\x18\f \x01(\x03R\alastRun\x12\x1f\n" +
+	"\vlast_status\x18\r \x01(\tR\n" +
+	"lastStatus\x12\x1d\n" +
+	"\n" +
+	"last_error\x18\x0e \x01(\tR\tlastError\x12/\n" +
+	"\x13include_certificate\x18\x0f \x01(\bR\x12includeCertificate\"/\n" +
+	"\bTaskList\x12#\n" +
+	"\x05tasks\x18\x01 \x03(\v2\r.service.TaskR\x05tasks\"\x1c\n" +
+	"\n" +
+	"TaskDelete\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\":\n" +
+	"\n" +
+	"TaskResult\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"M\n" +
 	"\x04Zone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -937,7 +1612,7 @@ const file_api_proto_rawDesc = "" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
 	"\x10ResolutionResult\x125\n" +
-	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\xf0\x03\n" +
+	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\x8a\x05\n" +
 	"\rConfiguration\x12\x1b\n" +
 	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12!\n" +
 	"\frefresh_cron\x18\x02 \x01(\tR\vrefreshCron\x12\x1f\n" +
@@ -950,11 +1625,26 @@ const file_api_proto_rawDesc = "" +
 	"\x18notifications_recipients\x18\b \x03(\tR\x17notificationsRecipients\x12D\n" +
 	"\x1enotifications_cooldown_minutes\x18\t \x01(\x05R\x1cnotificationsCooldownMinutes\x12@\n" +
 	"\x1cnotifications_subject_prefix\x18\n" +
-	" \x01(\tR\x1anotificationsSubjectPrefix\"X\n" +
+	" \x01(\tR\x1anotificationsSubjectPrefix\x12!\n" +
+	"\facme_enabled\x18\v \x01(\bR\vacmeEnabled\x12\x1d\n" +
+	"\n" +
+	"acme_email\x18\f \x01(\tR\tacmeEmail\x12!\n" +
+	"\facme_staging\x18\r \x01(\bR\vacmeStaging\x123\n" +
+	"\x16acme_renew_before_days\x18\x0e \x01(\x05R\x13acmeRenewBeforeDays\"X\n" +
 	"\bLogEntry\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\x8d\x06\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage*z\n" +
+	"\rRecordPurpose\x12\x1e\n" +
+	"\x1aRECORD_PURPOSE_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13RECORD_PURPOSE_DDNS\x10\x01\x12\x17\n" +
+	"\x13RECORD_PURPOSE_CERT\x10\x02\x12\x17\n" +
+	"\x13RECORD_PURPOSE_BOTH\x10\x03*n\n" +
+	"\vTaskTrigger\x12\x1c\n" +
+	"\x18TASK_TRIGGER_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fTASK_TRIGGER_IP\x10\x01\x12\x15\n" +
+	"\x11TASK_TRIGGER_CERT\x10\x02\x12\x15\n" +
+	"\x11TASK_TRIGGER_BOTH\x10\x032\xc3\b\n" +
 	"\x04HDNS\x123\n" +
 	"\bGetZones\x12\x14.service.ZoneRequest\x1a\x11.service.ZoneList\x123\n" +
 	"\n" +
@@ -969,7 +1659,15 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"GetAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12<\n" +
 	"\x11GetAddressHistory\x12\x0e.service.Empty\x1a\x17.service.AddressHistory\x122\n" +
-	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x123\n" +
+	"\x0eRefreshAddress\x12\x0e.service.Empty\x1a\x10.service.Address\x12;\n" +
+	"\x0fGetCertificates\x12\x0e.service.Empty\x1a\x18.service.CertificateList\x129\n" +
+	"\x10IssueCertificate\x12\x0f.service.Record\x1a\x14.service.Certificate\x12-\n" +
+	"\bGetTasks\x12\x0e.service.Empty\x1a\x11.service.TaskList\x12*\n" +
+	"\n" +
+	"UpsertTask\x12\r.service.Task\x1a\r.service.Task\x121\n" +
+	"\n" +
+	"DeleteTask\x12\x13.service.TaskDelete\x1a\x0e.service.Empty\x12.\n" +
+	"\bTestTask\x12\r.service.Task\x1a\x13.service.TaskResult\x123\n" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
 	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.ConfigurationB5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
@@ -985,63 +1683,89 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_api_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_api_proto_goTypes = []any{
-	(*Empty)(nil),            // 0: service.Empty
-	(*Request)(nil),          // 1: service.Request
-	(*ZoneRequest)(nil),      // 2: service.ZoneRequest
-	(*Address)(nil),          // 3: service.Address
-	(*AddressHistory)(nil),   // 4: service.AddressHistory
-	(*Record)(nil),           // 5: service.Record
-	(*RecordList)(nil),       // 6: service.RecordList
-	(*RecordDelete)(nil),     // 7: service.RecordDelete
-	(*Zone)(nil),             // 8: service.Zone
-	(*ZoneList)(nil),         // 9: service.ZoneList
-	(*Resolution)(nil),       // 10: service.Resolution
-	(*ResolutionResult)(nil), // 11: service.ResolutionResult
-	(*Configuration)(nil),    // 12: service.Configuration
-	(*LogEntry)(nil),         // 13: service.LogEntry
+	(RecordPurpose)(0),       // 0: service.RecordPurpose
+	(TaskTrigger)(0),         // 1: service.TaskTrigger
+	(*Empty)(nil),            // 2: service.Empty
+	(*Request)(nil),          // 3: service.Request
+	(*ZoneRequest)(nil),      // 4: service.ZoneRequest
+	(*Address)(nil),          // 5: service.Address
+	(*AddressHistory)(nil),   // 6: service.AddressHistory
+	(*Record)(nil),           // 7: service.Record
+	(*RecordList)(nil),       // 8: service.RecordList
+	(*RecordDelete)(nil),     // 9: service.RecordDelete
+	(*Certificate)(nil),      // 10: service.Certificate
+	(*CertificateList)(nil),  // 11: service.CertificateList
+	(*Task)(nil),             // 12: service.Task
+	(*TaskList)(nil),         // 13: service.TaskList
+	(*TaskDelete)(nil),       // 14: service.TaskDelete
+	(*TaskResult)(nil),       // 15: service.TaskResult
+	(*Zone)(nil),             // 16: service.Zone
+	(*ZoneList)(nil),         // 17: service.ZoneList
+	(*Resolution)(nil),       // 18: service.Resolution
+	(*ResolutionResult)(nil), // 19: service.ResolutionResult
+	(*Configuration)(nil),    // 20: service.Configuration
+	(*LogEntry)(nil),         // 21: service.LogEntry
 }
 var file_api_proto_depIdxs = []int32{
-	3,  // 0: service.AddressHistory.addresses:type_name -> service.Address
-	3,  // 1: service.Record.address:type_name -> service.Address
-	5,  // 2: service.RecordList.records:type_name -> service.Record
-	5,  // 3: service.RecordDelete.record:type_name -> service.Record
-	8,  // 4: service.ZoneList.zones:type_name -> service.Zone
-	10, // 5: service.ResolutionResult.resolutions:type_name -> service.Resolution
-	2,  // 6: service.HDNS.GetZones:input_type -> service.ZoneRequest
-	1,  // 7: service.HDNS.GetRecords:input_type -> service.Request
-	5,  // 8: service.HDNS.UpsertRecord:input_type -> service.Record
-	7,  // 9: service.HDNS.DeleteRecord:input_type -> service.RecordDelete
-	5,  // 10: service.HDNS.RefreshRecord:input_type -> service.Record
-	5,  // 11: service.HDNS.FetchHetznerRecord:input_type -> service.Record
-	5,  // 12: service.HDNS.ResolveRecord:input_type -> service.Record
-	5,  // 13: service.HDNS.StreamResolveRecord:input_type -> service.Record
-	0,  // 14: service.HDNS.StreamAddress:input_type -> service.Empty
-	0,  // 15: service.HDNS.GetAddress:input_type -> service.Empty
-	0,  // 16: service.HDNS.GetAddressHistory:input_type -> service.Empty
-	0,  // 17: service.HDNS.RefreshAddress:input_type -> service.Empty
-	0,  // 18: service.HDNS.GetConfig:input_type -> service.Empty
-	12, // 19: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	9,  // 20: service.HDNS.GetZones:output_type -> service.ZoneList
-	6,  // 21: service.HDNS.GetRecords:output_type -> service.RecordList
-	5,  // 22: service.HDNS.UpsertRecord:output_type -> service.Record
-	0,  // 23: service.HDNS.DeleteRecord:output_type -> service.Empty
-	5,  // 24: service.HDNS.RefreshRecord:output_type -> service.Record
-	3,  // 25: service.HDNS.FetchHetznerRecord:output_type -> service.Address
-	11, // 26: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
-	10, // 27: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
-	3,  // 28: service.HDNS.StreamAddress:output_type -> service.Address
-	3,  // 29: service.HDNS.GetAddress:output_type -> service.Address
-	4,  // 30: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
-	3,  // 31: service.HDNS.RefreshAddress:output_type -> service.Address
-	12, // 32: service.HDNS.GetConfig:output_type -> service.Configuration
-	12, // 33: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	20, // [20:34] is the sub-list for method output_type
-	6,  // [6:20] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	5,  // 0: service.AddressHistory.addresses:type_name -> service.Address
+	5,  // 1: service.Record.address:type_name -> service.Address
+	0,  // 2: service.Record.purpose:type_name -> service.RecordPurpose
+	10, // 3: service.Record.certificate:type_name -> service.Certificate
+	7,  // 4: service.RecordList.records:type_name -> service.Record
+	7,  // 5: service.RecordDelete.record:type_name -> service.Record
+	10, // 6: service.CertificateList.certificates:type_name -> service.Certificate
+	1,  // 7: service.Task.trigger_on:type_name -> service.TaskTrigger
+	12, // 8: service.TaskList.tasks:type_name -> service.Task
+	16, // 9: service.ZoneList.zones:type_name -> service.Zone
+	18, // 10: service.ResolutionResult.resolutions:type_name -> service.Resolution
+	4,  // 11: service.HDNS.GetZones:input_type -> service.ZoneRequest
+	3,  // 12: service.HDNS.GetRecords:input_type -> service.Request
+	7,  // 13: service.HDNS.UpsertRecord:input_type -> service.Record
+	9,  // 14: service.HDNS.DeleteRecord:input_type -> service.RecordDelete
+	7,  // 15: service.HDNS.RefreshRecord:input_type -> service.Record
+	7,  // 16: service.HDNS.FetchHetznerRecord:input_type -> service.Record
+	7,  // 17: service.HDNS.ResolveRecord:input_type -> service.Record
+	7,  // 18: service.HDNS.StreamResolveRecord:input_type -> service.Record
+	2,  // 19: service.HDNS.StreamAddress:input_type -> service.Empty
+	2,  // 20: service.HDNS.GetAddress:input_type -> service.Empty
+	2,  // 21: service.HDNS.GetAddressHistory:input_type -> service.Empty
+	2,  // 22: service.HDNS.RefreshAddress:input_type -> service.Empty
+	2,  // 23: service.HDNS.GetCertificates:input_type -> service.Empty
+	7,  // 24: service.HDNS.IssueCertificate:input_type -> service.Record
+	2,  // 25: service.HDNS.GetTasks:input_type -> service.Empty
+	12, // 26: service.HDNS.UpsertTask:input_type -> service.Task
+	14, // 27: service.HDNS.DeleteTask:input_type -> service.TaskDelete
+	12, // 28: service.HDNS.TestTask:input_type -> service.Task
+	2,  // 29: service.HDNS.GetConfig:input_type -> service.Empty
+	20, // 30: service.HDNS.UpdateConfig:input_type -> service.Configuration
+	17, // 31: service.HDNS.GetZones:output_type -> service.ZoneList
+	8,  // 32: service.HDNS.GetRecords:output_type -> service.RecordList
+	7,  // 33: service.HDNS.UpsertRecord:output_type -> service.Record
+	2,  // 34: service.HDNS.DeleteRecord:output_type -> service.Empty
+	7,  // 35: service.HDNS.RefreshRecord:output_type -> service.Record
+	5,  // 36: service.HDNS.FetchHetznerRecord:output_type -> service.Address
+	19, // 37: service.HDNS.ResolveRecord:output_type -> service.ResolutionResult
+	18, // 38: service.HDNS.StreamResolveRecord:output_type -> service.Resolution
+	5,  // 39: service.HDNS.StreamAddress:output_type -> service.Address
+	5,  // 40: service.HDNS.GetAddress:output_type -> service.Address
+	6,  // 41: service.HDNS.GetAddressHistory:output_type -> service.AddressHistory
+	5,  // 42: service.HDNS.RefreshAddress:output_type -> service.Address
+	11, // 43: service.HDNS.GetCertificates:output_type -> service.CertificateList
+	10, // 44: service.HDNS.IssueCertificate:output_type -> service.Certificate
+	13, // 45: service.HDNS.GetTasks:output_type -> service.TaskList
+	12, // 46: service.HDNS.UpsertTask:output_type -> service.Task
+	2,  // 47: service.HDNS.DeleteTask:output_type -> service.Empty
+	15, // 48: service.HDNS.TestTask:output_type -> service.TaskResult
+	20, // 49: service.HDNS.GetConfig:output_type -> service.Configuration
+	20, // 50: service.HDNS.UpdateConfig:output_type -> service.Configuration
+	31, // [31:51] is the sub-list for method output_type
+	11, // [11:31] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -1054,13 +1778,14 @@ func file_api_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   14,
+			NumEnums:      2,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_proto_goTypes,
 		DependencyIndexes: file_api_proto_depIdxs,
+		EnumInfos:         file_api_proto_enumTypes,
 		MessageInfos:      file_api_proto_msgTypes,
 	}.Build()
 	File_api_proto = out.File

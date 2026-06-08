@@ -44,6 +44,24 @@ service HDNS {
   // RefreshAddress refreshes the current address.
   rpc RefreshAddress (Empty) returns (Address);
 
+  // GetCertificates returns all certificates.
+  rpc GetCertificates (Empty) returns (CertificateList);
+
+  // IssueCertificate issues or re-issues the certificate for a record.
+  rpc IssueCertificate (Record) returns (Certificate);
+
+  // GetTasks returns all renewal tasks.
+  rpc GetTasks (Empty) returns (TaskList);
+
+  // UpsertTask creates or updates a renewal task.
+  rpc UpsertTask (Task) returns (Task);
+
+  // DeleteTask deletes a renewal task.
+  rpc DeleteTask (TaskDelete) returns (Empty);
+
+  // TestTask executes a renewal task immediately and returns the result.
+  rpc TestTask (Task) returns (TaskResult);
+
   // GetConfig returns the current configuration.
   rpc GetConfig (Empty) returns (Configuration);
 
@@ -77,18 +95,28 @@ message AddressHistory {
   repeated Address addresses = 1;
 }
 
+enum RecordPurpose {
+  RECORD_PURPOSE_UNSPECIFIED = 0;
+  RECORD_PURPOSE_DDNS        = 1;
+  RECORD_PURPOSE_CERT        = 2;
+  RECORD_PURPOSE_BOTH        = 3;
+}
+
 // Record represents a DNS record.
 message Record {
-  int64   id         = 1;
-  int64   created_at = 2;
-  int64   updated_at = 3;
-  string  token      = 4;
-  int64   zone_id    = 5;
-  string  domain     = 6;
-  string  name       = 7;
-  uint32  ttl        = 8;
-  int64   address_id = 9;
-  Address address    = 10;
+  int64         id               = 1;
+  int64         created_at       = 2;
+  int64         updated_at       = 3;
+  string        token            = 4;
+  int64         zone_id          = 5;
+  string        domain           = 6;
+  string        name             = 7;
+  uint32        ttl              = 8;
+  int64         address_id       = 9;
+  Address       address          = 10;
+  RecordPurpose purpose          = 11;
+  bool          include_wildcard = 12;
+  Certificate   certificate      = 13;
 }
 
 message RecordList {
@@ -98,6 +126,67 @@ message RecordList {
 message RecordDelete {
   Record record              = 1;
   bool   delete_from_hetzner = 2;
+}
+
+// Certificate represents an issued Let's Encrypt certificate.
+message Certificate {
+  int64  id         = 1;
+  int64  created_at = 2;
+  int64  updated_at = 3;
+  int64  record_id  = 4;
+  string domains    = 5;
+  string status     = 6;
+  int64  not_before = 7;
+  int64  not_after  = 8;
+  string serial     = 9;
+  string last_error = 10;
+}
+
+message CertificateList {
+  repeated Certificate certificates = 1;
+}
+
+enum TaskTrigger {
+  TASK_TRIGGER_UNSPECIFIED = 0;
+  TASK_TRIGGER_IP          = 1;
+  TASK_TRIGGER_CERT        = 2;
+  TASK_TRIGGER_BOTH        = 3;
+}
+
+// Task represents a webhook executed on IP or certificate renewal.
+message Task {
+  int64       id         = 1;
+  int64       created_at = 2;
+  int64       updated_at = 3;
+  int64       record_id  = 4;
+  string      name       = 5;
+  TaskTrigger trigger_on = 6;
+  string      method     = 7;
+  string      url        = 8;
+  // headers is a JSON object of HTTP headers. It is write-only and never
+  // returned populated to avoid exposing secrets.
+  string headers     = 9;
+  string body        = 10;
+  bool   enabled     = 11;
+  int64  last_run    = 12;
+  string last_status = 13;
+  string last_error  = 14;
+  // include_certificate injects the issued certificate and private key into the
+  // webhook body via the {{certificate}} and {{private_key}} placeholders.
+  bool include_certificate = 15;
+}
+
+message TaskList {
+  repeated Task tasks = 1;
+}
+
+message TaskDelete {
+  int64 id = 1;
+}
+
+message TaskResult {
+  string status = 1;
+  string error  = 2;
 }
 
 message Zone {
@@ -136,6 +225,12 @@ message Configuration {
   repeated string notifications_recipients       = 8;
   int32           notifications_cooldown_minutes = 9;
   string          notifications_subject_prefix   = 10;
+
+  // ACME / Let's Encrypt settings for DNS-01 certificate issuance.
+  bool   acme_enabled           = 11;
+  string acme_email             = 12;
+  bool   acme_staging           = 13;
+  int32  acme_renew_before_days = 14;
 }
 
 message LogEntry {
