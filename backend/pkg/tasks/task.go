@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -163,11 +164,18 @@ func executeTask(ctx context.Context, task *schema.Task) (string, error) {
 }
 
 // renderBody builds the request body for a task. When the task is configured to
-// include the certificate, the issued certificate and private key are injected
-// into the body. Bodies may reference the material via the {{certificate}},
-// {{private_key}}, {{certificate_json}} and {{private_key_json}} placeholders;
-// the _json variants are JSON-string escaped for safe embedding in JSON. When
-// the body is empty, a default JSON payload containing both is sent.
+// include the certificate, all four certificate files are injected into the body.
+// Bodies may reference the material via the following placeholders:
+//
+//	{{cert}}             – leaf certificate only (cert.pem)
+//	{{chain}}            – intermediate certificate(s) only (chain.pem)
+//	{{fullchain}}        – leaf + intermediates (fullchain.pem)
+//	{{private_key}}      – private key (privkey.pem)
+//	{{certificate}}      – alias for {{fullchain}} (backward compatibility)
+//
+// The _json variants of each placeholder are JSON-string escaped for safe
+// embedding in JSON bodies. When the body is empty, a default JSON payload
+// containing all four fields is sent.
 func renderBody(ctx context.Context, task *schema.Task) (string, error) {
 	body := ""
 	if task.Body.Valid {
@@ -178,15 +186,17 @@ func renderBody(ctx context.Context, task *schema.Task) (string, error) {
 		return body, nil
 	}
 
-	cert, key, err := loadCertificateMaterial(ctx, task.RecordID)
+	m, err := loadCertificateMaterial(ctx, task.RecordID)
 	if err != nil {
 		return "", apperror.Wrap(err)
 	}
 
 	if strings.TrimSpace(body) == "" {
 		payload, merr := json.Marshal(map[string]string{
-			"certificate": cert,
-			"private_key": key,
+			"cert":        m.cert,
+			"chain":       m.chain,
+			"fullchain":   m.fullchain,
+			"private_key": m.key,
 		})
 		if merr != nil {
 			return "", apperror.NewError("failed to encode certificate payload").AddError(merr)
@@ -195,17 +205,32 @@ func renderBody(ctx context.Context, task *schema.Task) (string, error) {
 	}
 
 	replacer := strings.NewReplacer(
-		"{{certificate}}", cert,
-		"{{private_key}}", key,
-		"{{certificate_json}}", jsonEscape(cert),
-		"{{private_key_json}}", jsonEscape(key),
+		"{{cert}}", m.cert,
+		"{{chain}}", m.chain,
+		"{{fullchain}}", m.fullchain,
+		"{{certificate}}", m.fullchain,
+		"{{private_key}}", m.key,
+		"{{cert_json}}", jsonEscape(m.cert),
+		"{{chain_json}}", jsonEscape(m.chain),
+		"{{fullchain_json}}", jsonEscape(m.fullchain),
+		"{{certificate_json}}", jsonEscape(m.fullchain),
+		"{{private_key_json}}", jsonEscape(m.key),
 	)
 	return replacer.Replace(body), nil
 }
 
-// loadCertificateMaterial reads the issued certificate chain and private key
-// for the given record from disk.
-func loadCertificateMaterial(ctx context.Context, recordID int64) (string, string, error) {
+// certMaterial holds the four PEM files produced by a certificate issuance.
+type certMaterial struct {
+	cert      string // cert.pem      – leaf certificate only
+	chain     string // chain.pem     – intermediate certificate(s) only
+	fullchain string // fullchain.pem – cert + chain
+	key       string // privkey.pem   – private key
+}
+
+// loadCertificateMaterial reads all four issued certificate files for the
+// given record from disk. CertPath points to fullchain.pem and KeyPath to
+// privkey.pem; cert.pem and chain.pem are derived from the same directory.
+func loadCertificateMaterial(ctx context.Context, recordID int64) (certMaterial, error) {
 	var cert *schema.Certificate
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var qerr error
@@ -213,22 +238,37 @@ func loadCertificateMaterial(ctx context.Context, recordID int64) (string, strin
 		return qerr
 	})
 	if err != nil {
-		return "", "", apperror.NewError("no certificate available for this record").AddError(err)
+		return certMaterial{}, apperror.NewError("no certificate available for this record").AddError(err)
 	}
 	if cert.CertPath == "" || cert.KeyPath == "" {
-		return "", "", apperror.NewError("certificate has not been issued yet")
+		return certMaterial{}, apperror.NewError("certificate has not been issued yet")
 	}
 
-	certBytes, err := os.ReadFile(cert.CertPath)
-	if err != nil {
-		return "", "", apperror.NewError("failed to read certificate file").AddError(err)
-	}
-	keyBytes, err := os.ReadFile(cert.KeyPath)
-	if err != nil {
-		return "", "", apperror.NewError("failed to read private key file").AddError(err)
+	dir := filepath.Dir(cert.CertPath)
+
+	readFile := func(name string) (string, error) {
+		b, rerr := os.ReadFile(filepath.Join(dir, name))
+		if rerr != nil {
+			return "", apperror.NewErrorf("failed to read %s", name).AddError(rerr)
+		}
+		return string(b), nil
 	}
 
-	return string(certBytes), string(keyBytes), nil
+	var m certMaterial
+	if m.cert, err = readFile("cert.pem"); err != nil {
+		return certMaterial{}, err
+	}
+	if m.chain, err = readFile("chain.pem"); err != nil {
+		return certMaterial{}, err
+	}
+	if m.fullchain, err = readFile("fullchain.pem"); err != nil {
+		return certMaterial{}, err
+	}
+	if m.key, err = readFile("privkey.pem"); err != nil {
+		return certMaterial{}, err
+	}
+
+	return m, nil
 }
 
 // jsonEscape returns the JSON string encoding of s without the surrounding

@@ -10,11 +10,12 @@ import (
 	"github.com/valentin-kaiser/hdns-worker/pkg/config"
 )
 
-// Payload carries the optional certificate material delivered by HDNS in the
-// webhook body.
+// Payload carries the certificate material delivered by HDNS in the webhook body.
 type Payload struct {
-	Certificate string `json:"certificate"`
-	PrivateKey  string `json:"private_key"`
+	Cert      string `json:"cert"`
+	Chain     string `json:"chain"`
+	Fullchain string `json:"fullchain"`
+	PrivateKey string `json:"private_key"`
 }
 
 // Execute runs every action defined on task sequentially.
