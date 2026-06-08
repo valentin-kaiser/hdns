@@ -6,7 +6,7 @@ BUILD_TIME := $(shell date +%FT%T%z)
 PACKAGE := github.com/valentin-kaiser/go-core/version
 LDFLAGS := -ldflags "-X $(PACKAGE).GitTag=$(GIT_TAG) -X $(PACKAGE).GitCommit=$(GIT_COMMIT) -X $(PACKAGE).GitShort=$(GIT_SHORT) -X $(PACKAGE).BuildDate=$(BUILD_TIME)"
 
-RELEASE_FILE=../../hdns
+RELEASE_FILE=../../hdns-worker
 ifeq ($(OS),Windows_NT)
 	RELEASE_FILE:=$(RELEASE_FILE).exe
 endif
