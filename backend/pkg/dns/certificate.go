@@ -314,7 +314,12 @@ func writeCertificateFiles(record *schema.Record, res *certificate.Resource) (st
 	certPath := filepath.Join(dir, "fullchain.pem")
 	keyPath := filepath.Join(dir, "privkey.pem")
 
-	if err := os.WriteFile(certPath, res.Certificate, 0o600); err != nil {
+	// Build the chain as leaf + intermediates. res.Certificate contains only
+	// the leaf (Bundle: false) and res.IssuerCertificate contains the
+	// intermediates without the root CA, which is the correct presentation
+	// chain for TLS and matches what certbot produces.
+	fullchain := append(res.Certificate, res.IssuerCertificate...)
+	if err := os.WriteFile(certPath, fullchain, 0o600); err != nil {
 		return "", "", apperror.NewError("failed to write certificate file").AddError(err)
 	}
 	if err := os.WriteFile(keyPath, res.PrivateKey, 0o600); err != nil {

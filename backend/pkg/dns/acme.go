@@ -248,7 +248,7 @@ func obtainCertificate(record *schema.Record, domains []string, zoneName string)
 
 	res, err := client.Certificate.Obtain(certificate.ObtainRequest{
 		Domains: domains,
-		Bundle:  true,
+		Bundle:  false,
 	})
 	if err != nil {
 		return nil, apperror.NewError("failed to obtain certificate").AddError(err)
