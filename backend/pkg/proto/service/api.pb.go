@@ -798,8 +798,11 @@ type Task struct {
 	// include_certificate injects the issued certificate and private key into the
 	// webhook body via the {{certificate}} and {{private_key}} placeholders.
 	IncludeCertificate bool `protobuf:"varint,15,opt,name=include_certificate,json=includeCertificate,proto3" json:"include_certificate,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// certificate_format controls the certificate payload representation.
+	// Valid values are "pem" and "pkcs12". Defaults to "pem".
+	CertificateFormat string `protobuf:"bytes,16,opt,name=certificate_format,json=certificateFormat,proto3" json:"certificate_format,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Task) Reset() {
@@ -935,6 +938,13 @@ func (x *Task) GetIncludeCertificate() bool {
 		return x.IncludeCertificate
 	}
 	return false
+}
+
+func (x *Task) GetCertificateFormat() string {
+	if x != nil {
+		return x.CertificateFormat
+	}
+	return ""
 }
 
 type TaskList struct {
@@ -1567,7 +1577,7 @@ const file_api_proto_rawDesc = "" +
 	"last_error\x18\n" +
 	" \x01(\tR\tlastError\"K\n" +
 	"\x0fCertificateList\x128\n" +
-	"\fcertificates\x18\x01 \x03(\v2\x14.service.CertificateR\fcertificates\"\xb8\x03\n" +
+	"\fcertificates\x18\x01 \x03(\v2\x14.service.CertificateR\fcertificates\"\xe7\x03\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -1589,7 +1599,8 @@ const file_api_proto_rawDesc = "" +
 	"lastStatus\x12\x1d\n" +
 	"\n" +
 	"last_error\x18\x0e \x01(\tR\tlastError\x12/\n" +
-	"\x13include_certificate\x18\x0f \x01(\bR\x12includeCertificate\"/\n" +
+	"\x13include_certificate\x18\x0f \x01(\bR\x12includeCertificate\x12-\n" +
+	"\x12certificate_format\x18\x10 \x01(\tR\x11certificateFormat\"/\n" +
 	"\bTaskList\x12#\n" +
 	"\x05tasks\x18\x01 \x03(\v2\r.service.TaskR\x05tasks\"\x1c\n" +
 	"\n" +
