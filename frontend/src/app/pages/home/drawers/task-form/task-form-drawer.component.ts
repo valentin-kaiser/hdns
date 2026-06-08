@@ -69,7 +69,7 @@ type HeaderRow = { key: string; value: string };
             </mat-form-field>
           </div>
 
-          <div class="headers-section" formArrayName="headers">
+          <div class="headers-section">
             <div class="headers-title-row">
               <span class="headers-title">Headers</span>
               <button mat-stroked-button type="button" (click)="addHeaderRow()">
@@ -80,8 +80,8 @@ type HeaderRow = { key: string; value: string };
             <div class="headers-hint">
               {{ task ? 'Optional. Add new headers only. Existing encrypted headers remain unchanged when left empty.' : 'Optional. Stored encrypted, never shown again.' }}
             </div>
-            @for (row of headerRows.controls; track $index; let i = $index) {
-              <div class="header-row" [formGroupName]="i">
+            @for (row of headerRows.controls; track row; let i = $index) {
+              <div class="header-row" [formGroup]="row">
                 <mat-form-field appearance="outline" class="header-key-field">
                   <mat-label>Key</mat-label>
                   <input #headerKeyInput matInput formControlName="key" placeholder="Authorization" />
@@ -370,6 +370,7 @@ export class TaskFormDrawerComponent {
   }
 
   private buildPayload(): Task {
+    this.headerRows.updateValueAndValidity({ emitEvent: false });
     const v = this.form.getRawValue();
     return {
       ...(this.task ?? {
@@ -449,7 +450,10 @@ export class TaskFormDrawerComponent {
   }
 
   private serializeHeaders(): string {
-    const entries = this.headerRows.getRawValue() as HeaderRow[];
+    const entries: HeaderRow[] = this.headerRows.controls.map((group) => ({
+      key: String(group.get('key')?.value ?? ''),
+      value: String(group.get('value')?.value ?? ''),
+    }));
     const headers: Record<string, string> = {};
 
     for (const entry of entries) {
