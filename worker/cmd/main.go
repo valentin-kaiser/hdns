@@ -24,6 +24,12 @@ const (
 )
 
 func init() {
+	// generate-task is a standalone interactive wizard that does not need the
+	// service stack (config file, logging rotation, etc.) to be initialised.
+	if isGenerateTaskCommand() {
+		return
+	}
+
 	defer interruption.Catch()
 	interruption.Write = true
 
@@ -49,14 +55,22 @@ func init() {
 func main() {
 	defer interruption.Catch()
 
+	// Handle generate-task before any flag access — flag.Init() was intentionally
+	// skipped in init() for this command, so flag.Arguments() is not usable yet.
+	if isGenerateTaskCommand() {
+		runGenerateTask()
+		return
+	}
+
 	if flag.Help {
 		flag.PrintHelp()
 		fmt.Fprintln(os.Stderr, "\nService management commands:")
-		fmt.Fprintln(os.Stderr, "  install    Install as a system service")
-		fmt.Fprintln(os.Stderr, "  uninstall  Remove the system service")
-		fmt.Fprintln(os.Stderr, "  start      Start the installed service")
-		fmt.Fprintln(os.Stderr, "  stop       Stop the running service")
-		fmt.Fprintln(os.Stderr, "  restart    Restart the running service")
+		fmt.Fprintln(os.Stderr, "  install        Install as a system service")
+		fmt.Fprintln(os.Stderr, "  uninstall      Remove the system service")
+		fmt.Fprintln(os.Stderr, "  start          Start the installed service")
+		fmt.Fprintln(os.Stderr, "  stop           Stop the running service")
+		fmt.Fprintln(os.Stderr, "  restart        Restart the running service")
+		fmt.Fprintln(os.Stderr, "  generate-task  Interactive wizard to build a task config snippet")
 		return
 	}
 
@@ -85,7 +99,7 @@ func main() {
 			return
 		default:
 			fmt.Fprintf(os.Stderr, "unknown command %q\n", action)
-			fmt.Fprintln(os.Stderr, "valid commands: install, uninstall, start, stop, restart")
+			fmt.Fprintln(os.Stderr, "valid commands: install, uninstall, start, stop, restart, generate-task")
 			os.Exit(1)
 		}
 	}
