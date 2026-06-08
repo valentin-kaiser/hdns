@@ -607,6 +607,21 @@ export class RecordsTableComponent implements OnInit {
   }
 
   issueCertificate(record: DnsRecord): void {
+    if (record.certificate?.status === 'valid') {
+      this.notify.warning({
+        title: 'Certificate already valid',
+        message: `A valid certificate for ${record.name}.${record.domain} is already active. Forcing renewal now counts against the Let's Encrypt rate limit (5 per domain per week). Are you sure you want to renew it?`,
+        buttons: [
+          { text: 'Cancel', color: 'accent' },
+          { text: 'Renew anyway', color: 'warn', handler: () => this.doIssueCertificate(record) },
+        ],
+      });
+      return;
+    }
+    this.doIssueCertificate(record);
+  }
+
+  private doIssueCertificate(record: DnsRecord): void {
     const next = new Set(this.issuing());
     next.add(record.id);
     this.issuing.set(next);
