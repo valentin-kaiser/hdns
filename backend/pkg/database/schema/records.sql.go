@@ -12,17 +12,19 @@ import (
 
 const CreateRecord = `-- name: CreateRecord :execlastid
 INSERT INTO
-    records (token, zone_id, domain, name, ttl)
+    records (token, zone_id, domain, name, ttl, purpose, include_wildcard)
 VALUES
-    (?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateRecordParams struct {
-	Token  string
-	ZoneID int64
-	Domain string
-	Name   string
-	Ttl    int32
+	Token           string
+	ZoneID          int64
+	Domain          string
+	Name            string
+	Ttl             int32
+	Purpose         int8
+	IncludeWildcard bool
 }
 
 func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int64, error) {
@@ -32,6 +34,8 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int
 		arg.Domain,
 		arg.Name,
 		arg.Ttl,
+		arg.Purpose,
+		arg.IncludeWildcard,
 	)
 	if err != nil {
 		return 0, err
@@ -52,7 +56,7 @@ func (q *Queries) DeleteRecord(ctx context.Context, id int64) error {
 
 const GetRecord = `-- name: GetRecord :one
 SELECT
-    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id
+    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id, purpose, include_wildcard
 FROM
     records
 WHERE
@@ -74,13 +78,15 @@ func (q *Queries) GetRecord(ctx context.Context, id int64) (*Record, error) {
 		&i.Name,
 		&i.Ttl,
 		&i.AddressID,
+		&i.Purpose,
+		&i.IncludeWildcard,
 	)
 	return &i, err
 }
 
 const ListRecords = `-- name: ListRecords :many
 SELECT
-    r.id, r.created_at, r.updated_at, r.token, r.zone_id, r.domain, r.name, r.ttl, r.address_id
+    r.id, r.created_at, r.updated_at, r.token, r.zone_id, r.domain, r.name, r.ttl, r.address_id, r.purpose, r.include_wildcard
 FROM
     records as r
 WHERE
@@ -117,6 +123,8 @@ func (q *Queries) ListRecords(ctx context.Context, arg ListRecordsParams) ([]*Re
 			&i.Name,
 			&i.Ttl,
 			&i.AddressID,
+			&i.Purpose,
+			&i.IncludeWildcard,
 		); err != nil {
 			return nil, err
 		}
@@ -138,18 +146,22 @@ SET
     zone_id = ?,
     domain = ?,
     name = ?,
-    ttl = ?
+    ttl = ?,
+    purpose = ?,
+    include_wildcard = ?
 WHERE
     id = ?
 `
 
 type UpdateRecordParams struct {
-	Token  string
-	ZoneID int64
-	Domain string
-	Name   string
-	Ttl    int32
-	ID     int64
+	Token           string
+	ZoneID          int64
+	Domain          string
+	Name            string
+	Ttl             int32
+	Purpose         int8
+	IncludeWildcard bool
+	ID              int64
 }
 
 func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) error {
@@ -159,6 +171,8 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) erro
 		arg.Domain,
 		arg.Name,
 		arg.Ttl,
+		arg.Purpose,
+		arg.IncludeWildcard,
 		arg.ID,
 	)
 	return err

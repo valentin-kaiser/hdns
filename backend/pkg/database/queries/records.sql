@@ -25,9 +25,9 @@ ORDER BY
 
 -- name: CreateRecord :execlastid
 INSERT INTO
-    records (token, zone_id, domain, name, ttl)
+    records (token, zone_id, domain, name, ttl, purpose, include_wildcard)
 VALUES
-    (?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateRecord :exec
 UPDATE records
@@ -36,7 +36,9 @@ SET
     zone_id = ?,
     domain = ?,
     name = ?,
-    ttl = ?
+    ttl = ?,
+    purpose = ?,
+    include_wildcard = ?
 WHERE
     id = ?;
 
