@@ -16,4 +16,4 @@ prod:
 lint:
 	golangci-lint run
 run:
-	go run $(LDFLAGS) main.go --debug
+	go run $(LDFLAGS) . --debug
