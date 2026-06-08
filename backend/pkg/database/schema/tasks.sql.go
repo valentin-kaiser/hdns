@@ -12,9 +12,9 @@ import (
 
 const CreateTask = `-- name: CreateTask :execlastid
 INSERT INTO
-    tasks (record_id, name, trigger_on, method, url, headers, body, enabled, include_certificate)
+    tasks (record_id, name, trigger_on, method, url, headers, body, enabled, include_certificate, certificate_format)
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateTaskParams struct {
@@ -27,6 +27,7 @@ type CreateTaskParams struct {
 	Body               sql.NullString
 	Enabled            bool
 	IncludeCertificate bool
+	CertificateFormat  string
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (int64, error) {
@@ -40,6 +41,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (int64, 
 		arg.Body,
 		arg.Enabled,
 		arg.IncludeCertificate,
+		arg.CertificateFormat,
 	)
 	if err != nil {
 		return 0, err
@@ -60,7 +62,7 @@ func (q *Queries) DeleteTask(ctx context.Context, id int64) error {
 
 const GetTask = `-- name: GetTask :one
 SELECT
-    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error
+    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error, certificate_format
 FROM
     tasks
 WHERE
@@ -88,13 +90,14 @@ func (q *Queries) GetTask(ctx context.Context, id int64) (*Task, error) {
 		&i.LastRun,
 		&i.LastStatus,
 		&i.LastError,
+		&i.CertificateFormat,
 	)
 	return &i, err
 }
 
 const ListEnabledTasksByRecord = `-- name: ListEnabledTasksByRecord :many
 SELECT
-    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error
+    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error, certificate_format
 FROM
     tasks
 WHERE
@@ -129,6 +132,7 @@ func (q *Queries) ListEnabledTasksByRecord(ctx context.Context, recordID int64) 
 			&i.LastRun,
 			&i.LastStatus,
 			&i.LastError,
+			&i.CertificateFormat,
 		); err != nil {
 			return nil, err
 		}
@@ -145,7 +149,7 @@ func (q *Queries) ListEnabledTasksByRecord(ctx context.Context, recordID int64) 
 
 const ListTasks = `-- name: ListTasks :many
 SELECT
-    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error
+    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error, certificate_format
 FROM
     tasks
 ORDER BY
@@ -177,6 +181,7 @@ func (q *Queries) ListTasks(ctx context.Context) ([]*Task, error) {
 			&i.LastRun,
 			&i.LastStatus,
 			&i.LastError,
+			&i.CertificateFormat,
 		); err != nil {
 			return nil, err
 		}
@@ -193,7 +198,7 @@ func (q *Queries) ListTasks(ctx context.Context) ([]*Task, error) {
 
 const ListTasksByRecord = `-- name: ListTasksByRecord :many
 SELECT
-    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error
+    id, created_at, updated_at, record_id, name, trigger_on, method, url, headers, body, include_certificate, enabled, last_run, last_status, last_error, certificate_format
 FROM
     tasks
 WHERE
@@ -227,6 +232,7 @@ func (q *Queries) ListTasksByRecord(ctx context.Context, recordID int64) ([]*Tas
 			&i.LastRun,
 			&i.LastStatus,
 			&i.LastError,
+			&i.CertificateFormat,
 		); err != nil {
 			return nil, err
 		}
@@ -252,7 +258,8 @@ SET
     headers = ?,
     body = ?,
     enabled = ?,
-    include_certificate = ?
+    include_certificate = ?,
+    certificate_format = ?
 WHERE
     id = ?
 `
@@ -267,6 +274,7 @@ type UpdateTaskParams struct {
 	Body               sql.NullString
 	Enabled            bool
 	IncludeCertificate bool
+	CertificateFormat  string
 	ID                 int64
 }
 
@@ -281,6 +289,7 @@ func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) error {
 		arg.Body,
 		arg.Enabled,
 		arg.IncludeCertificate,
+		arg.CertificateFormat,
 		arg.ID,
 	)
 	return err

@@ -39,9 +39,9 @@ ORDER BY
 
 -- name: CreateTask :execlastid
 INSERT INTO
-    tasks (record_id, name, trigger_on, method, url, headers, body, enabled, include_certificate)
+    tasks (record_id, name, trigger_on, method, url, headers, body, enabled, include_certificate, certificate_format)
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateTask :exec
 UPDATE tasks
@@ -54,7 +54,8 @@ SET
     headers = ?,
     body = ?,
     enabled = ?,
-    include_certificate = ?
+    include_certificate = ?,
+    certificate_format = ?
 WHERE
     id = ?;
 
