@@ -51,6 +51,10 @@ func init() {
 			log.Info().Msg("restarting DNS refresh cron job due to schedule change")
 			go dns.Restart(context.Background())
 		}
+		if o.ACME.Enabled != n.ACME.Enabled || o.ACME.RenewCron != n.ACME.RenewCron {
+			log.Info().Msg("restarting DNS scheduler due to ACME config change")
+			go dns.Restart(context.Background())
+		}
 		if o.Mail.Changed(&n.Mail) || o.Notifications.Enabled != n.Notifications.Enabled {
 			log.Info().Msg("restarting mail manager due to mail/notification config change")
 			go mailpkg.Restart(context.Background())
@@ -111,6 +115,12 @@ func main() {
 		log.Error().Err(err).Msg("failed to start DNS service")
 		return
 	}
+
+	go func() {
+		if err := dns.RenewCertificates(context.Background()); err != nil {
+			log.Error().Err(err).Msg("failed to perform initial certificate renewal scan")
+		}
+	}()
 
 	go web.Start()
 
