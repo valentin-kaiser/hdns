@@ -10,6 +10,7 @@ import (
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
 	mailpkg "github.com/valentin-kaiser/hdns/pkg/mail"
+	"github.com/valentin-kaiser/hdns/pkg/tasks"
 )
 
 var scheduler = queue.NewTaskScheduler()
@@ -18,6 +19,13 @@ func Start(ctx context.Context) error {
 	err := scheduler.RegisterCronTask("ddns-refresh", config.Get().RefreshCron, Refresh)
 	if err != nil {
 		return apperror.NewError("failed to add cron job for DNS refresh").AddError(err)
+	}
+
+	if config.Get().ACME.Enabled {
+		err = scheduler.RegisterCronTask("cert-renew", config.Get().ACME.RenewCron, RenewCertificates)
+		if err != nil {
+			return apperror.NewError("failed to add cron job for certificate renewal").AddError(err)
+		}
 	}
 
 	err = scheduler.Start(ctx)
@@ -76,10 +84,14 @@ func Refresh(ctx context.Context) error {
 		return apperror.NewError("failed to fetch DNS records").AddError(err)
 	}
 	for _, record := range records {
+		if !recordDoesDDNS(record.Purpose) {
+			continue
+		}
 		status := refreshRecordStatus(ctx, record, address)
 		switch status.Result {
 		case "updated":
 			report.UpdatedCount++
+			tasks.FireTasks(ctx, record.ID, tasks.TriggerIP)
 		case "failed":
 			report.FailedCount++
 			log.Error().Msgf("failed to refresh DNS record %s.%s: %s", record.Name, record.Domain, status.Error)
@@ -142,6 +154,10 @@ func refreshRecordStatus(ctx context.Context, record *schema.Record, address *sc
 }
 
 func RefreshRecord(ctx context.Context, record *schema.Record) error {
+	if !recordDoesDDNS(record.Purpose) {
+		return nil
+	}
+
 	var current *schema.Address
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var err error
@@ -174,5 +190,6 @@ func RefreshRecord(ctx context.Context, record *schema.Record) error {
 	if err != nil {
 		return err
 	}
+	tasks.FireTasks(ctx, record.ID, tasks.TriggerIP)
 	return nil
 }

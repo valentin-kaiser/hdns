@@ -107,6 +107,68 @@ func DeleteRecord(ctx context.Context, r *schema.Record) error {
 	return nil
 }
 
+// upsertTXTRecord creates or overwrites the TXT RRSet identified by name
+// (relative to the zone) with the given values. It is used to publish
+// ACME DNS-01 challenge tokens.
+func upsertTXTRecord(ctx context.Context, c *hcloud.Client, zoneID int64, name string, values []string, ttl int) error {
+	records := make([]hcloud.ZoneRRSetRecord, 0, len(values))
+	for _, v := range values {
+		records = append(records, hcloud.ZoneRRSetRecord{Value: quoteTXTValue(v)})
+	}
+
+	rrset, _, err := c.Zone.GetRRSetByNameAndType(ctx, &hcloud.Zone{ID: zoneID}, name, hcloud.ZoneRRSetTypeTXT)
+	if err != nil {
+		return apperror.NewError("failed to fetch TXT RRSet").AddError(err)
+	}
+
+	if rrset == nil {
+		_, _, err = c.Zone.CreateRRSet(ctx, &hcloud.Zone{ID: zoneID}, hcloud.ZoneRRSetCreateOpts{
+			Name:    name,
+			Type:    hcloud.ZoneRRSetTypeTXT,
+			TTL:     &ttl,
+			Records: records,
+		})
+		if err != nil {
+			return apperror.NewError("failed to create TXT RRSet").AddError(err)
+		}
+		return nil
+	}
+
+	_, _, err = c.Zone.SetRRSetRecords(ctx, rrset, hcloud.ZoneRRSetSetRecordsOpts{
+		Records: records,
+	})
+	if err != nil {
+		return apperror.NewError("failed to set TXT RRSet records").AddError(err)
+	}
+	return nil
+}
+
+// deleteTXTRecord removes the TXT RRSet identified by name (relative to the
+// zone) from Hetzner. A missing RRSet is treated as success.
+func deleteTXTRecord(ctx context.Context, c *hcloud.Client, zoneID int64, name string) error {
+	rrset, _, err := c.Zone.GetRRSetByNameAndType(ctx, &hcloud.Zone{ID: zoneID}, name, hcloud.ZoneRRSetTypeTXT)
+	if err != nil {
+		return apperror.NewError("failed to fetch TXT RRSet").AddError(err)
+	}
+	if rrset == nil {
+		return nil
+	}
+	_, _, err = c.Zone.DeleteRRSet(ctx, rrset)
+	if err != nil {
+		return apperror.NewError("failed to delete TXT RRSet").AddError(err)
+	}
+	return nil
+}
+
+// quoteTXTValue ensures a TXT record value is wrapped in double quotes as
+// expected by the Hetzner Cloud DNS API.
+func quoteTXTValue(v string) string {
+	if len(v) >= 2 && v[0] == '"' && v[len(v)-1] == '"' {
+		return v
+	}
+	return "\"" + v + "\""
+}
+
 // findResourceRecordSet looks up the A RRSet for the given record in Hetzner and returns it.
 func findResourceRecordSet(ctx context.Context, c *hcloud.Client, r *schema.Record) (*hcloud.ZoneRRSet, bool, error) {
 	rrset, _, err := c.Zone.GetRRSetByNameAndType(ctx, &hcloud.Zone{ID: r.ZoneID}, r.Name, hcloud.ZoneRRSetTypeA)
