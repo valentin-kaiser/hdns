@@ -132,6 +132,8 @@ tasks:
         cert_dir: /etc/nginx/certs
         cert_file: fullchain.pem
         key_file: privkey.pem
+        # Optional for PKCS#12 consumers:
+        # pkcs12_file: certificate.p12
       - type: service_restart
         service_name: nginx
 ```
@@ -143,7 +145,16 @@ POST /<task-name>
 Authorization: Bearer <secret>
 Content-Type: application/json
 
-{"certificate": "<PEM>", "private_key": "<PEM>"}
+{
+  "cert": "<PEM leaf>",
+  "chain": "<PEM chain>",
+  "fullchain": "<PEM leaf+chain>",
+  "private_key": "<PEM private key>",
+  "certificate": "<PEM leaf+chain>",
+  "certificate_format": "pem|pkcs12",
+  "pkcs12": "<base64 PKCS#12, optional>",
+  "pkcs12_base64": "<base64 PKCS#12, optional>"
+}
 ```
 
 Every request must carry the configured Bearer token in the `Authorization` header.  HDNS sends this token automatically when delivering a certificate.
@@ -152,7 +163,7 @@ Every request must carry the configured Bearer token in the `Authorization` head
 
 | Type | Description |
 |---|---|
-| `cert_save` | Writes `certificate` and `private_key` from the payload to `cert_dir`. |
+| `cert_save` | Writes configured certificate artifacts from the payload to `cert_dir` (`cert_file`, `chain_file`, `fullchain_file`, `key_file`, optional `pkcs12_file`). |
 | `service_restart` | Restarts the named OS service (`systemctl restart` on Linux, `sc stop/start` on Windows). |
 | `exec` | Runs an arbitrary shell command (`sh -c` on Linux, `cmd /C` on Windows). |
 
