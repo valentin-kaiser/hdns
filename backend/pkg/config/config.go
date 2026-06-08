@@ -36,6 +36,23 @@ type App struct {
 	Database        string               `usage:"database connection DSN" json:"database"`
 	Mail            mail.ClientConfig    `usage:"SMTP transport configuration (YAML only; not exposed via the web UI)" json:"mail"`
 	Notifications   NotificationSettings `usage:"user-facing notification settings controlling when refresh reports are sent" json:"notifications"`
+	ACME            ACMESettings         `usage:"ACME / Let's Encrypt settings for DNS-01 certificate issuance" json:"acme"`
+}
+
+// ACMESettings holds the configuration for issuing and renewing Let's Encrypt
+// certificates via the DNS-01 challenge over the Hetzner Cloud DNS API.
+type ACMESettings struct {
+	// Enabled toggles whether hdns attempts to issue/renew certificates.
+	Enabled bool `usage:"enable ACME certificate issuance and renewal" json:"enabled"`
+	// Email is the account contact address registered with the ACME CA.
+	Email string `usage:"account email address registered with the ACME CA" json:"email"`
+	// Staging uses the Let's Encrypt staging environment when true.
+	Staging bool `usage:"use the Let's Encrypt staging environment (untrusted certificates)" json:"staging"`
+	// RenewBeforeDays is the number of days before expiry that a certificate
+	// becomes eligible for renewal.
+	RenewBeforeDays int `usage:"renew certificates this many days before they expire" json:"renew_before_days"`
+	// RenewCron is the cron expression used to schedule renewal scans.
+	RenewCron string `usage:"cron expression to schedule certificate renewal scans" json:"renew_cron"`
 }
 
 // NotificationSettings holds the user-facing notification behavior for DNS
@@ -102,6 +119,13 @@ func Init() {
 			Recipients:      []string{},
 			CooldownMinutes: 60,
 			SubjectPrefix:   "[HDNS]",
+		},
+		ACME: ACMESettings{
+			Enabled:         false,
+			Email:           "",
+			Staging:         true,
+			RenewBeforeDays: 30,
+			RenewCron:       "0 3 * * *",
 		},
 	}
 
@@ -240,6 +264,18 @@ func (c *App) Validate() error {
 		}
 	}
 
+	if c.ACME.Enabled {
+		if c.ACME.Email == "" {
+			return apperror.NewError("acme.email must be set when acme is enabled")
+		}
+		if c.ACME.RenewBeforeDays <= 0 {
+			return apperror.NewError("acme.renew_before_days must be greater than zero")
+		}
+		if _, err := cron.ParseStandard(c.ACME.RenewCron); err != nil {
+			return apperror.NewError("invalid acme renew cron expression").AddError(err)
+		}
+	}
+
 	return nil
 }
 
@@ -255,6 +291,10 @@ func (c *App) ToProto() *service.Configuration {
 		NotificationsRecipients:      c.Notifications.Recipients,
 		NotificationsCooldownMinutes: int32(c.Notifications.CooldownMinutes),
 		NotificationsSubjectPrefix:   c.Notifications.SubjectPrefix,
+		AcmeEnabled:                  c.ACME.Enabled,
+		AcmeEmail:                    c.ACME.Email,
+		AcmeStaging:                  c.ACME.Staging,
+		AcmeRenewBeforeDays:          int32(c.ACME.RenewBeforeDays),
 	}
 }
 
@@ -272,5 +312,11 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 	c.Notifications.Recipients = pc.NotificationsRecipients
 	c.Notifications.CooldownMinutes = int(pc.NotificationsCooldownMinutes)
 	c.Notifications.SubjectPrefix = pc.NotificationsSubjectPrefix
+	c.ACME.Enabled = pc.AcmeEnabled
+	c.ACME.Email = pc.AcmeEmail
+	c.ACME.Staging = pc.AcmeStaging
+	if pc.AcmeRenewBeforeDays > 0 {
+		c.ACME.RenewBeforeDays = int(pc.AcmeRenewBeforeDays)
+	}
 	return c
 }
