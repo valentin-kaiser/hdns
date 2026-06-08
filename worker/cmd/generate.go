@@ -86,6 +86,33 @@ func wizardCertSave(scanner *bufio.Scanner) config.ActionConfig {
 	a.ChainFile = optPrompt(scanner, "  chain_file     — intermediate chain filename (e.g. chain.pem) [optional]: ")
 	a.FullchainFile = optPrompt(scanner, "  fullchain_file — full chain filename (e.g. fullchain.pem) [optional]: ")
 	a.KeyFile = optPrompt(scanner, "  key_file       — private key filename (e.g. privkey.pem) [optional]: ")
+	a.PKCS12File = optPrompt(scanner, "  pkcs12_file    — PKCS#12 archive filename (e.g. cert.p12) [optional]: ")
+
+	fmt.Println()
+	fmt.Println("  combined_files — concatenated PEM bundles (e.g. key+fullchain for HAProxy).")
+	fmt.Println("  Valid parts: cert, chain, fullchain, key")
+	for i := 0; ; i++ {
+		more := optPrompt(scanner, fmt.Sprintf("  Add combined file %d? [y/N]: ", i+1))
+		if !strings.EqualFold(more, "y") {
+			break
+		}
+		var cf config.CombinedFileConfig
+		cf.Filename = mustPrompt(scanner, "    filename (e.g. haproxy.pem): ")
+		for {
+			raw := mustPrompt(scanner, "    parts (comma-separated, e.g. key,fullchain): ")
+			for _, p := range strings.Split(raw, ",") {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					cf.Parts = append(cf.Parts, p)
+				}
+			}
+			if len(cf.Parts) > 0 {
+				break
+			}
+			fmt.Fprintln(os.Stderr, "    (at least one part is required)")
+		}
+		a.CombinedFiles = append(a.CombinedFiles, cf)
+	}
 	return a
 }
 
@@ -142,6 +169,16 @@ func printTaskYAML(task *config.TaskConfig) {
 			}
 			if a.KeyFile != "" {
 				fmt.Printf("        key_file: %q\n", a.KeyFile)
+			}
+			if a.PKCS12File != "" {
+				fmt.Printf("        pkcs12_file: %q\n", a.PKCS12File)
+			}
+			if len(a.CombinedFiles) > 0 {
+				fmt.Println("        combined_files:")
+				for _, cf := range a.CombinedFiles {
+					fmt.Printf("          - filename: %q\n", cf.Filename)
+					fmt.Printf("            parts: [%s]\n", strings.Join(cf.Parts, ", "))
+				}
 			}
 		case config.ActionServiceRestart:
 			fmt.Printf("        service_name: %q\n", a.ServiceName)

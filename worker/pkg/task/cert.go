@@ -62,5 +62,30 @@ func save(action config.ActionConfig, payload Payload) error {
 		}
 	}
 
+	// partContent maps part names to their PEM content for combined file assembly.
+	partContent := map[string]string{
+		"cert":      payload.Cert,
+		"chain":     payload.Chain,
+		"fullchain": payload.Fullchain,
+		"key":       payload.PrivateKey,
+	}
+
+	for _, cf := range action.CombinedFiles {
+		var buf strings.Builder
+		for _, part := range cf.Parts {
+			piece := partContent[part]
+			if strings.TrimSpace(piece) == "" {
+				return fmt.Errorf("cert_save: combined file %q: payload contains no %s", cf.Filename, part)
+			}
+			// Ensure each PEM block ends with exactly one newline before the next.
+			buf.WriteString(strings.TrimRight(piece, "\n"))
+			buf.WriteByte('\n')
+		}
+		dest := filepath.Join(dir, cf.Filename)
+		if err := os.WriteFile(dest, []byte(buf.String()), 0600); err != nil {
+			return fmt.Errorf("cert_save: write combined file %q: %w", cf.Filename, err)
+		}
+	}
+
 	return nil
 }
