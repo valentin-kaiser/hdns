@@ -47,6 +47,9 @@ type ActionConfig struct {
 	// KeyFile is the filename for the private key (privkey.pem content).
 	// Leave empty to skip writing this file.
 	KeyFile string `yaml:"key_file" usage:"(cert_save) filename for the private key (omit to skip)"`
+	// PKCS12File is the filename for the PKCS#12 archive payload (pkcs12 / pkcs12_base64).
+	// Leave empty to skip writing this file.
+	PKCS12File string `yaml:"pkcs12_file" usage:"(cert_save) filename for the PKCS#12 archive (omit to skip)"`
 
 	// --- service_restart fields ---
 
@@ -124,8 +127,8 @@ func (a *ActionConfig) defaults(taskName string, idx int) error {
 		if strings.TrimSpace(a.CertDir) == "" {
 			return fmt.Errorf("%s (cert_save): cert_dir must not be empty", loc)
 		}
-		if a.CertFile == "" && a.ChainFile == "" && a.FullchainFile == "" && a.KeyFile == "" {
-			return fmt.Errorf("%s (cert_save): at least one of cert_file, chain_file, fullchain_file, key_file must be set", loc)
+		if a.CertFile == "" && a.ChainFile == "" && a.FullchainFile == "" && a.KeyFile == "" && a.PKCS12File == "" {
+			return fmt.Errorf("%s (cert_save): at least one of cert_file, chain_file, fullchain_file, key_file, pkcs12_file must be set", loc)
 		}
 	case ActionServiceRestart:
 		if strings.TrimSpace(a.ServiceName) == "" {

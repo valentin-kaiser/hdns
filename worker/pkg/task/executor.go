@@ -12,10 +12,13 @@ import (
 
 // Payload carries the certificate material delivered by HDNS in the webhook body.
 type Payload struct {
-	Cert      string `json:"cert"`
-	Chain     string `json:"chain"`
-	Fullchain string `json:"fullchain"`
-	PrivateKey string `json:"private_key"`
+	Cert              string `json:"cert"`
+	Chain             string `json:"chain"`
+	Fullchain         string `json:"fullchain"`
+	PrivateKey        string `json:"private_key"`
+	CertificateFormat string `json:"certificate_format"`
+	PKCS12            string `json:"pkcs12"`
+	PKCS12Base64      string `json:"pkcs12_base64"`
 }
 
 // Execute runs every action defined on task sequentially.
