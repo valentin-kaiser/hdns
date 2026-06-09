@@ -79,4 +79,6 @@ type Task struct {
 	LastRun            sql.NullTime
 	LastStatus         sql.NullString
 	LastError          sql.NullString
+	// certificate payload format: pem, pkcs12
+	CertificateFormat string
 }

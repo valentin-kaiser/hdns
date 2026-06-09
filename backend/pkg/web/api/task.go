@@ -31,6 +31,7 @@ func taskToProto(t *schema.Task) *service.Task {
 		Body:               t.Body.String,
 		Enabled:            t.Enabled,
 		IncludeCertificate: t.IncludeCertificate,
+		CertificateFormat:  t.CertificateFormat,
 		LastStatus:         t.LastStatus.String,
 		LastError:          t.LastError.String,
 	}
@@ -78,6 +79,7 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 	}
 
 	body := sql.NullString{String: in.Body, Valid: in.Body != ""}
+	certFormat := tasks.ResolveCertificateFormat(in.CertificateFormat, in.Body)
 
 	var task *schema.Task
 	err := database.HDNS().Query(func(q *schema.Queries) error {
@@ -99,6 +101,7 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 				Body:               body,
 				Enabled:            in.Enabled,
 				IncludeCertificate: in.IncludeCertificate,
+				CertificateFormat:  certFormat,
 			})
 			if cerr != nil {
 				return apperror.NewError("failed to create task in database").AddError(cerr)
@@ -116,6 +119,7 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 				Body:               body,
 				Enabled:            in.Enabled,
 				IncludeCertificate: in.IncludeCertificate,
+				CertificateFormat:  certFormat,
 			})
 			if uerr != nil {
 				return apperror.NewError("failed to update task in database").AddError(uerr)
@@ -199,6 +203,7 @@ func (s *Server) TestTask(ctx context.Context, in *service.Task) (*service.TaskR
 		Headers:            headers,
 		Body:               sql.NullString{String: in.Body, Valid: in.Body != ""},
 		IncludeCertificate: in.IncludeCertificate,
+		CertificateFormat:  tasks.ResolveCertificateFormat(in.CertificateFormat, in.Body),
 	})
 
 	result := &service.TaskResult{Status: status}

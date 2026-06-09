@@ -5,8 +5,12 @@ package tasks
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/x509"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,6 +24,7 @@ import (
 	"github.com/valentin-kaiser/go-core/logging/log"
 	"github.com/valentin-kaiser/hdns/pkg/database"
 	"github.com/valentin-kaiser/hdns/pkg/database/schema"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 // Trigger identifies the kind of renewal event that fires a task.
@@ -36,6 +41,11 @@ const (
 
 // requestTimeout bounds how long a single webhook invocation may take.
 const requestTimeout = 30 * time.Second
+
+const (
+	CertificateFormatPEM    = "pem"
+	CertificateFormatPKCS12 = "pkcs12"
+)
 
 var client = &http.Client{Timeout: requestTimeout}
 
@@ -172,6 +182,9 @@ func executeTask(ctx context.Context, task *schema.Task) (string, error) {
 //	{{fullchain}}        – leaf + intermediates (fullchain.pem)
 //	{{private_key}}      – private key (privkey.pem)
 //	{{certificate}}      – alias for {{fullchain}} (backward compatibility)
+//	{{pkcs12}}           – PKCS#12 archive (base64-encoded)
+//	{{pkcs12_base64}}    – alias for {{pkcs12}}
+//	{{certificate_format}} – selected output format (pem|pkcs12)
 //
 // The _json variants of each placeholder are JSON-string escaped for safe
 // embedding in JSON bodies. When the body is empty, a default JSON payload
@@ -191,17 +204,34 @@ func renderBody(ctx context.Context, task *schema.Task) (string, error) {
 		return "", apperror.Wrap(err)
 	}
 
+	format := ResolveCertificateFormat(task.CertificateFormat, body)
+	pkcs12Base64 := ""
+	if format == CertificateFormatPKCS12 {
+		pkcs12Base64, err = buildPKCS12Base64(m)
+		if err != nil {
+			return "", apperror.Wrap(err)
+		}
+	}
+
 	if strings.TrimSpace(body) == "" {
-		payload, merr := json.Marshal(map[string]string{
-			"cert":        m.cert,
-			"chain":       m.chain,
-			"fullchain":   m.fullchain,
-			"private_key": m.key,
-		})
+		payload := map[string]string{
+			"cert":               m.cert,
+			"chain":              m.chain,
+			"fullchain":          m.fullchain,
+			"private_key":        m.key,
+			"certificate":        m.fullchain,
+			"certificate_format": format,
+		}
+		if pkcs12Base64 != "" {
+			payload["pkcs12"] = pkcs12Base64
+			payload["pkcs12_base64"] = pkcs12Base64
+		}
+
+		payloadRaw, merr := json.Marshal(payload)
 		if merr != nil {
 			return "", apperror.NewError("failed to encode certificate payload").AddError(merr)
 		}
-		return string(payload), nil
+		return string(payloadRaw), nil
 	}
 
 	replacer := strings.NewReplacer(
@@ -210,13 +240,38 @@ func renderBody(ctx context.Context, task *schema.Task) (string, error) {
 		"{{fullchain}}", m.fullchain,
 		"{{certificate}}", m.fullchain,
 		"{{private_key}}", m.key,
+		"{{pkcs12}}", pkcs12Base64,
+		"{{pkcs12_base64}}", pkcs12Base64,
+		"{{certificate_format}}", format,
 		"{{cert_json}}", jsonEscape(m.cert),
 		"{{chain_json}}", jsonEscape(m.chain),
 		"{{fullchain_json}}", jsonEscape(m.fullchain),
 		"{{certificate_json}}", jsonEscape(m.fullchain),
 		"{{private_key_json}}", jsonEscape(m.key),
+		"{{pkcs12_json}}", jsonEscape(pkcs12Base64),
+		"{{pkcs12_base64_json}}", jsonEscape(pkcs12Base64),
+		"{{certificate_format_json}}", jsonEscape(format),
 	)
 	return replacer.Replace(body), nil
+}
+
+// ResolveCertificateFormat normalizes the configured format and falls back to
+// placeholder-based inference only when no explicit format is configured.
+func ResolveCertificateFormat(format, body string) string {
+	switch strings.ToLower(strings.TrimSpace(format)) {
+	case CertificateFormatPEM:
+		return CertificateFormatPEM
+	case CertificateFormatPKCS12:
+		return CertificateFormatPKCS12
+	}
+	if requiresPKCS12(body) {
+		return CertificateFormatPKCS12
+	}
+	return CertificateFormatPEM
+}
+
+func requiresPKCS12(body string) bool {
+	return strings.Contains(body, "{{pkcs12}}") || strings.Contains(body, "{{pkcs12_base64}}")
 }
 
 // certMaterial holds the four PEM files produced by a certificate issuance.
@@ -279,4 +334,77 @@ func jsonEscape(s string) string {
 		return s
 	}
 	return string(b[1 : len(b)-1])
+}
+
+func buildPKCS12Base64(m certMaterial) (string, error) {
+	leaf, err := parseFirstCertificatePEM(m.cert)
+	if err != nil {
+		return "", err
+	}
+
+	intermediates, err := parseCertificateChainPEM(m.chain)
+	if err != nil {
+		return "", err
+	}
+
+	key, err := parsePrivateKeyPEM(m.key)
+	if err != nil {
+		return "", err
+	}
+
+	pfx, err := pkcs12.Encode(rand.Reader, key, leaf, intermediates, "")
+	if err != nil {
+		return "", apperror.NewError("failed to encode pkcs12 archive").AddError(err)
+	}
+
+	return base64.StdEncoding.EncodeToString(pfx), nil
+}
+
+func parseFirstCertificatePEM(raw string) (*x509.Certificate, error) {
+	block, _ := pem.Decode([]byte(raw))
+	if block == nil {
+		return nil, apperror.NewError("failed to decode certificate PEM")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, apperror.NewError("failed to parse certificate PEM").AddError(err)
+	}
+	return cert, nil
+}
+
+func parseCertificateChainPEM(raw string) ([]*x509.Certificate, error) {
+	chain := make([]*x509.Certificate, 0)
+	data := []byte(raw)
+	for len(data) > 0 {
+		block, rest := pem.Decode(data)
+		if block == nil {
+			break
+		}
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return nil, apperror.NewError("failed to parse chain certificate PEM").AddError(err)
+		}
+		chain = append(chain, cert)
+		data = rest
+	}
+	return chain, nil
+}
+
+func parsePrivateKeyPEM(raw string) (any, error) {
+	block, _ := pem.Decode([]byte(raw))
+	if block == nil {
+		return nil, apperror.NewError("failed to decode private key PEM")
+	}
+
+	if key, err := x509.ParsePKCS1PrivateKey(block.Bytes); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(block.Bytes); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParseECPrivateKey(block.Bytes); err == nil {
+		return key, nil
+	}
+
+	return nil, apperror.NewError("failed to parse private key PEM")
 }

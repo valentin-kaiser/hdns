@@ -26,6 +26,18 @@ const (
 	ActionExec ActionType = "exec"
 )
 
+// CombinedFileConfig describes a single output file produced by concatenating
+// multiple PEM pieces from the webhook payload in the specified order.
+// This is useful for tools that expect a combined bundle, such as HAProxy
+// (key + fullchain) or some nginx configurations (cert + chain).
+type CombinedFileConfig struct {
+	// Filename is the output file name, relative to CertDir.
+	Filename string `yaml:"filename" usage:"output filename (relative to cert_dir)"`
+	// Parts is an ordered list of PEM pieces to concatenate into the file.
+	// Valid values: cert, chain, fullchain, key
+	Parts []string `yaml:"parts" usage:"ordered pieces to concatenate: cert | chain | fullchain | key"`
+}
+
 // ActionConfig describes a single action inside a task.
 type ActionConfig struct {
 	// Type selects the action implementation.
@@ -47,6 +59,14 @@ type ActionConfig struct {
 	// KeyFile is the filename for the private key (privkey.pem content).
 	// Leave empty to skip writing this file.
 	KeyFile string `yaml:"key_file" usage:"(cert_save) filename for the private key (omit to skip)"`
+	// PKCS12File is the filename for the PKCS#12 archive payload (pkcs12 / pkcs12_base64).
+	// Leave empty to skip writing this file.
+	PKCS12File string `yaml:"pkcs12_file" usage:"(cert_save) filename for the PKCS#12 archive (omit to skip)"`
+	// CombinedFiles is an optional list of concatenated-PEM output files.
+	// Each entry writes a single file whose content is the named PEM pieces
+	// joined in order. Useful for tools expecting a bundle (e.g. HAProxy needs
+	// key + fullchain in one file).
+	CombinedFiles []CombinedFileConfig `yaml:"combined_files" usage:"(cert_save) list of concatenated PEM output files"`
 
 	// --- service_restart fields ---
 
@@ -124,8 +144,22 @@ func (a *ActionConfig) defaults(taskName string, idx int) error {
 		if strings.TrimSpace(a.CertDir) == "" {
 			return fmt.Errorf("%s (cert_save): cert_dir must not be empty", loc)
 		}
-		if a.CertFile == "" && a.ChainFile == "" && a.FullchainFile == "" && a.KeyFile == "" {
-			return fmt.Errorf("%s (cert_save): at least one of cert_file, chain_file, fullchain_file, key_file must be set", loc)
+		if a.CertFile == "" && a.ChainFile == "" && a.FullchainFile == "" && a.KeyFile == "" && a.PKCS12File == "" && len(a.CombinedFiles) == 0 {
+			return fmt.Errorf("%s (cert_save): at least one of cert_file, chain_file, fullchain_file, key_file, pkcs12_file, combined_files must be set", loc)
+		}
+		validParts := map[string]bool{"cert": true, "chain": true, "fullchain": true, "key": true}
+		for k, cf := range a.CombinedFiles {
+			if strings.TrimSpace(cf.Filename) == "" {
+				return fmt.Errorf("%s (cert_save): combined_files[%d]: filename must not be empty", loc, k)
+			}
+			if len(cf.Parts) == 0 {
+				return fmt.Errorf("%s (cert_save): combined_files[%d] (%s): parts must not be empty", loc, k, cf.Filename)
+			}
+			for _, p := range cf.Parts {
+				if !validParts[p] {
+					return fmt.Errorf("%s (cert_save): combined_files[%d] (%s): unknown part %q (valid: cert, chain, fullchain, key)", loc, k, cf.Filename, p)
+				}
+			}
 		}
 	case ActionServiceRestart:
 		if strings.TrimSpace(a.ServiceName) == "" {

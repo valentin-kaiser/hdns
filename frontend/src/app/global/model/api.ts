@@ -191,6 +191,11 @@ export interface Task {
    * webhook body via the {{certificate}} and {{private_key}} placeholders.
    */
   includeCertificate: boolean;
+  /**
+   * certificate_format controls the certificate payload representation.
+   * Valid values are "pem" and "pkcs12". Defaults to "pem".
+   */
+  certificateFormat: string;
 }
 
 export interface TaskList {
@@ -1375,6 +1380,7 @@ function createBaseTask(): Task {
     lastStatus: "",
     lastError: "",
     includeCertificate: false,
+    certificateFormat: "",
   };
 }
 
@@ -1424,6 +1430,9 @@ export const Task: MessageFns<Task> = {
     }
     if (message.includeCertificate !== false) {
       writer.uint32(120).bool(message.includeCertificate);
+    }
+    if (message.certificateFormat !== "") {
+      writer.uint32(130).string(message.certificateFormat);
     }
     return writer;
   },
@@ -1555,6 +1564,14 @@ export const Task: MessageFns<Task> = {
           message.includeCertificate = reader.bool();
           continue;
         }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.certificateFormat = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1613,6 +1630,11 @@ export const Task: MessageFns<Task> = {
         : isSet(object.include_certificate)
         ? globalThis.Boolean(object.include_certificate)
         : false,
+      certificateFormat: isSet(object.certificateFormat)
+        ? globalThis.String(object.certificateFormat)
+        : isSet(object.certificate_format)
+        ? globalThis.String(object.certificate_format)
+        : "",
     };
   },
 
@@ -1663,6 +1685,9 @@ export const Task: MessageFns<Task> = {
     if (message.includeCertificate !== false) {
       obj.includeCertificate = message.includeCertificate;
     }
+    if (message.certificateFormat !== "") {
+      obj.certificateFormat = message.certificateFormat;
+    }
     return obj;
   },
 
@@ -1686,6 +1711,7 @@ export const Task: MessageFns<Task> = {
     message.lastStatus = object.lastStatus ?? "";
     message.lastError = object.lastError ?? "";
     message.includeCertificate = object.includeCertificate ?? false;
+    message.certificateFormat = object.certificateFormat ?? "";
     return message;
   },
 };

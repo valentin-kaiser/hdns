@@ -11,6 +11,7 @@ require (
 	github.com/rubenv/sql-migrate v1.8.1
 	github.com/valentin-kaiser/go-core v1.9.4
 	google.golang.org/protobuf v1.36.11
+	software.sslmate.com/src/go-pkcs12 v0.7.1
 )
 
 require (
