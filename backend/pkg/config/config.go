@@ -92,7 +92,6 @@ func Init() {
 			// Public
 			"9.9.9.9:53",
 			"1.1.1.1:53",
-			"8.8.8.8:53",
 		},
 		IPv4Resolvers: []string{
 			"dns://resolver1.opendns.com/myip.opendns.com?type=A",
