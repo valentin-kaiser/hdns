@@ -9,7 +9,7 @@ option optimize_for = SPEED;
 // HDNS is the main service for HDNS.
 service HDNS {
   // GetZones returns all zones.
-  rpc GetZones (ZoneRequest) returns (ZoneList);
+  rpc GetZones (Record) returns (ZoneList);
 
   // GetRecords returns all records.
   rpc GetRecords (Request) returns (RecordList);
@@ -75,10 +75,6 @@ message Empty {
 
 message Request {
   string search = 1;
-}
-
-message ZoneRequest {
-  string token = 1;
 }
 
 // Address represents an IP address.
