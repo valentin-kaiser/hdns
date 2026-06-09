@@ -1,41 +1,40 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal, signal } from '@angular/core';
 import {
-    Observable,
-    Subject,
-    catchError,
-    defer,
-    finalize,
-    repeat,
-    retry,
-    shareReplay,
-    takeUntil,
-    tap,
-    throwError,
-    timer,
+  Observable,
+  Subject,
+  catchError,
+  defer,
+  finalize,
+  repeat,
+  retry,
+  shareReplay,
+  takeUntil,
+  tap,
+  throwError,
+  timer,
 } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../../environments/environment';
 import {
-    Address,
-    AddressHistory,
-    Certificate,
-    CertificateList,
-    Configuration,
-    Empty,
-    HDNSDefinition,
-    Record,
-    RecordDelete,
-    RecordList,
-    Request,
-    Resolution,
-    ResolutionResult,
-    Task,
-    TaskDelete,
-    TaskList,
-    TaskResult,
-    ZoneList,
-    ZoneRequest,
+  Address,
+  AddressHistory,
+  Certificate,
+  CertificateList,
+  Configuration,
+  Empty,
+  HDNSDefinition,
+  Record,
+  RecordDelete,
+  RecordList,
+  Request,
+  Resolution,
+  ResolutionResult,
+  Task,
+  TaskDelete,
+  TaskList,
+  TaskResult,
+  ZoneList
 } from '../../model/api';
 import { LoggerService } from '../logger/logger.service';
 
@@ -70,7 +69,7 @@ export class ApiService {
     this.buildURL();
   }
 
-  public getZones(req: ZoneRequest): Observable<ZoneList> {
+  public getZones(req: Record): Observable<ZoneList> {
     return this.rpc<ZoneList>('getZones', req);
   }
 

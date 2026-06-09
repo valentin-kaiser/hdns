@@ -206,6 +206,9 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
                   <button mat-menu-item class="primary-item" (click)="tasksDrawer.open(r)">
                     <mat-icon>webhook</mat-icon> Tasks
                   </button>
+                  <button mat-menu-item class="primary-item" (click)="recordDrawer.open(r)">
+                    <mat-icon>edit</mat-icon> Edit
+                  </button>
                   <button mat-menu-item class="danger-item" (click)="delete(r)">
                     <mat-icon>delete</mat-icon> Delete
                   </button>

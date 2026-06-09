@@ -4,7 +4,6 @@ import {
   Component,
   EventEmitter,
   inject,
-  OnChanges,
   OnDestroy,
   Output,
   ViewChild,
@@ -19,7 +18,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
-import { Record as DnsRecord, RecordPurpose, Zone } from '../../../../global/model/api';
+import { Record as DnsRecord, Record, RecordPurpose, Zone } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 
@@ -86,10 +85,6 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
                 <input matInput formControlName="name" placeholder="e.g. @ or subdomain" />
               </mat-form-field>
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>TTL (seconds)</mat-label>
-                <input matInput type="number" formControlName="ttl" min="1" />
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Purpose</mat-label>
                 <mat-select formControlName="purpose">
                   <mat-option [value]="1">DDNS only</mat-option>
@@ -98,6 +93,12 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
                 </mat-select>
                 <mat-hint>Choose whether this record is updated with your IP, used for a certificate, or both.</mat-hint>
               </mat-form-field>
+              @if (detailsGroup.value.purpose !== 2) {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>TTL (seconds)</mat-label>
+                  <input matInput type="number" formControlName="ttl" min="1" />
+                </mat-form-field>
+              }
               @if (detailsGroup.value.purpose !== 1) {
                 <mat-slide-toggle formControlName="includeWildcard" class="toggle-field">
                   Include wildcard (*) in certificate
@@ -176,7 +177,7 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
     `,
   ],
 })
-export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
+export class RecordFormDrawerComponent implements OnDestroy {
   record: DnsRecord | null = null;
   @ViewChild('stepper') stepper!: MatStepper;
   @ViewChild('drawer') drawer!: DrawerComponent;
@@ -218,7 +219,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
         .get('token')!
         .valueChanges.pipe(debounceTime(600), distinctUntilChanged())
         .subscribe((token) => {
-          if (token) {
+          if (this.record?.id || token) {
             this.loadZones(token);
           } else {
             this.clearAdvanceTimer('token');
@@ -241,22 +242,25 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     );
   }
 
-  ngOnChanges(): void {
+  private prepareForm(record: DnsRecord | null): void {
     this.autoAdvanceSuspended = true;
     this.clearAdvanceTimers();
 
-    if (this.record) {
-      this.tokenGroup.patchValue({ token: this.record.token });
-      this.zoneGroup.patchValue({ zoneId: this.record.zoneId });
-      this.detailsGroup.patchValue({
-        name: this.record.name,
-        ttl: this.record.ttl,
-        purpose: this.record.purpose ?? RecordPurpose.RECORD_PURPOSE_DDNS,
-        includeWildcard: this.record.includeWildcard ?? false,
+    if (record) {
+      // Token is not required when editing and existing record
+      this.tokenGroup = this.fb.group({
+        token: [''],
       });
-      const token = this.record.token;
+      this.zoneGroup.patchValue({ zoneId: record.zoneId });
+      this.detailsGroup.patchValue({
+        name: record.name,
+        ttl: record.ttl,
+        purpose: record.purpose ?? RecordPurpose.RECORD_PURPOSE_DDNS,
+        includeWildcard: record.includeWildcard ?? false,
+      });
+      const token = record.token;
       setTimeout(() => {
-        if (token) this.loadZones(token);
+        if (record.id || token) this.loadZones(token);
         if (this.stepper) this.stepper.selectedIndex = 2;
         this.autoAdvanceSuspended = false;
       });
@@ -280,7 +284,7 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
   loadZones(token: string): void {
     this.zonesLoading = true;
     this.cdr.markForCheck();
-    this.api.getZones({ token }).subscribe({
+    this.api.getZones({ id: this.record?.id ?? 0, token: token } as Record).subscribe({
       next: (res) => {
         this.zones = res.zones ?? [];
         if (!this.zones.some((zone) => zone.id === this.zoneGroup.value.zoneId)) {
@@ -347,7 +351,9 @@ export class RecordFormDrawerComponent implements OnChanges, OnDestroy {
     this.clearAdvanceTimer('zone');
   }
 
-  open() {
+  open(record?: DnsRecord): void {
+    this.record = record ?? null;
+    this.prepareForm(this.record);
     this.drawer.open();
   }
 

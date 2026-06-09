@@ -98,7 +98,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		return nil, apperror.NewError("record is required")
 	}
 
-	if strings.TrimSpace(in.Token) == "" {
+	if strings.TrimSpace(in.Token) == "" && in.Id == 0 {
 		return nil, apperror.NewError("record token is required")
 	}
 
@@ -144,7 +144,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				return apperror.NewError("failed to create record in database").AddError(err)
 			}
 		default:
-			err = q.UpdateRecord(ctx, schema.UpdateRecordParams{
+			params := schema.UpdateRecordParams{
 				ID:              in.Id,
 				Token:           encryptedToken,
 				ZoneID:          in.ZoneId,
@@ -153,7 +153,18 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				Ttl:             int32(in.Ttl),
 				Purpose:         int8(in.Purpose),
 				IncludeWildcard: in.IncludeWildcard,
-			})
+			}
+
+			if in.Token == "" {
+				// Preserve existing token when none is supplied on update.
+				existing, err := q.GetRecord(ctx, in.Id)
+				if err != nil {
+					return apperror.NewError("failed to fetch existing record from database").AddError(err)
+				}
+				params.Token = existing.Token
+			}
+
+			err = q.UpdateRecord(ctx, params)
 			if err != nil {
 				return apperror.NewError("failed to update record in database").AddError(err)
 			}
