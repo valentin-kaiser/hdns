@@ -6,6 +6,7 @@ package schema
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Address struct {
@@ -32,6 +33,21 @@ type Certificate struct {
 	LastError sql.NullString
 	CertPath  string
 	KeyPath   string
+}
+
+type CertificateJob struct {
+	ID            int64
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+	RecordID      int64
+	CertificateID sql.NullInt64
+	// manual, scheduled
+	Source string
+	// running, success, failed
+	Status     string
+	StartedAt  time.Time
+	FinishedAt sql.NullTime
+	Error      sql.NullString
 }
 
 type Record struct {
@@ -81,4 +97,21 @@ type Task struct {
 	LastError          sql.NullString
 	// certificate payload format: pem, pkcs12
 	CertificateFormat string
+}
+
+type TaskRun struct {
+	ID               int64
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	TaskID           int64
+	RecordID         int64
+	CertificateJobID sql.NullInt64
+	// 1=ip, 2=cert, 3=both
+	TriggerOn int8
+	// success, failed
+	Status         string
+	ResponseStatus sql.NullString
+	Error          sql.NullString
+	StartedAt      time.Time
+	FinishedAt     sql.NullTime
 }
