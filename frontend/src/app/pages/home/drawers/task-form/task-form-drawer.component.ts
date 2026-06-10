@@ -325,11 +325,13 @@ export class TaskFormDrawerComponent {
     return this.form.get('headers') as FormArray<FormGroup>;
   }
 
-  addHeaderRow(key = '', value = ''): void {
+  addHeaderRow(key = '', value = '', focus = true): void {
     this.headerRows.push(this.createHeaderRow(key, value));
-    setTimeout(() => {
-      this.headerKeyInputs.last?.nativeElement.focus();
-    });
+    if (focus) {
+      setTimeout(() => {
+        this.headerKeyInputs.last?.nativeElement.focus();
+      });
+    }
   }
 
   removeHeaderRow(index: number): void {
@@ -445,7 +447,7 @@ export class TaskFormDrawerComponent {
 
   private resetHeaderRows(): void {
     this.headerRows.clear();
-    this.addHeaderRow();
+    this.addHeaderRow('', '', false);
     this.headerRows.markAsPristine();
   }
 

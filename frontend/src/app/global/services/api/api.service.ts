@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, Signal, signal } from '@angular/core';
 import {
   Observable,
@@ -20,6 +20,7 @@ import {
   Address,
   AddressHistory,
   Certificate,
+  CertificateDetails,
   CertificateList,
   Configuration,
   Empty,
@@ -151,6 +152,14 @@ export class ApiService {
     return this.rpc<TaskResult>('testTask', task);
   }
 
+  public getCertificateDetails(record: Record): Observable<CertificateDetails> {
+    return this.rpc<CertificateDetails>('getCertificateDetails', record);
+  }
+
+  public getCertificateDownloadUrl(recordId: number, artifact: string): string {
+    return `${this.baseURL}/api/certificates/download?record_id=${recordId}&artifact=${encodeURIComponent(artifact)}`;
+  }
+
   /**
    * Generic RPC method. All API calls go through this, which ensures consistent logging and error handling.
    */
@@ -168,6 +177,26 @@ export class ApiService {
     const url = this.baseURL + path;
     this.logger.info(`${this.logType} ${this.logName} POST ${url}`, body);
     return this.http.post<T>(url, body).pipe(
+      tap((res) => this.logger.info(`${this.logType} ${this.logName} ${path} response`, res)),
+      catchError((err) => {
+        this.logger.error(`${this.logType} ${this.logName} ${path} error`, err);
+        if (err.status <= 0) {
+          return throwError(() => {
+            return {
+              error:
+                'Unable to connect to the server. Please check your network connection and try again.',
+            };
+          });
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  get<T = any>(path: string, params?: HttpParams): Observable<T> {
+    const url = this.baseURL + path;
+    this.logger.info(`${this.logType} ${this.logName} GET ${url}`);
+    return this.http.get<T>(url, { params }).pipe(
       tap((res) => this.logger.info(`${this.logType} ${this.logName} ${path} response`, res)),
       catchError((err) => {
         this.logger.error(`${this.logType} ${this.logName} ${path} error`, err);

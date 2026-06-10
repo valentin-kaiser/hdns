@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -10,13 +10,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DrawerComponent } from '../../../../components/drawer/drawer.component';
+import { Router } from '@angular/router';
 import { Record as DnsRecord, RecordPurpose } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 import { RecordFormDrawerComponent } from '../../drawers/record-form/record-form-drawer.component';
-import { RecordTasksDrawerComponent } from '../../drawers/record-tasks/record-tasks-drawer.component';
-import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.component';
 
 @Component({
   selector: 'app-records-table',
@@ -34,8 +32,6 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
     MatInputModule,
     MatProgressSpinnerModule,
     RecordFormDrawerComponent,
-    RecordTasksDrawerComponent,
-    ResolveDrawerComponent,
   ],
   template: `
     <div class="hdns-card records-card">
@@ -181,16 +177,20 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
                   mat-icon-button
                   [matMenuTriggerFor]="actionsMenu"
                   aria-label="Record actions"
+                  (click)="$event.stopPropagation()"
                 >
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item class="primary-item" (click)="$event.stopPropagation(); openOverview(r)">
+                    <mat-icon>dashboard</mat-icon> Overview
+                  </button>
+                  <button mat-menu-item class="primary-item" (click)="$event.stopPropagation(); recordDrawer.open(r)">
+                    <mat-icon>edit</mat-icon> Edit
+                  </button>
                   @if (recordDoesDdns(r)) {
-                    <button mat-menu-item class="primary-item" (click)="refreshRecord(r)">
+                    <button mat-menu-item class="primary-item" (click)="$event.stopPropagation(); refreshRecord(r)">
                       <mat-icon>refresh</mat-icon> Refresh
-                    </button>
-                    <button mat-menu-item class="primary-item" (click)="resolveDrawer.open(r)">
-                      <mat-icon>travel_explore</mat-icon> Resolve
                     </button>
                   }
                   @if (recordHasCert(r)) {
@@ -198,18 +198,12 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
                       mat-menu-item
                       class="primary-item"
                       [disabled]="issuing().has(r.id)"
-                      (click)="issueCertificate(r)"
+                      (click)="$event.stopPropagation(); issueCertificate(r)"
                     >
                       <mat-icon>verified</mat-icon> Issue cert
                     </button>
                   }
-                  <button mat-menu-item class="primary-item" (click)="tasksDrawer.open(r)">
-                    <mat-icon>webhook</mat-icon> Tasks
-                  </button>
-                  <button mat-menu-item class="primary-item" (click)="recordDrawer.open(r)">
-                    <mat-icon>edit</mat-icon> Edit
-                  </button>
-                  <button mat-menu-item class="danger-item" (click)="delete(r)">
+                  <button mat-menu-item class="danger-item" (click)="$event.stopPropagation(); delete(r)">
                     <mat-icon>delete</mat-icon> Delete
                   </button>
                 </mat-menu>
@@ -217,7 +211,15 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="columns"></tr>
-            <tr mat-row *matRowDef="let row; columns: columns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: columns"
+              class="record-row"
+              tabindex="0"
+              (click)="openOverview(row)"
+              (keydown.enter)="openOverview(row)"
+              (keydown.space)="openOverview(row); $event.preventDefault()"
+            ></tr>
           </table>
         </div>
       } @else if (records().length > 0) {
@@ -235,12 +237,6 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
 
     <!-- Edit / Add record drawer -->
     <app-record-form-drawer #recordDrawer (onSave)="load()" />
-
-    <!-- Resolve drawer -->
-    <app-resolve-drawer #resolveDrawer />
-
-    <!-- Tasks drawer -->
-    <app-record-tasks-drawer #tasksDrawer />
   `,
   styles: [
     `
@@ -412,6 +408,16 @@ import { ResolveDrawerComponent } from '../../drawers/resolve/resolve-drawer.com
         white-space: nowrap;
         padding-right: 0;
       }
+      .record-row {
+        cursor: pointer;
+      }
+      .record-row:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .record-row:focus-visible {
+        outline: 2px solid var(--hdns-primary);
+        outline-offset: -2px;
+      }
       .actions-row {
         display: flex;
         flex-direction: row;
@@ -464,13 +470,15 @@ export class RecordsTableComponent implements OnInit {
   readonly issuing = signal<Set<number>>(new Set());
   columns = ['name', 'domain', 'purpose', 'ip', 'certificate', 'updatedAt', 'ttl', 'actions'];
 
-  @ViewChild('resolveDrawer') resolveDrawer!: DrawerComponent;
-  @ViewChild('tasksDrawer') tasksDrawer!: RecordTasksDrawerComponent;
-
   constructor(
     private readonly api: ApiService,
     private readonly notify: NotifyService,
+    private readonly router: Router,
   ) {}
+
+  openOverview(record: DnsRecord): void {
+    this.router.navigate(['/overview', record.id]);
+  }
 
   ngOnInit(): void {
     this.loadWantedIp();
