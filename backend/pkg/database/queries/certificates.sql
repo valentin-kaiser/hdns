@@ -74,3 +74,28 @@ WHERE
 DELETE FROM certificates
 WHERE
     record_id = ?;
+
+-- name: CreateCertificateJob :execlastid
+INSERT INTO
+    certificate_jobs (record_id, certificate_id, source, status, started_at)
+VALUES
+    (?, ?, ?, ?, ?);
+
+-- name: FinishCertificateJob :exec
+UPDATE certificate_jobs
+SET
+    status = ?,
+    error = ?,
+    finished_at = ?
+WHERE
+    id = ?;
+
+-- name: ListCertificateJobsByRecord :many
+SELECT
+    *
+FROM
+    certificate_jobs
+WHERE
+    record_id = ?
+ORDER BY
+    started_at DESC;

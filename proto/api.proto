@@ -9,7 +9,7 @@ option optimize_for = SPEED;
 // HDNS is the main service for HDNS.
 service HDNS {
   // GetZones returns all zones.
-  rpc GetZones (ZoneRequest) returns (ZoneList);
+  rpc GetZones (Record) returns (ZoneList);
 
   // GetRecords returns all records.
   rpc GetRecords (Request) returns (RecordList);
@@ -50,6 +50,9 @@ service HDNS {
   // IssueCertificate issues or re-issues the certificate for a record.
   rpc IssueCertificate (Record) returns (Certificate);
 
+  // GetCertificateDetails returns detailed information about a certificate for a record.
+  rpc GetCertificateDetails (Record) returns (CertificateDetails);
+
   // GetTasks returns all renewal tasks.
   rpc GetTasks (Empty) returns (TaskList);
 
@@ -75,10 +78,6 @@ message Empty {
 
 message Request {
   string search = 1;
-}
-
-message ZoneRequest {
-  string token = 1;
 }
 
 // Address represents an IP address.
@@ -144,6 +143,52 @@ message Certificate {
 
 message CertificateList {
   repeated Certificate certificates = 1;
+}
+
+// CertificateArtifact describes a downloadable certificate file.
+message CertificateArtifact {
+  string key          = 1;
+  string label        = 2;
+  bool   available    = 3;
+  string download_url = 4;
+}
+
+// CertificateIssuanceJob represents a single certificate issuance attempt.
+message CertificateIssuanceJob {
+  int64  id             = 1;
+  string source         = 2;
+  string status         = 3;
+  int64  started_at     = 4;
+  int64  finished_at    = 5;
+  int64  duration_ms    = 6;
+  string error          = 7;
+  int64  certificate_id = 8;
+}
+
+// CertificateTaskRun represents a webhook task execution triggered by a certificate event.
+message CertificateTaskRun {
+  int64  id                 = 1;
+  int64  task_id            = 2;
+  string task_name          = 3;
+  string status             = 4;
+  string response_status    = 5;
+  string error              = 6;
+  int64  started_at         = 7;
+  int64  finished_at        = 8;
+  int64  duration_ms        = 9;
+  int64  certificate_job_id = 10;
+}
+
+// CertificateDetails aggregates certificate info, artifacts, and job history for a record.
+message CertificateDetails {
+  int64                        record_id      = 1;
+  string                       record_name    = 2;
+  string                       record_domain  = 3;
+  Certificate                  certificate    = 4;
+  repeated CertificateArtifact artifacts      = 5;
+  repeated CertificateIssuanceJob issuance_jobs = 6;
+  repeated CertificateTaskRun  task_runs      = 7;
+  int64                        fetched_at     = 8;
 }
 
 enum TaskTrigger {

@@ -65,7 +65,7 @@ func Execute(ctx context.Context, task *schema.Task) (string, error) {
 // FireTasks runs all enabled tasks attached to the given record that match the
 // provided event. Failures are logged and recorded on the task but never
 // abort the caller.
-func FireTasks(ctx context.Context, recordID int64, event Trigger) {
+func FireTasks(ctx context.Context, recordID int64, event Trigger, certificateJobID sql.NullInt64) {
 	var tasks []*schema.Task
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var qerr error
@@ -81,17 +81,36 @@ func FireTasks(ctx context.Context, recordID int64, event Trigger) {
 		if !matchesTrigger(task.TriggerOn, event) {
 			continue
 		}
-		runTask(ctx, task)
+		runTask(ctx, task, event, certificateJobID)
 	}
 }
 
 // runTask executes a single webhook task and persists its result.
-func runTask(ctx context.Context, task *schema.Task) {
+func runTask(ctx context.Context, task *schema.Task, event Trigger, certificateJobID sql.NullInt64) {
+	startedAt := time.Now()
+
+	runID := int64(0)
+	err := database.HDNS().Query(func(q *schema.Queries) error {
+		var qerr error
+		runID, qerr = q.CreateTaskRun(ctx, schema.CreateTaskRunParams{
+			TaskID:           task.ID,
+			RecordID:         task.RecordID,
+			CertificateJobID: certificateJobID,
+			TriggerOn:        int8(event),
+			Status:           "running",
+			StartedAt:        startedAt,
+		})
+		return qerr
+	})
+	if err != nil {
+		log.Error().Err(err).Msgf("[TASK] failed to create task run history for task %q", task.Name)
+	}
+
 	status, runErr := executeTask(ctx, task)
 
 	result := schema.UpdateTaskResultParams{
 		ID:         task.ID,
-		LastRun:    sql.NullTime{Time: time.Now(), Valid: true},
+		LastRun:    sql.NullTime{Time: startedAt, Valid: true},
 		LastStatus: sql.NullString{String: status, Valid: status != ""},
 	}
 	if runErr != nil {
@@ -106,6 +125,27 @@ func runTask(ctx context.Context, task *schema.Task) {
 	})
 	if derr != nil {
 		log.Error().Err(derr).Msgf("[TASK] failed to persist result for task %q", task.Name)
+	}
+
+	if runID != 0 {
+		params := schema.FinishTaskRunParams{
+			ID:             runID,
+			FinishedAt:     sql.NullTime{Time: time.Now(), Valid: true},
+			ResponseStatus: sql.NullString{String: status, Valid: status != ""},
+		}
+		if runErr != nil {
+			params.Status = "failed"
+			params.Error = sql.NullString{String: runErr.Error(), Valid: true}
+		} else {
+			params.Status = "success"
+		}
+
+		err = database.HDNS().Query(func(q *schema.Queries) error {
+			return q.FinishTaskRun(ctx, params)
+		})
+		if err != nil {
+			log.Error().Err(err).Msgf("[TASK] failed to finalize task run history %d", runID)
+		}
 	}
 }
 

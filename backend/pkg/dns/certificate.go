@@ -34,6 +34,14 @@ const (
 	PurposeBoth int8 = 3
 )
 
+// IssuanceSource identifies where a certificate issuance was triggered.
+type IssuanceSource string
+
+const (
+	IssuanceSourceManual    IssuanceSource = "manual"
+	IssuanceSourceScheduled IssuanceSource = "scheduled"
+)
+
 // recordDoesDDNS reports whether a record should have its A record kept in
 // sync with the public IP address.
 func recordDoesDDNS(purpose int8) bool {
@@ -57,7 +65,7 @@ func IssueCertificate(ctx context.Context, recordID int64) error {
 	if err != nil {
 		return apperror.NewError("failed to load record").AddError(err)
 	}
-	return issueForRecord(ctx, record)
+	return issueForRecord(ctx, record, IssuanceSourceManual)
 }
 
 // StartIssuance validates the record, ensures a certificate row exists so the
@@ -97,7 +105,7 @@ func StartIssuance(recordID int64) error {
 
 	go func() {
 		defer pending.Delete(record.ID)
-		if err := runIssuance(context.Background(), record); err != nil {
+		if err := runIssuance(context.Background(), record, IssuanceSourceManual); err != nil {
 			log.Error().Err(err).Msgf("[ACME] background issuance failed for %s.%s", record.Name, record.Domain)
 		}
 	}()
@@ -108,7 +116,7 @@ func StartIssuance(recordID int64) error {
 // issueForRecord acquires the per-record in-flight lock and runs the ACME flow
 // synchronously. It is used by callers that need to wait for completion, such
 // as the renewal job.
-func issueForRecord(ctx context.Context, record *schema.Record) error {
+func issueForRecord(ctx context.Context, record *schema.Record, source IssuanceSource) error {
 	if !recordDoesCert(record.Purpose) {
 		return apperror.NewError("record is not configured for certificate issuance")
 	}
@@ -126,14 +134,14 @@ func issueForRecord(ctx context.Context, record *schema.Record) error {
 	// Detach from the caller's context so a cancelled HTTP request cannot abort
 	// a half-completed issuance (the ACME flow can take ~30s and the resulting
 	// certificate must always be persisted once obtained).
-	return runIssuance(context.WithoutCancel(ctx), record)
+	return runIssuance(context.WithoutCancel(ctx), record, source)
 }
 
 // runIssuance performs the actual ACME flow, persists the resulting certificate
 // to disk and database, and fires certificate renewal tasks. Callers must hold
 // the per-record in-flight lock and pass a context that is not tied to a
 // cancellable request.
-func runIssuance(ctx context.Context, record *schema.Record) error {
+func runIssuance(ctx context.Context, record *schema.Record, source IssuanceSource) error {
 	domains := buildDomains(record)
 
 	certID, err := ensureCertificateRow(ctx, record, domains)
@@ -141,24 +149,32 @@ func runIssuance(ctx context.Context, record *schema.Record) error {
 		return apperror.Wrap(err)
 	}
 
+	jobID, err := createCertificateJob(ctx, record.ID, certID, source)
+	if err != nil {
+		return apperror.Wrap(err)
+	}
+
+	fail := func(cause error) error {
+		setCertificateFailed(ctx, certID, cause)
+		finishCertificateJob(ctx, jobID, "failed", cause)
+		return apperror.Wrap(cause)
+	}
+
 	log.Info().Msgf("[ACME] issuing certificate for %s", strings.Join(domains, ", "))
 
 	res, err := obtainCertificate(record, domains, record.Domain)
 	if err != nil {
-		setCertificateFailed(ctx, certID, err)
-		return apperror.Wrap(err)
+		return fail(err)
 	}
 
 	certPath, keyPath, err := writeCertificateFiles(record, res)
 	if err != nil {
-		setCertificateFailed(ctx, certID, err)
-		return apperror.Wrap(err)
+		return fail(err)
 	}
 
 	leaf, err := parseLeafCertificate(res.Certificate)
 	if err != nil {
-		setCertificateFailed(ctx, certID, err)
-		return apperror.Wrap(err)
+		return fail(err)
 	}
 
 	err = database.HDNS().Query(func(q *schema.Queries) error {
@@ -175,12 +191,13 @@ func runIssuance(ctx context.Context, record *schema.Record) error {
 		})
 	})
 	if err != nil {
-		return apperror.NewError("failed to persist certificate").AddError(err)
+		return fail(apperror.NewError("failed to persist certificate").AddError(err))
 	}
 
 	log.Info().Msgf("[ACME] certificate for %s issued, valid until %s", domains[0], leaf.NotAfter.Format(time.RFC3339))
 
-	tasks.FireTasks(ctx, record.ID, tasks.TriggerCert)
+	finishCertificateJob(ctx, jobID, "success", nil)
+	tasks.FireTasks(ctx, record.ID, tasks.TriggerCert, sql.NullInt64{Int64: jobID, Valid: true})
 	return nil
 }
 
@@ -218,11 +235,48 @@ func RenewCertificates(ctx context.Context) error {
 		if !recordDoesCert(record.Purpose) {
 			continue
 		}
-		if ierr := issueForRecord(ctx, record); ierr != nil {
+		if ierr := issueForRecord(ctx, record, IssuanceSourceScheduled); ierr != nil {
 			log.Error().Err(ierr).Msgf("[ACME] failed to renew certificate for %s.%s", record.Name, record.Domain)
 		}
 	}
 	return nil
+}
+
+func createCertificateJob(ctx context.Context, recordID, certID int64, source IssuanceSource) (int64, error) {
+	var jobID int64
+	err := database.HDNS().Query(func(q *schema.Queries) error {
+		var qerr error
+		jobID, qerr = q.CreateCertificateJob(ctx, schema.CreateCertificateJobParams{
+			RecordID:      recordID,
+			CertificateID: sql.NullInt64{Int64: certID, Valid: certID != 0},
+			Source:        string(source),
+			Status:        "running",
+			StartedAt:     time.Now(),
+		})
+		return qerr
+	})
+	if err != nil {
+		return 0, apperror.NewError("failed to create certificate job history entry").AddError(err)
+	}
+	return jobID, nil
+}
+
+func finishCertificateJob(ctx context.Context, jobID int64, status string, runErr error) {
+	params := schema.FinishCertificateJobParams{
+		ID:         jobID,
+		Status:     status,
+		FinishedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	}
+	if runErr != nil {
+		params.Error = sql.NullString{String: runErr.Error(), Valid: true}
+	}
+
+	err := database.HDNS().Query(func(q *schema.Queries) error {
+		return q.FinishCertificateJob(ctx, params)
+	})
+	if err != nil {
+		log.Error().Err(err).Msgf("[ACME] failed to update certificate job history %d", jobID)
+	}
 }
 
 // ensureCertificateRow returns the certificate row id for the record, creating

@@ -8,6 +8,7 @@ package schema
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const CreateTask = `-- name: CreateTask :execlastid
@@ -49,6 +50,37 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (int64, 
 	return result.LastInsertId()
 }
 
+const CreateTaskRun = `-- name: CreateTaskRun :execlastid
+INSERT INTO
+    task_runs (task_id, record_id, certificate_job_id, trigger_on, status, started_at)
+VALUES
+    (?, ?, ?, ?, ?, ?)
+`
+
+type CreateTaskRunParams struct {
+	TaskID           int64
+	RecordID         int64
+	CertificateJobID sql.NullInt64
+	TriggerOn        int8
+	Status           string
+	StartedAt        time.Time
+}
+
+func (q *Queries) CreateTaskRun(ctx context.Context, arg CreateTaskRunParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateTaskRun,
+		arg.TaskID,
+		arg.RecordID,
+		arg.CertificateJobID,
+		arg.TriggerOn,
+		arg.Status,
+		arg.StartedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const DeleteTask = `-- name: DeleteTask :exec
 DELETE FROM tasks
 WHERE
@@ -57,6 +89,36 @@ WHERE
 
 func (q *Queries) DeleteTask(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, DeleteTask, id)
+	return err
+}
+
+const FinishTaskRun = `-- name: FinishTaskRun :exec
+UPDATE task_runs
+SET
+    status = ?,
+    response_status = ?,
+    error = ?,
+    finished_at = ?
+WHERE
+    id = ?
+`
+
+type FinishTaskRunParams struct {
+	Status         string
+	ResponseStatus sql.NullString
+	Error          sql.NullString
+	FinishedAt     sql.NullTime
+	ID             int64
+}
+
+func (q *Queries) FinishTaskRun(ctx context.Context, arg FinishTaskRunParams) error {
+	_, err := q.db.ExecContext(ctx, FinishTaskRun,
+		arg.Status,
+		arg.ResponseStatus,
+		arg.Error,
+		arg.FinishedAt,
+		arg.ID,
+	)
 	return err
 }
 
@@ -133,6 +195,53 @@ func (q *Queries) ListEnabledTasksByRecord(ctx context.Context, recordID int64) 
 			&i.LastStatus,
 			&i.LastError,
 			&i.CertificateFormat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ListTaskRunsByRecord = `-- name: ListTaskRunsByRecord :many
+SELECT
+    id, created_at, updated_at, task_id, record_id, certificate_job_id, trigger_on, status, response_status, error, started_at, finished_at
+FROM
+    task_runs
+WHERE
+    record_id = ?
+ORDER BY
+    started_at DESC
+`
+
+func (q *Queries) ListTaskRunsByRecord(ctx context.Context, recordID int64) ([]*TaskRun, error) {
+	rows, err := q.db.QueryContext(ctx, ListTaskRunsByRecord, recordID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*TaskRun{}
+	for rows.Next() {
+		var i TaskRun
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.TaskID,
+			&i.RecordID,
+			&i.CertificateJobID,
+			&i.TriggerOn,
+			&i.Status,
+			&i.ResponseStatus,
+			&i.Error,
+			&i.StartedAt,
+			&i.FinishedAt,
 		); err != nil {
 			return nil, err
 		}

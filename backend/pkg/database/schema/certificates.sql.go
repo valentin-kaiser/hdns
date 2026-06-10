@@ -8,6 +8,7 @@ package schema
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const CreateCertificate = `-- name: CreateCertificate :execlastid
@@ -39,6 +40,35 @@ func (q *Queries) CreateCertificate(ctx context.Context, arg CreateCertificatePa
 	return result.LastInsertId()
 }
 
+const CreateCertificateJob = `-- name: CreateCertificateJob :execlastid
+INSERT INTO
+    certificate_jobs (record_id, certificate_id, source, status, started_at)
+VALUES
+    (?, ?, ?, ?, ?)
+`
+
+type CreateCertificateJobParams struct {
+	RecordID      int64
+	CertificateID sql.NullInt64
+	Source        string
+	Status        string
+	StartedAt     time.Time
+}
+
+func (q *Queries) CreateCertificateJob(ctx context.Context, arg CreateCertificateJobParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateCertificateJob,
+		arg.RecordID,
+		arg.CertificateID,
+		arg.Source,
+		arg.Status,
+		arg.StartedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const DeleteCertificate = `-- name: DeleteCertificate :exec
 DELETE FROM certificates
 WHERE
@@ -58,6 +88,33 @@ WHERE
 
 func (q *Queries) DeleteCertificateByRecord(ctx context.Context, recordID int64) error {
 	_, err := q.db.ExecContext(ctx, DeleteCertificateByRecord, recordID)
+	return err
+}
+
+const FinishCertificateJob = `-- name: FinishCertificateJob :exec
+UPDATE certificate_jobs
+SET
+    status = ?,
+    error = ?,
+    finished_at = ?
+WHERE
+    id = ?
+`
+
+type FinishCertificateJobParams struct {
+	Status     string
+	Error      sql.NullString
+	FinishedAt sql.NullTime
+	ID         int64
+}
+
+func (q *Queries) FinishCertificateJob(ctx context.Context, arg FinishCertificateJobParams) error {
+	_, err := q.db.ExecContext(ctx, FinishCertificateJob,
+		arg.Status,
+		arg.Error,
+		arg.FinishedAt,
+		arg.ID,
+	)
 	return err
 }
 
@@ -121,6 +178,51 @@ func (q *Queries) GetCertificateByRecord(ctx context.Context, recordID int64) (*
 		&i.KeyPath,
 	)
 	return &i, err
+}
+
+const ListCertificateJobsByRecord = `-- name: ListCertificateJobsByRecord :many
+SELECT
+    id, created_at, updated_at, record_id, certificate_id, source, status, started_at, finished_at, error
+FROM
+    certificate_jobs
+WHERE
+    record_id = ?
+ORDER BY
+    started_at DESC
+`
+
+func (q *Queries) ListCertificateJobsByRecord(ctx context.Context, recordID int64) ([]*CertificateJob, error) {
+	rows, err := q.db.QueryContext(ctx, ListCertificateJobsByRecord, recordID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*CertificateJob{}
+	for rows.Next() {
+		var i CertificateJob
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecordID,
+			&i.CertificateID,
+			&i.Source,
+			&i.Status,
+			&i.StartedAt,
+			&i.FinishedAt,
+			&i.Error,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const ListCertificates = `-- name: ListCertificates :many

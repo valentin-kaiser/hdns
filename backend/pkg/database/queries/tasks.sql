@@ -72,3 +72,29 @@ WHERE
 DELETE FROM tasks
 WHERE
     id = ?;
+
+-- name: CreateTaskRun :execlastid
+INSERT INTO
+    task_runs (task_id, record_id, certificate_job_id, trigger_on, status, started_at)
+VALUES
+    (?, ?, ?, ?, ?, ?);
+
+-- name: FinishTaskRun :exec
+UPDATE task_runs
+SET
+    status = ?,
+    response_status = ?,
+    error = ?,
+    finished_at = ?
+WHERE
+    id = ?;
+
+-- name: ListTaskRunsByRecord :many
+SELECT
+    *
+FROM
+    task_runs
+WHERE
+    record_id = ?
+ORDER BY
+    started_at DESC;

@@ -104,10 +104,6 @@ export interface Request {
   search: string;
 }
 
-export interface ZoneRequest {
-  token: string;
-}
-
 /** Address represents an IP address. */
 export interface Address {
   id: number;
@@ -164,6 +160,52 @@ export interface Certificate {
 
 export interface CertificateList {
   certificates: Certificate[];
+}
+
+/** CertificateArtifact describes a downloadable certificate file. */
+export interface CertificateArtifact {
+  key: string;
+  label: string;
+  available: boolean;
+  downloadUrl: string;
+}
+
+/** CertificateIssuanceJob represents a single certificate issuance attempt. */
+export interface CertificateIssuanceJob {
+  id: number;
+  source: string;
+  status: string;
+  startedAt: number;
+  finishedAt: number;
+  durationMs: number;
+  error: string;
+  certificateId: number;
+}
+
+/** CertificateTaskRun represents a webhook task execution triggered by a certificate event. */
+export interface CertificateTaskRun {
+  id: number;
+  taskId: number;
+  taskName: string;
+  status: string;
+  responseStatus: string;
+  error: string;
+  startedAt: number;
+  finishedAt: number;
+  durationMs: number;
+  certificateJobId: number;
+}
+
+/** CertificateDetails aggregates certificate info, artifacts, and job history for a record. */
+export interface CertificateDetails {
+  recordId: number;
+  recordName: string;
+  recordDomain: string;
+  certificate: Certificate | undefined;
+  artifacts: CertificateArtifact[];
+  issuanceJobs: CertificateIssuanceJob[];
+  taskRuns: CertificateTaskRun[];
+  fetchedAt: number;
 }
 
 /** Task represents a webhook executed on IP or certificate renewal. */
@@ -358,64 +400,6 @@ export const Request: MessageFns<Request> = {
   fromPartial<I extends Exact<DeepPartial<Request>, I>>(object: I): Request {
     const message = createBaseRequest();
     message.search = object.search ?? "";
-    return message;
-  },
-};
-
-function createBaseZoneRequest(): ZoneRequest {
-  return { token: "" };
-}
-
-export const ZoneRequest: MessageFns<ZoneRequest> = {
-  encode(message: ZoneRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ZoneRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseZoneRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.token = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ZoneRequest {
-    return { token: isSet(object.token) ? globalThis.String(object.token) : "" };
-  },
-
-  toJSON(message: ZoneRequest): unknown {
-    const obj: any = {};
-    if (message.token !== "") {
-      obj.token = message.token;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ZoneRequest>, I>>(base?: I): ZoneRequest {
-    return ZoneRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ZoneRequest>, I>>(object: I): ZoneRequest {
-    const message = createBaseZoneRequest();
-    message.token = object.token ?? "";
     return message;
   },
 };
@@ -1359,6 +1343,758 @@ export const CertificateList: MessageFns<CertificateList> = {
   fromPartial<I extends Exact<DeepPartial<CertificateList>, I>>(object: I): CertificateList {
     const message = createBaseCertificateList();
     message.certificates = object.certificates?.map((e) => Certificate.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCertificateArtifact(): CertificateArtifact {
+  return { key: "", label: "", available: false, downloadUrl: "" };
+}
+
+export const CertificateArtifact: MessageFns<CertificateArtifact> = {
+  encode(message: CertificateArtifact, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.label !== "") {
+      writer.uint32(18).string(message.label);
+    }
+    if (message.available !== false) {
+      writer.uint32(24).bool(message.available);
+    }
+    if (message.downloadUrl !== "") {
+      writer.uint32(34).string(message.downloadUrl);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CertificateArtifact {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCertificateArtifact();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.label = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.available = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.downloadUrl = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CertificateArtifact {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      label: isSet(object.label) ? globalThis.String(object.label) : "",
+      available: isSet(object.available) ? globalThis.Boolean(object.available) : false,
+      downloadUrl: isSet(object.downloadUrl)
+        ? globalThis.String(object.downloadUrl)
+        : isSet(object.download_url)
+        ? globalThis.String(object.download_url)
+        : "",
+    };
+  },
+
+  toJSON(message: CertificateArtifact): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.label !== "") {
+      obj.label = message.label;
+    }
+    if (message.available !== false) {
+      obj.available = message.available;
+    }
+    if (message.downloadUrl !== "") {
+      obj.downloadUrl = message.downloadUrl;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CertificateArtifact>, I>>(base?: I): CertificateArtifact {
+    return CertificateArtifact.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CertificateArtifact>, I>>(object: I): CertificateArtifact {
+    const message = createBaseCertificateArtifact();
+    message.key = object.key ?? "";
+    message.label = object.label ?? "";
+    message.available = object.available ?? false;
+    message.downloadUrl = object.downloadUrl ?? "";
+    return message;
+  },
+};
+
+function createBaseCertificateIssuanceJob(): CertificateIssuanceJob {
+  return { id: 0, source: "", status: "", startedAt: 0, finishedAt: 0, durationMs: 0, error: "", certificateId: 0 };
+}
+
+export const CertificateIssuanceJob: MessageFns<CertificateIssuanceJob> = {
+  encode(message: CertificateIssuanceJob, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.source !== "") {
+      writer.uint32(18).string(message.source);
+    }
+    if (message.status !== "") {
+      writer.uint32(26).string(message.status);
+    }
+    if (message.startedAt !== 0) {
+      writer.uint32(32).int64(message.startedAt);
+    }
+    if (message.finishedAt !== 0) {
+      writer.uint32(40).int64(message.finishedAt);
+    }
+    if (message.durationMs !== 0) {
+      writer.uint32(48).int64(message.durationMs);
+    }
+    if (message.error !== "") {
+      writer.uint32(58).string(message.error);
+    }
+    if (message.certificateId !== 0) {
+      writer.uint32(64).int64(message.certificateId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CertificateIssuanceJob {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCertificateIssuanceJob();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.source = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.startedAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.finishedAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.durationMs = longToNumber(reader.int64());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.certificateId = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CertificateIssuanceJob {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      source: isSet(object.source) ? globalThis.String(object.source) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+      startedAt: isSet(object.startedAt)
+        ? globalThis.Number(object.startedAt)
+        : isSet(object.started_at)
+        ? globalThis.Number(object.started_at)
+        : 0,
+      finishedAt: isSet(object.finishedAt)
+        ? globalThis.Number(object.finishedAt)
+        : isSet(object.finished_at)
+        ? globalThis.Number(object.finished_at)
+        : 0,
+      durationMs: isSet(object.durationMs)
+        ? globalThis.Number(object.durationMs)
+        : isSet(object.duration_ms)
+        ? globalThis.Number(object.duration_ms)
+        : 0,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+      certificateId: isSet(object.certificateId)
+        ? globalThis.Number(object.certificateId)
+        : isSet(object.certificate_id)
+        ? globalThis.Number(object.certificate_id)
+        : 0,
+    };
+  },
+
+  toJSON(message: CertificateIssuanceJob): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.source !== "") {
+      obj.source = message.source;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    if (message.startedAt !== 0) {
+      obj.startedAt = Math.round(message.startedAt);
+    }
+    if (message.finishedAt !== 0) {
+      obj.finishedAt = Math.round(message.finishedAt);
+    }
+    if (message.durationMs !== 0) {
+      obj.durationMs = Math.round(message.durationMs);
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    if (message.certificateId !== 0) {
+      obj.certificateId = Math.round(message.certificateId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CertificateIssuanceJob>, I>>(base?: I): CertificateIssuanceJob {
+    return CertificateIssuanceJob.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CertificateIssuanceJob>, I>>(object: I): CertificateIssuanceJob {
+    const message = createBaseCertificateIssuanceJob();
+    message.id = object.id ?? 0;
+    message.source = object.source ?? "";
+    message.status = object.status ?? "";
+    message.startedAt = object.startedAt ?? 0;
+    message.finishedAt = object.finishedAt ?? 0;
+    message.durationMs = object.durationMs ?? 0;
+    message.error = object.error ?? "";
+    message.certificateId = object.certificateId ?? 0;
+    return message;
+  },
+};
+
+function createBaseCertificateTaskRun(): CertificateTaskRun {
+  return {
+    id: 0,
+    taskId: 0,
+    taskName: "",
+    status: "",
+    responseStatus: "",
+    error: "",
+    startedAt: 0,
+    finishedAt: 0,
+    durationMs: 0,
+    certificateJobId: 0,
+  };
+}
+
+export const CertificateTaskRun: MessageFns<CertificateTaskRun> = {
+  encode(message: CertificateTaskRun, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.taskId !== 0) {
+      writer.uint32(16).int64(message.taskId);
+    }
+    if (message.taskName !== "") {
+      writer.uint32(26).string(message.taskName);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
+    }
+    if (message.responseStatus !== "") {
+      writer.uint32(42).string(message.responseStatus);
+    }
+    if (message.error !== "") {
+      writer.uint32(50).string(message.error);
+    }
+    if (message.startedAt !== 0) {
+      writer.uint32(56).int64(message.startedAt);
+    }
+    if (message.finishedAt !== 0) {
+      writer.uint32(64).int64(message.finishedAt);
+    }
+    if (message.durationMs !== 0) {
+      writer.uint32(72).int64(message.durationMs);
+    }
+    if (message.certificateJobId !== 0) {
+      writer.uint32(80).int64(message.certificateJobId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CertificateTaskRun {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCertificateTaskRun();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.taskId = longToNumber(reader.int64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.taskName = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.responseStatus = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.startedAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.finishedAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.durationMs = longToNumber(reader.int64());
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.certificateJobId = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CertificateTaskRun {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      taskId: isSet(object.taskId)
+        ? globalThis.Number(object.taskId)
+        : isSet(object.task_id)
+        ? globalThis.Number(object.task_id)
+        : 0,
+      taskName: isSet(object.taskName)
+        ? globalThis.String(object.taskName)
+        : isSet(object.task_name)
+        ? globalThis.String(object.task_name)
+        : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+      responseStatus: isSet(object.responseStatus)
+        ? globalThis.String(object.responseStatus)
+        : isSet(object.response_status)
+        ? globalThis.String(object.response_status)
+        : "",
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+      startedAt: isSet(object.startedAt)
+        ? globalThis.Number(object.startedAt)
+        : isSet(object.started_at)
+        ? globalThis.Number(object.started_at)
+        : 0,
+      finishedAt: isSet(object.finishedAt)
+        ? globalThis.Number(object.finishedAt)
+        : isSet(object.finished_at)
+        ? globalThis.Number(object.finished_at)
+        : 0,
+      durationMs: isSet(object.durationMs)
+        ? globalThis.Number(object.durationMs)
+        : isSet(object.duration_ms)
+        ? globalThis.Number(object.duration_ms)
+        : 0,
+      certificateJobId: isSet(object.certificateJobId)
+        ? globalThis.Number(object.certificateJobId)
+        : isSet(object.certificate_job_id)
+        ? globalThis.Number(object.certificate_job_id)
+        : 0,
+    };
+  },
+
+  toJSON(message: CertificateTaskRun): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.taskId !== 0) {
+      obj.taskId = Math.round(message.taskId);
+    }
+    if (message.taskName !== "") {
+      obj.taskName = message.taskName;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    if (message.responseStatus !== "") {
+      obj.responseStatus = message.responseStatus;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    if (message.startedAt !== 0) {
+      obj.startedAt = Math.round(message.startedAt);
+    }
+    if (message.finishedAt !== 0) {
+      obj.finishedAt = Math.round(message.finishedAt);
+    }
+    if (message.durationMs !== 0) {
+      obj.durationMs = Math.round(message.durationMs);
+    }
+    if (message.certificateJobId !== 0) {
+      obj.certificateJobId = Math.round(message.certificateJobId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CertificateTaskRun>, I>>(base?: I): CertificateTaskRun {
+    return CertificateTaskRun.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CertificateTaskRun>, I>>(object: I): CertificateTaskRun {
+    const message = createBaseCertificateTaskRun();
+    message.id = object.id ?? 0;
+    message.taskId = object.taskId ?? 0;
+    message.taskName = object.taskName ?? "";
+    message.status = object.status ?? "";
+    message.responseStatus = object.responseStatus ?? "";
+    message.error = object.error ?? "";
+    message.startedAt = object.startedAt ?? 0;
+    message.finishedAt = object.finishedAt ?? 0;
+    message.durationMs = object.durationMs ?? 0;
+    message.certificateJobId = object.certificateJobId ?? 0;
+    return message;
+  },
+};
+
+function createBaseCertificateDetails(): CertificateDetails {
+  return {
+    recordId: 0,
+    recordName: "",
+    recordDomain: "",
+    certificate: undefined,
+    artifacts: [],
+    issuanceJobs: [],
+    taskRuns: [],
+    fetchedAt: 0,
+  };
+}
+
+export const CertificateDetails: MessageFns<CertificateDetails> = {
+  encode(message: CertificateDetails, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.recordId !== 0) {
+      writer.uint32(8).int64(message.recordId);
+    }
+    if (message.recordName !== "") {
+      writer.uint32(18).string(message.recordName);
+    }
+    if (message.recordDomain !== "") {
+      writer.uint32(26).string(message.recordDomain);
+    }
+    if (message.certificate !== undefined) {
+      Certificate.encode(message.certificate, writer.uint32(34).fork()).join();
+    }
+    for (const v of message.artifacts) {
+      CertificateArtifact.encode(v!, writer.uint32(42).fork()).join();
+    }
+    for (const v of message.issuanceJobs) {
+      CertificateIssuanceJob.encode(v!, writer.uint32(50).fork()).join();
+    }
+    for (const v of message.taskRuns) {
+      CertificateTaskRun.encode(v!, writer.uint32(58).fork()).join();
+    }
+    if (message.fetchedAt !== 0) {
+      writer.uint32(64).int64(message.fetchedAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CertificateDetails {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCertificateDetails();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.recordId = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.recordName = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.recordDomain = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.certificate = Certificate.decode(reader, reader.uint32());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.artifacts.push(CertificateArtifact.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.issuanceJobs.push(CertificateIssuanceJob.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.taskRuns.push(CertificateTaskRun.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.fetchedAt = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CertificateDetails {
+    return {
+      recordId: isSet(object.recordId)
+        ? globalThis.Number(object.recordId)
+        : isSet(object.record_id)
+        ? globalThis.Number(object.record_id)
+        : 0,
+      recordName: isSet(object.recordName)
+        ? globalThis.String(object.recordName)
+        : isSet(object.record_name)
+        ? globalThis.String(object.record_name)
+        : "",
+      recordDomain: isSet(object.recordDomain)
+        ? globalThis.String(object.recordDomain)
+        : isSet(object.record_domain)
+        ? globalThis.String(object.record_domain)
+        : "",
+      certificate: isSet(object.certificate) ? Certificate.fromJSON(object.certificate) : undefined,
+      artifacts: globalThis.Array.isArray(object?.artifacts)
+        ? object.artifacts.map((e: any) => CertificateArtifact.fromJSON(e))
+        : [],
+      issuanceJobs: globalThis.Array.isArray(object?.issuanceJobs)
+        ? object.issuanceJobs.map((e: any) => CertificateIssuanceJob.fromJSON(e))
+        : globalThis.Array.isArray(object?.issuance_jobs)
+        ? object.issuance_jobs.map((e: any) => CertificateIssuanceJob.fromJSON(e))
+        : [],
+      taskRuns: globalThis.Array.isArray(object?.taskRuns)
+        ? object.taskRuns.map((e: any) => CertificateTaskRun.fromJSON(e))
+        : globalThis.Array.isArray(object?.task_runs)
+        ? object.task_runs.map((e: any) => CertificateTaskRun.fromJSON(e))
+        : [],
+      fetchedAt: isSet(object.fetchedAt)
+        ? globalThis.Number(object.fetchedAt)
+        : isSet(object.fetched_at)
+        ? globalThis.Number(object.fetched_at)
+        : 0,
+    };
+  },
+
+  toJSON(message: CertificateDetails): unknown {
+    const obj: any = {};
+    if (message.recordId !== 0) {
+      obj.recordId = Math.round(message.recordId);
+    }
+    if (message.recordName !== "") {
+      obj.recordName = message.recordName;
+    }
+    if (message.recordDomain !== "") {
+      obj.recordDomain = message.recordDomain;
+    }
+    if (message.certificate !== undefined) {
+      obj.certificate = Certificate.toJSON(message.certificate);
+    }
+    if (message.artifacts?.length) {
+      obj.artifacts = message.artifacts.map((e) => CertificateArtifact.toJSON(e));
+    }
+    if (message.issuanceJobs?.length) {
+      obj.issuanceJobs = message.issuanceJobs.map((e) => CertificateIssuanceJob.toJSON(e));
+    }
+    if (message.taskRuns?.length) {
+      obj.taskRuns = message.taskRuns.map((e) => CertificateTaskRun.toJSON(e));
+    }
+    if (message.fetchedAt !== 0) {
+      obj.fetchedAt = Math.round(message.fetchedAt);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CertificateDetails>, I>>(base?: I): CertificateDetails {
+    return CertificateDetails.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CertificateDetails>, I>>(object: I): CertificateDetails {
+    const message = createBaseCertificateDetails();
+    message.recordId = object.recordId ?? 0;
+    message.recordName = object.recordName ?? "";
+    message.recordDomain = object.recordDomain ?? "";
+    message.certificate = (object.certificate !== undefined && object.certificate !== null)
+      ? Certificate.fromPartial(object.certificate)
+      : undefined;
+    message.artifacts = object.artifacts?.map((e) => CertificateArtifact.fromPartial(e)) || [];
+    message.issuanceJobs = object.issuanceJobs?.map((e) => CertificateIssuanceJob.fromPartial(e)) || [];
+    message.taskRuns = object.taskRuns?.map((e) => CertificateTaskRun.fromPartial(e)) || [];
+    message.fetchedAt = object.fetchedAt ?? 0;
     return message;
   },
 };
@@ -2678,7 +3414,7 @@ export const HDNSDefinition = {
     /** GetZones returns all zones. */
     getZones: {
       name: "GetZones",
-      requestType: ZoneRequest as typeof ZoneRequest,
+      requestType: Record as typeof Record,
       requestStream: false,
       responseType: ZoneList as typeof ZoneList,
       responseStream: false,
@@ -2798,6 +3534,15 @@ export const HDNSDefinition = {
       requestType: Record as typeof Record,
       requestStream: false,
       responseType: Certificate as typeof Certificate,
+      responseStream: false,
+      options: {},
+    },
+    /** GetCertificateDetails returns detailed information about a certificate for a record. */
+    getCertificateDetails: {
+      name: "GetCertificateDetails",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: CertificateDetails as typeof CertificateDetails,
       responseStream: false,
       options: {},
     },

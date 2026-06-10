@@ -73,6 +73,7 @@ func Start() {
 		})
 
 	s.WithJRPC("/rpc", service.RegisterHDNSServer(&api.Server{}))
+	s.WithHandlerFunc("/api/certificates/download", api.CertificateDownloadHandler)
 
 	s.StartAsync(done)
 

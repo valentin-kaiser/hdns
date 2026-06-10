@@ -14,7 +14,7 @@ import (
 // HDNSServer is the server API for HDNS service.
 type HDNSServer interface {
 	Descriptor() protoreflect.FileDescriptor
-	GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error)
+	GetZones(ctx context.Context, in *Record) (*ZoneList, error)
 	GetRecords(ctx context.Context, in *Request) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
@@ -28,6 +28,7 @@ type HDNSServer interface {
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
 	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error)
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
@@ -42,7 +43,7 @@ func (UnimplementedHDNSServer) Descriptor() protoreflect.FileDescriptor {
 	return File_api_proto
 }
 
-func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error) {
+func (UnimplementedHDNSServer) GetZones(ctx context.Context, in *Record) (*ZoneList, error) {
 	return nil, errors.New("method HDNS.GetZones not implemented")
 }
 
@@ -98,6 +99,10 @@ func (UnimplementedHDNSServer) IssueCertificate(ctx context.Context, in *Record)
 	return nil, errors.New("method HDNS.IssueCertificate not implemented")
 }
 
+func (UnimplementedHDNSServer) GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error) {
+	return nil, errors.New("method HDNS.GetCertificateDetails not implemented")
+}
+
 func (UnimplementedHDNSServer) GetTasks(ctx context.Context, in *Empty) (*TaskList, error) {
 	return nil, errors.New("method HDNS.GetTasks not implemented")
 }
@@ -133,7 +138,7 @@ var _ HDNSServer = (*UnimplementedHDNSServer)(nil)
 
 // HDNSClientDefinition is the client API for HDNS service.
 type HDNSClientDefinition interface {
-	GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error)
+	GetZones(ctx context.Context, in *Record) (*ZoneList, error)
 	GetRecords(ctx context.Context, in *Request) (*RecordList, error)
 	UpsertRecord(ctx context.Context, in *Record) (*Record, error)
 	DeleteRecord(ctx context.Context, in *RecordDelete) (*Empty, error)
@@ -147,6 +152,7 @@ type HDNSClientDefinition interface {
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
 	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error)
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
@@ -173,7 +179,7 @@ func NewHDNSClient(baseURL string, opts ...jrpc.ClientOption) (*HDNSClient, erro
 	}, nil
 }
 
-func (c *HDNSClient) GetZones(ctx context.Context, in *ZoneRequest) (*ZoneList, error) {
+func (c *HDNSClient) GetZones(ctx context.Context, in *Record) (*ZoneList, error) {
 	u := c.baseURL.JoinPath("HDNS", "GetZones")
 	out := &ZoneList{}
 	err := c.client.Call(ctx, u, in, out, nil)
@@ -298,6 +304,16 @@ func (c *HDNSClient) GetCertificates(ctx context.Context, in *Empty) (*Certifica
 func (c *HDNSClient) IssueCertificate(ctx context.Context, in *Record) (*Certificate, error) {
 	u := c.baseURL.JoinPath("HDNS", "IssueCertificate")
 	out := &Certificate{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetCertificateDetails")
+	out := &CertificateDetails{}
 	err := c.client.Call(ctx, u, in, out, nil)
 	if err != nil {
 		return nil, err
