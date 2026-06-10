@@ -28,6 +28,7 @@ type HDNSServer interface {
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
 	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error)
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
@@ -98,6 +99,10 @@ func (UnimplementedHDNSServer) IssueCertificate(ctx context.Context, in *Record)
 	return nil, errors.New("method HDNS.IssueCertificate not implemented")
 }
 
+func (UnimplementedHDNSServer) GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error) {
+	return nil, errors.New("method HDNS.GetCertificateDetails not implemented")
+}
+
 func (UnimplementedHDNSServer) GetTasks(ctx context.Context, in *Empty) (*TaskList, error) {
 	return nil, errors.New("method HDNS.GetTasks not implemented")
 }
@@ -147,6 +152,7 @@ type HDNSClientDefinition interface {
 	RefreshAddress(ctx context.Context, in *Empty) (*Address, error)
 	GetCertificates(ctx context.Context, in *Empty) (*CertificateList, error)
 	IssueCertificate(ctx context.Context, in *Record) (*Certificate, error)
+	GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error)
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
@@ -298,6 +304,16 @@ func (c *HDNSClient) GetCertificates(ctx context.Context, in *Empty) (*Certifica
 func (c *HDNSClient) IssueCertificate(ctx context.Context, in *Record) (*Certificate, error) {
 	u := c.baseURL.JoinPath("HDNS", "IssueCertificate")
 	out := &Certificate{}
+	err := c.client.Call(ctx, u, in, out, nil)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *HDNSClient) GetCertificateDetails(ctx context.Context, in *Record) (*CertificateDetails, error) {
+	u := c.baseURL.JoinPath("HDNS", "GetCertificateDetails")
+	out := &CertificateDetails{}
 	err := c.client.Call(ctx, u, in, out, nil)
 	if err != nil {
 		return nil, err
