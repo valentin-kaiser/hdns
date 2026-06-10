@@ -2,6 +2,7 @@ package dns
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/logging/log"
@@ -91,7 +92,7 @@ func Refresh(ctx context.Context) error {
 		switch status.Result {
 		case "updated":
 			report.UpdatedCount++
-			tasks.FireTasks(ctx, record.ID, tasks.TriggerIP)
+			tasks.FireTasks(ctx, record.ID, tasks.TriggerIP, sql.NullInt64{})
 		case "failed":
 			report.FailedCount++
 			log.Error().Msgf("failed to refresh DNS record %s.%s: %s", record.Name, record.Domain, status.Error)
@@ -190,6 +191,6 @@ func RefreshRecord(ctx context.Context, record *schema.Record) error {
 	if err != nil {
 		return err
 	}
-	tasks.FireTasks(ctx, record.ID, tasks.TriggerIP)
+	tasks.FireTasks(ctx, record.ID, tasks.TriggerIP, sql.NullInt64{})
 	return nil
 }
