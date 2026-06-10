@@ -11,6 +11,17 @@ updates:
         dependency-type: "development"
     assignees:
       - "valentin-kaiser"
+  - package-ecosystem: "gomod"
+    directory: "/worker"
+    schedule:
+      interval: "daily"
+    groups:
+      gomod:
+        dependency-type: "production"
+      gomod-dev:
+        dependency-type: "development"
+    assignees:
+      - "valentin-kaiser"
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
