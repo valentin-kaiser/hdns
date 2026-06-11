@@ -152,9 +152,6 @@ type HeaderRow = { key: string; value: string };
 
       <div class="drawer-footer">
         <button mat-stroked-button type="button" (click)="drawer.close()">Cancel</button>
-        <button mat-stroked-button type="button" [disabled]="form.invalid || testing" (click)="test()">
-          {{ testing ? 'Testing…' : 'Test' }}
-        </button>
         <button
           mat-flat-button
           color="primary"
@@ -394,28 +391,6 @@ export class TaskFormDrawerComponent {
       certificateFormat: (v.certificateFormat ?? 'pem') as string,
       enabled: v.enabled ?? true,
     };
-  }
-
-  test(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.testing = true;
-    this.api.testTask(this.buildPayload()).subscribe({
-      next: (res) => {
-        this.testing = false;
-        if (res.error) {
-          this.notify.error(res.error, `Test failed (${res.status || 'no response'})`);
-        } else {
-          this.notify.message(`Test succeeded: ${res.status}`);
-        }
-      },
-      error: (err) => {
-        this.testing = false;
-        this.notify.error(err?.error, 'Test failed');
-      },
-    });
   }
 
   save(): void {

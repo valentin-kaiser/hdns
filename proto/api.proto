@@ -62,7 +62,7 @@ service HDNS {
   // DeleteTask deletes a renewal task.
   rpc DeleteTask (TaskDelete) returns (Empty);
 
-  // TestTask executes a renewal task immediately and returns the result.
+  // RunTask executes a renewal task immediately and returns the result.
   rpc RunTask (Task) returns (TaskResult);
 
   // GetConfig returns the current configuration.

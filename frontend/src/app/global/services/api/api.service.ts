@@ -148,8 +148,8 @@ export class ApiService {
     return this.rpc<Empty>('deleteTask', req);
   }
 
-  public testTask(task: Task): Observable<TaskResult> {
-    return this.rpc<TaskResult>('testTask', task);
+  public runTask(task: Task): Observable<TaskResult> {
+    return this.rpc<TaskResult>('runTask', task);
   }
 
   public getCertificateDetails(record: Record): Observable<CertificateDetails> {

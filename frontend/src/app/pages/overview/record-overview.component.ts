@@ -220,7 +220,7 @@ import { TaskFormDrawerComponent } from '../home/drawers/task-form/task-form-dra
                           <span class="chip">{{ triggerLabel(t.triggerOn) }}</span>
                         </div>
                         <div class="mono">{{ t.method }} {{ t.url }}</div>
-                        @if (t.lastRun) {
+                        @if (+t.lastRun) {
                           <div class="history-meta">
                             Last run {{ t.lastRun | date: 'dd.MM.yyyy HH:mm' : 'UTC' }}
                             @if (t.lastStatus) {
@@ -233,7 +233,7 @@ import { TaskFormDrawerComponent } from '../home/drawers/task-form/task-form-dra
                         }
                       </div>
                       <div class="task-actions">
-                        <button mat-icon-button matTooltip="Test" (click)="testTask(t)">
+                        <button mat-icon-button matTooltip="Run" (click)="runTask(t)">
                           <mat-icon>play_arrow</mat-icon>
                         </button>
                         <button mat-icon-button matTooltip="Edit" (click)="editTask(t)">
@@ -799,17 +799,17 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
     this.taskForm.open(record.id, task);
   }
 
-  testTask(task: Task): void {
-    this.api.testTask(task).subscribe({
+  runTask(task: Task): void {
+    this.api.runTask(task).subscribe({
       next: (res) => {
         if (res.error) {
-          this.notify.error(res.error, `Test failed (${res.status || 'no response'})`);
+          this.notify.error(res.error, `Run failed (${res.status || 'no response'})`);
         } else {
-          this.notify.message(`Test succeeded: ${res.status}`);
+          this.notify.message(`Run succeeded: ${res.status}`);
         }
         this.loadTasksAndCertificate();
       },
-      error: (err) => this.notify.error(err?.error, 'Test failed'),
+      error: (err) => this.notify.error(err?.error, 'Run failed'),
     });
   }
 
