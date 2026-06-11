@@ -35,6 +35,12 @@ func Execute(ctx context.Context, task *config.TaskConfig, payload Payload) erro
 			err = restartService(ctx, action)
 		case config.ActionExec:
 			err = run(ctx, action)
+		case config.ActionFortiOSUpload:
+			err = uploadFortiOS(ctx, action, payload)
+		case config.ActionFortiOSProfileCertReplace:
+			err = replaceFortiOSProfileCert(ctx, action)
+		case config.ActionFortiOSAdminServerCertUpdate:
+			err = updateFortiOSAdminServerCert(ctx, action)
 		default:
 			// Should never happen – config.Load validates types.
 			err = fmt.Errorf("unknown action type %q", action.Type)

@@ -32,7 +32,7 @@ type HDNSServer interface {
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
-	TestTask(ctx context.Context, in *Task) (*TaskResult, error)
+	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
 }
@@ -115,8 +115,8 @@ func (UnimplementedHDNSServer) DeleteTask(ctx context.Context, in *TaskDelete) (
 	return nil, errors.New("method HDNS.DeleteTask not implemented")
 }
 
-func (UnimplementedHDNSServer) TestTask(ctx context.Context, in *Task) (*TaskResult, error) {
-	return nil, errors.New("method HDNS.TestTask not implemented")
+func (UnimplementedHDNSServer) RunTask(ctx context.Context, in *Task) (*TaskResult, error) {
+	return nil, errors.New("method HDNS.RunTask not implemented")
 }
 
 func (UnimplementedHDNSServer) GetConfig(ctx context.Context, in *Empty) (*Configuration, error) {
@@ -156,7 +156,7 @@ type HDNSClientDefinition interface {
 	GetTasks(ctx context.Context, in *Empty) (*TaskList, error)
 	UpsertTask(ctx context.Context, in *Task) (*Task, error)
 	DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, error)
-	TestTask(ctx context.Context, in *Task) (*TaskResult, error)
+	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
 }
@@ -351,8 +351,8 @@ func (c *HDNSClient) DeleteTask(ctx context.Context, in *TaskDelete) (*Empty, er
 	return out, nil
 }
 
-func (c *HDNSClient) TestTask(ctx context.Context, in *Task) (*TaskResult, error) {
-	u := c.baseURL.JoinPath("HDNS", "TestTask")
+func (c *HDNSClient) RunTask(ctx context.Context, in *Task) (*TaskResult, error) {
+	u := c.baseURL.JoinPath("HDNS", "RunTask")
 	out := &TaskResult{}
 	err := c.client.Call(ctx, u, in, out, nil)
 	if err != nil {

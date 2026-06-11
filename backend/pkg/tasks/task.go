@@ -49,17 +49,29 @@ const (
 
 var client = &http.Client{Timeout: requestTimeout}
 
-// matchesTrigger reports whether a task configured with taskTrigger should run
-// for the given event.
-func matchesTrigger(taskTrigger int8, event Trigger) bool {
-	return taskTrigger == int8(event) || taskTrigger == int8(TriggerBoth)
-}
-
-// Execute runs a single webhook task once without persisting its result and
+// RunTask runs a single webhook task once without persisting its result and
 // returns a short status string (e.g. the HTTP status code). It is used to
 // test a task configuration on demand.
-func Execute(ctx context.Context, task *schema.Task) (string, error) {
-	return executeTask(ctx, task)
+func RunTask(ctx context.Context, task *schema.Task) (string, error) {
+	status, err := executeTask(ctx, task)
+	params := schema.UpdateTaskResultParams{
+		ID:         task.ID,
+		LastRun:    sql.NullTime{Time: time.Now(), Valid: true},
+		LastStatus: sql.NullString{String: status, Valid: status != ""},
+	}
+	if err != nil {
+		params.LastError = sql.NullString{String: err.Error(), Valid: true}
+		log.Error().Err(err).Msgf("[TASK] task %q (record %d) failed", task.Name, task.RecordID)
+	}
+
+	derr := database.HDNS().Query(func(q *schema.Queries) error {
+		return q.UpdateTaskResult(ctx, params)
+	})
+	if derr != nil {
+		log.Error().Err(derr).Msgf("[TASK] failed to persist result for task %q", task.Name)
+	}
+
+	return status, err
 }
 
 // FireTasks runs all enabled tasks attached to the given record that match the
@@ -78,7 +90,7 @@ func FireTasks(ctx context.Context, recordID int64, event Trigger, certificateJo
 	}
 
 	for _, task := range tasks {
-		if !matchesTrigger(task.TriggerOn, event) {
+		if !((task.TriggerOn == int8(event)) || (task.TriggerOn == int8(TriggerBoth))) {
 			continue
 		}
 		runTask(ctx, task, event, certificateJobID)
@@ -132,12 +144,11 @@ func runTask(ctx context.Context, task *schema.Task, event Trigger, certificateJ
 			ID:             runID,
 			FinishedAt:     sql.NullTime{Time: time.Now(), Valid: true},
 			ResponseStatus: sql.NullString{String: status, Valid: status != ""},
+			Status:         "success",
 		}
 		if runErr != nil {
 			params.Status = "failed"
 			params.Error = sql.NullString{String: runErr.Error(), Valid: true}
-		} else {
-			params.Status = "success"
 		}
 
 		err = database.HDNS().Query(func(q *schema.Queries) error {
@@ -314,8 +325,8 @@ func requiresPKCS12(body string) bool {
 	return strings.Contains(body, "{{pkcs12}}") || strings.Contains(body, "{{pkcs12_base64}}")
 }
 
-// certMaterial holds the four PEM files produced by a certificate issuance.
-type certMaterial struct {
+// material holds the four PEM files produced by a certificate issuance.
+type material struct {
 	cert      string // cert.pem      – leaf certificate only
 	chain     string // chain.pem     – intermediate certificate(s) only
 	fullchain string // fullchain.pem – cert + chain
@@ -325,7 +336,7 @@ type certMaterial struct {
 // loadCertificateMaterial reads all four issued certificate files for the
 // given record from disk. CertPath points to fullchain.pem and KeyPath to
 // privkey.pem; cert.pem and chain.pem are derived from the same directory.
-func loadCertificateMaterial(ctx context.Context, recordID int64) (certMaterial, error) {
+func loadCertificateMaterial(ctx context.Context, recordID int64) (material, error) {
 	var cert *schema.Certificate
 	err := database.HDNS().Query(func(q *schema.Queries) error {
 		var qerr error
@@ -333,10 +344,10 @@ func loadCertificateMaterial(ctx context.Context, recordID int64) (certMaterial,
 		return qerr
 	})
 	if err != nil {
-		return certMaterial{}, apperror.NewError("no certificate available for this record").AddError(err)
+		return material{}, apperror.NewError("no certificate available for this record").AddError(err)
 	}
 	if cert.CertPath == "" || cert.KeyPath == "" {
-		return certMaterial{}, apperror.NewError("certificate has not been issued yet")
+		return material{}, apperror.NewError("certificate has not been issued yet")
 	}
 
 	dir := filepath.Dir(cert.CertPath)
@@ -349,18 +360,18 @@ func loadCertificateMaterial(ctx context.Context, recordID int64) (certMaterial,
 		return string(b), nil
 	}
 
-	var m certMaterial
+	var m material
 	if m.cert, err = readFile("cert.pem"); err != nil {
-		return certMaterial{}, err
+		return material{}, err
 	}
 	if m.chain, err = readFile("chain.pem"); err != nil {
-		return certMaterial{}, err
+		return material{}, err
 	}
 	if m.fullchain, err = readFile("fullchain.pem"); err != nil {
-		return certMaterial{}, err
+		return material{}, err
 	}
 	if m.key, err = readFile("privkey.pem"); err != nil {
-		return certMaterial{}, err
+		return material{}, err
 	}
 
 	return m, nil
@@ -376,7 +387,7 @@ func jsonEscape(s string) string {
 	return string(b[1 : len(b)-1])
 }
 
-func buildPKCS12Base64(m certMaterial) (string, error) {
+func buildPKCS12Base64(m material) (string, error) {
 	leaf, err := parseFirstCertificatePEM(m.cert)
 	if err != nil {
 		return "", err

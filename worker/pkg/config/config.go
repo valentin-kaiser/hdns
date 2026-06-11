@@ -24,7 +24,42 @@ const (
 	ActionServiceRestart ActionType = "service_restart"
 	// ActionExec runs an arbitrary shell command.
 	ActionExec ActionType = "exec"
+	// ActionFortiOSUpload uploads a PKCS#12 certificate to a FortiGate via REST API.
+	ActionFortiOSUpload ActionType = "fortios_upload"
+	// ActionFortiOSProfileCertReplace updates certificate references in FortiOS profile objects.
+	ActionFortiOSProfileCertReplace ActionType = "fortios_profile_cert_replace"
+	// ActionFortiOSAdminServerCertUpdate updates system/global admin-server-cert.
+	ActionFortiOSAdminServerCertUpdate ActionType = "fortios_admin_server_cert_update"
 )
+
+// FortiOSConfig describes the target FortiGate API settings for fortios_upload.
+type FortiOSConfig struct {
+	// Host is the FortiGate address (host[:port]) or full base URL.
+	Host string `yaml:"host" usage:"(fortios_upload) FortiGate host[:port] or base URL"`
+	// AccessToken is the FortiGate REST API token.
+	AccessToken string `yaml:"access_token" usage:"(fortios_upload) FortiGate REST API token"`
+	// CertName is the certificate name shown in FortiOS.
+	CertName string `yaml:"certname" usage:"(fortios_upload) certificate name in FortiOS"`
+	// Scope selects certificate scope. Valid values: vdom, global.
+	Scope string `yaml:"scope" usage:"(fortios_upload) certificate scope: vdom | global"`
+	// TLSInsecure disables TLS certificate verification for self-signed devices.
+	TLSInsecure bool `yaml:"tls_insecure" usage:"(fortios_upload) skip TLS verification (self-signed certs)"`
+	// DryRun only verifies API/TLS/auth connectivity without applying any change.
+	DryRun bool `yaml:"dry_run" usage:"(fortios_*) verify webhook-triggered TLS/API connectivity without mutating FortiOS"`
+}
+
+// FortiOSProfileUpdate describes one FortiOS CMDB object field to set to the
+// configured certificate name.
+type FortiOSProfileUpdate struct {
+	// Path is the CMDB path under /api/v2/cmdb, for example "vpn.ssl.settings".
+	Path string `yaml:"path" usage:"(fortios_profile_cert_replace) CMDB path under /api/v2/cmdb (for example vpn.ssl.settings)"`
+	// MKey is the optional object key appended as /<mkey> for object endpoints.
+	MKey string `yaml:"mkey" usage:"(fortios_profile_cert_replace) optional object mkey for /api/v2/cmdb/<path>/<mkey>"`
+	// Field is the JSON field to set to certname, for example "servercert".
+	Field string `yaml:"field" usage:"(fortios_profile_cert_replace) object field to set to certname"`
+	// Method is HTTP method used for update. Defaults to PUT.
+	Method string `yaml:"method" usage:"(fortios_profile_cert_replace) HTTP method (default: PUT)"`
+}
 
 // CombinedFileConfig describes a single output file produced by concatenating
 // multiple PEM pieces from the webhook payload in the specified order.
@@ -41,7 +76,7 @@ type CombinedFileConfig struct {
 // ActionConfig describes a single action inside a task.
 type ActionConfig struct {
 	// Type selects the action implementation.
-	Type ActionType `yaml:"type" usage:"action type: cert_save | service_restart | exec"`
+	Type ActionType `yaml:"type" usage:"action type: cert_save | service_restart | exec | fortios_upload | fortios_profile_cert_replace | fortios_admin_server_cert_update"`
 
 	// --- cert_save fields ---
 
@@ -77,6 +112,13 @@ type ActionConfig struct {
 
 	// Command is the command string to execute (passed to the system shell).
 	Command string `yaml:"command" usage:"(exec) command to run via cmd /C (Windows) or sh -c (Linux)"`
+
+	// --- fortios_upload fields ---
+
+	// FortiOS contains API upload settings for FortiGate certificate import.
+	FortiOS *FortiOSConfig `yaml:"fortios" usage:"(fortios_upload) FortiGate API upload configuration"`
+	// ProfileUpdates is the list of CMDB targets for fortios_profile_cert_replace.
+	ProfileUpdates []FortiOSProfileUpdate `yaml:"profile_updates" usage:"(fortios_profile_cert_replace) list of CMDB profile field updates to certname"`
 }
 
 // TaskConfig groups a set of actions under a unique name.
@@ -169,8 +211,71 @@ func (a *ActionConfig) defaults(taskName string, idx int) error {
 		if strings.TrimSpace(a.Command) == "" {
 			return fmt.Errorf("%s (exec): command must not be empty", loc)
 		}
+	case ActionFortiOSUpload:
+		if a.FortiOS == nil {
+			return fmt.Errorf("%s (fortios_upload): fortios must be set", loc)
+		}
+		if err := validateFortiOSConfig(loc, a.FortiOS); err != nil {
+			return err
+		}
+	case ActionFortiOSProfileCertReplace:
+		if a.FortiOS == nil {
+			return fmt.Errorf("%s (fortios_profile_cert_replace): fortios must be set", loc)
+		}
+		if err := validateFortiOSConfig(loc, a.FortiOS); err != nil {
+			return err
+		}
+		if len(a.ProfileUpdates) == 0 {
+			return fmt.Errorf("%s (fortios_profile_cert_replace): profile_updates must not be empty", loc)
+		}
+		for k := range a.ProfileUpdates {
+			a.ProfileUpdates[k].Path = strings.TrimSpace(a.ProfileUpdates[k].Path)
+			a.ProfileUpdates[k].Field = strings.TrimSpace(a.ProfileUpdates[k].Field)
+			a.ProfileUpdates[k].Method = strings.ToUpper(strings.TrimSpace(a.ProfileUpdates[k].Method))
+			if a.ProfileUpdates[k].Path == "" {
+				return fmt.Errorf("%s (fortios_profile_cert_replace): profile_updates[%d].path must not be empty", loc, k)
+			}
+			if a.ProfileUpdates[k].Field == "" {
+				return fmt.Errorf("%s (fortios_profile_cert_replace): profile_updates[%d].field must not be empty", loc, k)
+			}
+			if a.ProfileUpdates[k].Method == "" {
+				a.ProfileUpdates[k].Method = "PUT"
+			}
+			switch a.ProfileUpdates[k].Method {
+			case "PUT", "PATCH", "POST":
+			default:
+				return fmt.Errorf("%s (fortios_profile_cert_replace): profile_updates[%d].method must be one of PUT, PATCH, POST", loc, k)
+			}
+		}
+	case ActionFortiOSAdminServerCertUpdate:
+		if a.FortiOS == nil {
+			return fmt.Errorf("%s (fortios_admin_server_cert_update): fortios must be set", loc)
+		}
+		if err := validateFortiOSConfig(loc, a.FortiOS); err != nil {
+			return err
+		}
 	default:
-		return fmt.Errorf("%s: unknown action type %q (valid: cert_save, service_restart, exec)", loc, a.Type)
+		return fmt.Errorf("%s: unknown action type %q (valid: cert_save, service_restart, exec, fortios_upload, fortios_profile_cert_replace, fortios_admin_server_cert_update)", loc, a.Type)
+	}
+	return nil
+}
+
+func validateFortiOSConfig(loc string, cfg *FortiOSConfig) error {
+	if strings.TrimSpace(cfg.Host) == "" {
+		return fmt.Errorf("%s: fortios.host must not be empty", loc)
+	}
+	if strings.TrimSpace(cfg.AccessToken) == "" {
+		return fmt.Errorf("%s: fortios.access_token must not be empty", loc)
+	}
+	if strings.TrimSpace(cfg.CertName) == "" {
+		return fmt.Errorf("%s: fortios.certname must not be empty", loc)
+	}
+	cfg.Scope = strings.TrimSpace(cfg.Scope)
+	if cfg.Scope == "" {
+		cfg.Scope = "vdom"
+	}
+	if cfg.Scope != "vdom" && cfg.Scope != "global" {
+		return fmt.Errorf("%s: fortios.scope must be one of: vdom, global", loc)
 	}
 	return nil
 }

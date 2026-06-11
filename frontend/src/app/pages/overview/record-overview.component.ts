@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { CertificateDetails, Record as DnsRecord, RecordPurpose, Resolution, Task } from '../../global/model/api';
+import { CertificateDetails, Record as DnsRecord, RecordPurpose, Resolution, Task, TaskTrigger } from '../../global/model/api';
 import { ApiService, Stream } from '../../global/services/api/api.service';
 import { NotifyService } from '../../global/services/notify/notify.service';
 import { RecordFormDrawerComponent } from '../home/drawers/record-form/record-form-drawer.component';
@@ -220,7 +220,7 @@ import { TaskFormDrawerComponent } from '../home/drawers/task-form/task-form-dra
                           <span class="chip">{{ triggerLabel(t.triggerOn) }}</span>
                         </div>
                         <div class="mono">{{ t.method }} {{ t.url }}</div>
-                        @if (t.lastRun) {
+                        @if (+t.lastRun) {
                           <div class="history-meta">
                             Last run {{ t.lastRun | date: 'dd.MM.yyyy HH:mm' : 'UTC' }}
                             @if (t.lastStatus) {
@@ -233,7 +233,7 @@ import { TaskFormDrawerComponent } from '../home/drawers/task-form/task-form-dra
                         }
                       </div>
                       <div class="task-actions">
-                        <button mat-icon-button matTooltip="Test" (click)="testTask(t)">
+                        <button mat-icon-button matTooltip="Run" (click)="runTask(t)">
                           <mat-icon>play_arrow</mat-icon>
                         </button>
                         <button mat-icon-button matTooltip="Edit" (click)="editTask(t)">
@@ -776,7 +776,11 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
 
     this.api.getTasks().subscribe({
       next: (res) => {
-        this.tasks.set((res.tasks ?? []).filter((t) => t.recordId === record.id));
+        this.tasks.set(
+          (res.tasks ?? []).filter(
+            (t) => t.recordId === record.id && this.taskMatchesRecordPurpose(t, record)
+          )
+        );
       },
       error: (err) => this.notify.error(err?.error, 'Failed to load tasks'),
     });
@@ -790,26 +794,26 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
   addTask(): void {
     const record = this.record();
     if (!record) return;
-    this.taskForm.open(record.id);
+    this.taskForm.openForRecord(record.id, record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED);
   }
 
   editTask(task: Task): void {
     const record = this.record();
     if (!record) return;
-    this.taskForm.open(record.id, task);
+    this.taskForm.openForRecord(record.id, record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED, task);
   }
 
-  testTask(task: Task): void {
-    this.api.testTask(task).subscribe({
+  runTask(task: Task): void {
+    this.api.runTask(task).subscribe({
       next: (res) => {
         if (res.error) {
-          this.notify.error(res.error, `Test failed (${res.status || 'no response'})`);
+          this.notify.error(res.error, `Run failed (${res.status || 'no response'})`);
         } else {
-          this.notify.message(`Test succeeded: ${res.status}`);
+          this.notify.message(`Run succeeded: ${res.status}`);
         }
         this.loadTasksAndCertificate();
       },
-      error: (err) => this.notify.error(err?.error, 'Test failed'),
+      error: (err) => this.notify.error(err?.error, 'Run failed'),
     });
   }
 
@@ -933,5 +937,17 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
     return (
       purpose === RecordPurpose.RECORD_PURPOSE_DDNS || purpose === RecordPurpose.RECORD_PURPOSE_BOTH
     );
+  }
+
+  private taskMatchesRecordPurpose(task: Task, record: DnsRecord): boolean {
+    const purpose = record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
+    switch (purpose) {
+      case RecordPurpose.RECORD_PURPOSE_DDNS:
+        return task.triggerOn === TaskTrigger.TASK_TRIGGER_IP;
+      case RecordPurpose.RECORD_PURPOSE_CERT:
+        return task.triggerOn === TaskTrigger.TASK_TRIGGER_CERT;
+      default:
+        return true;
+    }
   }
 }

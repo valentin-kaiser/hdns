@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@an
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withHashLocation } from '@angular/router';
 
 import { OVERLAY_DEFAULT_CONFIG } from '@angular/cdk/overlay';
 import { MAT_ICON_DEFAULT_OPTIONS } from '@angular/material/icon';
@@ -14,7 +14,7 @@ import { LoggerService } from './global/services/logger/logger.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding(), withHashLocation()),
     provideHttpClient(withInterceptors([loadingInterceptor]), withInterceptorsFromDi()),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),

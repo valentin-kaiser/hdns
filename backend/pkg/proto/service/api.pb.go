@@ -2040,7 +2040,7 @@ const file_api_proto_rawDesc = "" +
 	"\x18TASK_TRIGGER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fTASK_TRIGGER_IP\x10\x01\x12\x15\n" +
 	"\x11TASK_TRIGGER_CERT\x10\x02\x12\x15\n" +
-	"\x11TASK_TRIGGER_BOTH\x10\x032\x85\t\n" +
+	"\x11TASK_TRIGGER_BOTH\x10\x032\x84\t\n" +
 	"\x04HDNS\x12.\n" +
 	"\bGetZones\x12\x0f.service.Record\x1a\x11.service.ZoneList\x123\n" +
 	"\n" +
@@ -2063,8 +2063,8 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"UpsertTask\x12\r.service.Task\x1a\r.service.Task\x121\n" +
 	"\n" +
-	"DeleteTask\x12\x13.service.TaskDelete\x1a\x0e.service.Empty\x12.\n" +
-	"\bTestTask\x12\r.service.Task\x1a\x13.service.TaskResult\x123\n" +
+	"DeleteTask\x12\x13.service.TaskDelete\x1a\x0e.service.Empty\x12-\n" +
+	"\aRunTask\x12\r.service.Task\x1a\x13.service.TaskResult\x123\n" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
 	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.ConfigurationB5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
@@ -2143,7 +2143,7 @@ var file_api_proto_depIdxs = []int32{
 	2,  // 30: service.HDNS.GetTasks:input_type -> service.Empty
 	15, // 31: service.HDNS.UpsertTask:input_type -> service.Task
 	17, // 32: service.HDNS.DeleteTask:input_type -> service.TaskDelete
-	15, // 33: service.HDNS.TestTask:input_type -> service.Task
+	15, // 33: service.HDNS.RunTask:input_type -> service.Task
 	2,  // 34: service.HDNS.GetConfig:input_type -> service.Empty
 	23, // 35: service.HDNS.UpdateConfig:input_type -> service.Configuration
 	20, // 36: service.HDNS.GetZones:output_type -> service.ZoneList
@@ -2164,7 +2164,7 @@ var file_api_proto_depIdxs = []int32{
 	16, // 51: service.HDNS.GetTasks:output_type -> service.TaskList
 	15, // 52: service.HDNS.UpsertTask:output_type -> service.Task
 	2,  // 53: service.HDNS.DeleteTask:output_type -> service.Empty
-	18, // 54: service.HDNS.TestTask:output_type -> service.TaskResult
+	18, // 54: service.HDNS.RunTask:output_type -> service.TaskResult
 	23, // 55: service.HDNS.GetConfig:output_type -> service.Configuration
 	23, // 56: service.HDNS.UpdateConfig:output_type -> service.Configuration
 	36, // [36:57] is the sub-list for method output_type

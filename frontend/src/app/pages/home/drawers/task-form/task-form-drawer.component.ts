@@ -9,12 +9,25 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
-import { Task } from '../../../../global/model/api';
+import { RecordPurpose, Task, TaskTrigger } from '../../../../global/model/api';
 import { ApiService } from '../../../../global/services/api/api.service';
 import { NotifyService } from '../../../../global/services/notify/notify.service';
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 const CERTIFICATE_FORMATS = ['pem', 'pkcs12'] as const;
+type AllowedTrigger =
+  | TaskTrigger.TASK_TRIGGER_IP
+  | TaskTrigger.TASK_TRIGGER_CERT
+  | TaskTrigger.TASK_TRIGGER_BOTH;
+type TriggerOption = {
+  value: AllowedTrigger;
+  label: string;
+};
+const TRIGGER_OPTIONS = [
+  { value: TaskTrigger.TASK_TRIGGER_IP, label: 'IP update' },
+  { value: TaskTrigger.TASK_TRIGGER_CERT, label: 'Certificate renewal' },
+  { value: TaskTrigger.TASK_TRIGGER_BOTH, label: 'IP update & Certificate renewal' },
+] as const satisfies readonly TriggerOption[];
 type HeaderRow = { key: string; value: string };
 
 @Component({
@@ -48,9 +61,9 @@ type HeaderRow = { key: string; value: string };
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Run on</mat-label>
             <mat-select formControlName="triggerOn">
-              <mat-option [value]="1">IP update</mat-option>
-              <mat-option [value]="2">Certificate renewal</mat-option>
-              <mat-option [value]="3">IP update &amp; Certificate renewal</mat-option>
+              @for (option of triggerOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
             </mat-select>
           </mat-form-field>
 
@@ -114,12 +127,14 @@ type HeaderRow = { key: string; value: string };
             <textarea matInput formControlName="body" rows="3" placeholder="Optional request body"></textarea>
           </mat-form-field>
 
-          <div class="toggle-row">
-            <mat-slide-toggle formControlName="includeCertificate">
-              Include certificate &amp; key in body
-            </mat-slide-toggle>
-          </div>
-          @if (form.value.includeCertificate) {
+          @if (supportsCertificatePayload()) {
+            <div class="toggle-row">
+              <mat-slide-toggle formControlName="includeCertificate">
+                Include certificate &amp; key in body
+              </mat-slide-toggle>
+            </div>
+          }
+          @if (supportsCertificatePayload() && form.value.includeCertificate) {
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Certificate Format</mat-label>
               <mat-select formControlName="certificateFormat">
@@ -152,9 +167,6 @@ type HeaderRow = { key: string; value: string };
 
       <div class="drawer-footer">
         <button mat-stroked-button type="button" (click)="drawer.close()">Cancel</button>
-        <button mat-stroked-button type="button" [disabled]="form.invalid || testing" (click)="test()">
-          {{ testing ? 'Testing…' : 'Test' }}
-        </button>
         <button
           mat-flat-button
           color="primary"
@@ -289,8 +301,10 @@ type HeaderRow = { key: string; value: string };
 export class TaskFormDrawerComponent {
   task: Task | null = null;
   recordId = 0;
+  recordPurpose: RecordPurpose = RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
   methods = HTTP_METHODS;
   certificateFormats = CERTIFICATE_FORMATS;
+  triggerOptions: readonly TriggerOption[] = TRIGGER_OPTIONS;
   saving = false;
   testing = false;
   readonly certPlaceholder = '{{cert}}';
@@ -342,23 +356,31 @@ export class TaskFormDrawerComponent {
   }
 
   open(recordId: number, task?: Task): void {
+    this.openForRecord(recordId, RecordPurpose.RECORD_PURPOSE_UNSPECIFIED, task);
+  }
+
+  openForRecord(recordId: number, recordPurpose: RecordPurpose, task?: Task): void {
     this.recordId = recordId;
+    this.recordPurpose = recordPurpose;
+    this.triggerOptions = this.getTriggerOptionsForRecord();
     this.task = task ?? null;
     if (task) {
+      const triggerOn = this.normalizeTrigger(task.triggerOn ?? TaskTrigger.TASK_TRIGGER_IP);
       this.form.reset({
         name: task.name,
-        triggerOn: task.triggerOn ?? 1,
+        triggerOn,
         method: task.method || 'POST',
         url: task.url,
         body: task.body ?? '',
-        includeCertificate: task.includeCertificate ?? false,
+        includeCertificate: this.triggerSupportsCertificate(triggerOn) ? task.includeCertificate ?? false : false,
         certificateFormat: task.certificateFormat || 'pem',
         enabled: task.enabled,
       });
     } else {
+      const triggerOn = this.normalizeTrigger(TaskTrigger.TASK_TRIGGER_IP);
       this.form.reset({
         name: '',
-        triggerOn: 1,
+        triggerOn,
         method: 'POST',
         url: '',
         body: '',
@@ -367,13 +389,23 @@ export class TaskFormDrawerComponent {
         enabled: true,
       });
     }
+    this.applyTriggerConstraints();
     this.resetHeaderRows();
     this.drawer.open();
+  }
+
+  supportsCertificatePayload(): boolean {
+    const triggerOn = this.form.get('triggerOn')?.value as TaskTrigger | null;
+    return this.triggerSupportsCertificate(triggerOn ?? TaskTrigger.TASK_TRIGGER_UNSPECIFIED);
   }
 
   private buildPayload(): Task {
     this.headerRows.updateValueAndValidity({ emitEvent: false });
     const v = this.form.getRawValue();
+    const triggerOn = this.normalizeTrigger((v.triggerOn ?? TaskTrigger.TASK_TRIGGER_IP) as TaskTrigger);
+    const includeCertificate = this.triggerSupportsCertificate(triggerOn)
+      ? (v.includeCertificate ?? false)
+      : false;
     return {
       ...(this.task ?? {
         id: 0,
@@ -385,37 +417,15 @@ export class TaskFormDrawerComponent {
       }),
       recordId: this.recordId,
       name: v.name!,
-      triggerOn: v.triggerOn!,
+      triggerOn,
       method: v.method!,
       url: v.url!,
       headers: this.serializeHeaders(),
       body: v.body ?? '',
-      includeCertificate: v.includeCertificate ?? false,
+      includeCertificate,
       certificateFormat: (v.certificateFormat ?? 'pem') as string,
       enabled: v.enabled ?? true,
     };
-  }
-
-  test(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.testing = true;
-    this.api.testTask(this.buildPayload()).subscribe({
-      next: (res) => {
-        this.testing = false;
-        if (res.error) {
-          this.notify.error(res.error, `Test failed (${res.status || 'no response'})`);
-        } else {
-          this.notify.message(`Test succeeded: ${res.status}`);
-        }
-      },
-      error: (err) => {
-        this.testing = false;
-        this.notify.error(err?.error, 'Test failed');
-      },
-    });
   }
 
   save(): void {
@@ -449,6 +459,46 @@ export class TaskFormDrawerComponent {
     this.headerRows.clear();
     this.addHeaderRow('', '', false);
     this.headerRows.markAsPristine();
+  }
+
+  private applyTriggerConstraints(): void {
+    const triggerOn = this.normalizeTrigger((this.form.get('triggerOn')?.value ?? TaskTrigger.TASK_TRIGGER_IP) as TaskTrigger);
+    if (this.form.get('triggerOn')?.value !== triggerOn) {
+      this.form.get('triggerOn')?.setValue(triggerOn);
+    }
+    if (!this.triggerSupportsCertificate(triggerOn)) {
+      this.form.get('includeCertificate')?.setValue(false);
+    }
+  }
+
+  private getTriggerOptionsForRecord(): readonly TriggerOption[] {
+    switch (this.recordPurpose) {
+      case RecordPurpose.RECORD_PURPOSE_DDNS:
+        return TRIGGER_OPTIONS.filter((opt) => opt.value === TaskTrigger.TASK_TRIGGER_IP);
+      case RecordPurpose.RECORD_PURPOSE_CERT:
+        return TRIGGER_OPTIONS.filter((opt) => opt.value === TaskTrigger.TASK_TRIGGER_CERT);
+      default:
+        return TRIGGER_OPTIONS;
+    }
+  }
+
+  private normalizeTrigger(trigger: TaskTrigger): AllowedTrigger {
+    const allowed = this.triggerOptions.map((opt) => opt.value) as AllowedTrigger[];
+    return this.isAllowedTrigger(trigger) && allowed.includes(trigger)
+      ? trigger
+      : allowed[0] ?? TaskTrigger.TASK_TRIGGER_IP;
+  }
+
+  private isAllowedTrigger(trigger: TaskTrigger): trigger is AllowedTrigger {
+    return (
+      trigger === TaskTrigger.TASK_TRIGGER_IP ||
+      trigger === TaskTrigger.TASK_TRIGGER_CERT ||
+      trigger === TaskTrigger.TASK_TRIGGER_BOTH
+    );
+  }
+
+  private triggerSupportsCertificate(trigger: TaskTrigger): boolean {
+    return trigger === TaskTrigger.TASK_TRIGGER_CERT || trigger === TaskTrigger.TASK_TRIGGER_BOTH;
   }
 
   private serializeHeaders(): string {
