@@ -37,7 +37,7 @@
     "@fontsource/inter": "^5.2.8",
     "@fontsource/roboto-mono": "^5.2.9",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.44.12",
+    "material-symbols": "^0.45.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
