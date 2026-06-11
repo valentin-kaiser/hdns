@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"strings"
 
 	"github.com/valentin-kaiser/go-core/apperror"
@@ -83,14 +82,13 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 
 	var task *schema.Task
 	err := database.HDNS().Query(func(q *schema.Queries) error {
-		// Preserve existing encrypted headers when none are supplied on update.
-		headers, herr := resolveTaskHeaders(ctx, in)
-		if herr != nil {
-			return herr
-		}
-
 		switch in.Id {
 		case 0:
+			headers, err := tasks.EncryptHeaders(in.Headers)
+			if err != nil {
+				return apperror.NewError("invalid task headers").AddError(err)
+			}
+
 			id, cerr := q.CreateTask(ctx, schema.CreateTaskParams{
 				RecordID:           in.RecordId,
 				Name:               in.Name,
@@ -108,6 +106,20 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 			}
 			in.Id = id
 		default:
+			task, err := q.GetTask(ctx, in.Id)
+			if err != nil {
+				return apperror.NewError("failed to fetch existing task from database").AddError(err)
+			}
+
+			headers := task.Headers
+			if in.Headers != "" {
+				var err error
+				headers, err = tasks.EncryptHeaders(in.Headers)
+				if err != nil {
+					return apperror.NewError("invalid task headers").AddError(err)
+				}
+			}
+
 			uerr := q.UpdateTask(ctx, schema.UpdateTaskParams{
 				ID:                 in.Id,
 				RecordID:           in.RecordId,
@@ -137,30 +149,6 @@ func (s *Server) UpsertTask(ctx context.Context, in *service.Task) (*service.Tas
 	return taskToProto(task), nil
 }
 
-// resolveTaskHeaders encrypts supplied headers, or preserves the existing
-// encrypted value when no headers are provided on an update.
-func resolveTaskHeaders(ctx context.Context, in *service.Task) (sql.NullString, error) {
-	if strings.TrimSpace(in.Headers) != "" {
-		return tasks.EncryptHeaders(in.Headers)
-	}
-	if in.Id != 0 {
-		var existing *schema.Task
-		err := database.HDNS().Query(func(q *schema.Queries) error {
-			var err error
-			existing, err = q.GetTask(ctx, in.Id)
-			if err != nil {
-				return apperror.NewError("failed to fetch existing task from database").AddError(err)
-			}
-			return nil
-		})
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return sql.NullString{}, apperror.Wrap(err)
-		}
-		return existing.Headers, nil
-	}
-	return sql.NullString{}, nil
-}
-
 func (s *Server) DeleteTask(ctx context.Context, in *service.TaskDelete) (*service.Empty, error) {
 	if in == nil || in.Id == 0 {
 		return nil, apperror.NewError("task id is required")
@@ -176,39 +164,43 @@ func (s *Server) DeleteTask(ctx context.Context, in *service.TaskDelete) (*servi
 	return &service.Empty{}, nil
 }
 
-func (s *Server) TestTask(ctx context.Context, in *service.Task) (*service.TaskResult, error) {
+func (s *Server) RunTask(ctx context.Context, in *service.Task) (*service.TaskResult, error) {
 	if in == nil {
 		return nil, apperror.NewError("task is required")
 	}
-	if strings.TrimSpace(in.Url) == "" {
-		return nil, apperror.NewError("task url is required")
+
+	if in.Id == 0 {
+		return nil, apperror.NewError("task id is required")
 	}
 
-	headers, err := resolveTaskHeaders(ctx, in)
+	var task *schema.Task
+	err := database.HDNS().Query(func(q *schema.Queries) error {
+		var err error
+		task, err = q.GetTask(ctx, in.Id)
+		if err != nil {
+			return apperror.NewError("failed to fetch task from database").AddError(err)
+		}
+		return nil
+	})
 	if err != nil {
-		// resolveTaskHeaders with nil queries only fails on encryption.
 		return nil, apperror.Wrap(err)
 	}
 
-	method := strings.ToUpper(strings.TrimSpace(in.Method))
-	if method == "" {
-		method = "POST"
-	}
-
-	status, runErr := tasks.Execute(ctx, &schema.Task{
-		RecordID:           in.RecordId,
-		Name:               in.Name,
-		Method:             method,
-		Url:                in.Url,
-		Headers:            headers,
-		Body:               sql.NullString{String: in.Body, Valid: in.Body != ""},
-		IncludeCertificate: in.IncludeCertificate,
-		CertificateFormat:  tasks.ResolveCertificateFormat(in.CertificateFormat, in.Body),
+	status, err := tasks.RunTask(ctx, &schema.Task{
+		ID:                 task.ID,
+		RecordID:           task.RecordID,
+		Name:               task.Name,
+		Method:             task.Method,
+		Url:                task.Url,
+		Headers:            task.Headers,
+		Body:               sql.NullString{String: task.Body.String, Valid: task.Body.Valid},
+		IncludeCertificate: task.IncludeCertificate,
+		CertificateFormat:  task.CertificateFormat,
 	})
 
 	result := &service.TaskResult{Status: status}
-	if runErr != nil {
-		result.Error = runErr.Error()
+	if err != nil {
+		result.Error = err.Error()
 	}
 	return result, nil
 }
