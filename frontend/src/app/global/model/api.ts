@@ -3573,7 +3573,7 @@ export const HDNSDefinition = {
       responseStream: false,
       options: {},
     },
-    /** TestTask executes a renewal task immediately and returns the result. */
+    /** RunTask executes a renewal task immediately and returns the result. */
     runTask: {
       name: "RunTask",
       requestType: Task as typeof Task,
