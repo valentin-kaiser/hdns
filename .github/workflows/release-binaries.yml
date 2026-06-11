@@ -38,7 +38,7 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: |
-          npm ci
+          npm i
           npx ng build
 
       - name: Set up Go
