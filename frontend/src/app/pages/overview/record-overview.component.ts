@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { CertificateDetails, Record as DnsRecord, RecordPurpose, Resolution, Task } from '../../global/model/api';
+import { CertificateDetails, Record as DnsRecord, RecordPurpose, Resolution, Task, TaskTrigger } from '../../global/model/api';
 import { ApiService, Stream } from '../../global/services/api/api.service';
 import { NotifyService } from '../../global/services/notify/notify.service';
 import { RecordFormDrawerComponent } from '../home/drawers/record-form/record-form-drawer.component';
@@ -776,7 +776,11 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
 
     this.api.getTasks().subscribe({
       next: (res) => {
-        this.tasks.set((res.tasks ?? []).filter((t) => t.recordId === record.id));
+        this.tasks.set(
+          (res.tasks ?? []).filter(
+            (t) => t.recordId === record.id && this.taskMatchesRecordPurpose(t, record)
+          )
+        );
       },
       error: (err) => this.notify.error(err?.error, 'Failed to load tasks'),
     });
@@ -790,13 +794,13 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
   addTask(): void {
     const record = this.record();
     if (!record) return;
-    this.taskForm.open(record.id);
+    this.taskForm.openForRecord(record.id, record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED);
   }
 
   editTask(task: Task): void {
     const record = this.record();
     if (!record) return;
-    this.taskForm.open(record.id, task);
+    this.taskForm.openForRecord(record.id, record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED, task);
   }
 
   runTask(task: Task): void {
@@ -933,5 +937,17 @@ export class RecordOverviewComponent implements OnInit, OnDestroy {
     return (
       purpose === RecordPurpose.RECORD_PURPOSE_DDNS || purpose === RecordPurpose.RECORD_PURPOSE_BOTH
     );
+  }
+
+  private taskMatchesRecordPurpose(task: Task, record: DnsRecord): boolean {
+    const purpose = record.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
+    switch (purpose) {
+      case RecordPurpose.RECORD_PURPOSE_DDNS:
+        return task.triggerOn === TaskTrigger.TASK_TRIGGER_IP;
+      case RecordPurpose.RECORD_PURPOSE_CERT:
+        return task.triggerOn === TaskTrigger.TASK_TRIGGER_CERT;
+      default:
+        return true;
+    }
   }
 }
