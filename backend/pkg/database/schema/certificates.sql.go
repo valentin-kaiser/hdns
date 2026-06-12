@@ -180,6 +180,35 @@ func (q *Queries) GetCertificateByRecord(ctx context.Context, recordID int64) (*
 	return &i, err
 }
 
+const GetCertificateJob = `-- name: GetCertificateJob :one
+SELECT
+    id, created_at, updated_at, record_id, certificate_id, source, status, started_at, finished_at, error
+FROM
+    certificate_jobs
+WHERE
+    id = ?
+LIMIT
+    1
+`
+
+func (q *Queries) GetCertificateJob(ctx context.Context, id int64) (*CertificateJob, error) {
+	row := q.db.QueryRowContext(ctx, GetCertificateJob, id)
+	var i CertificateJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RecordID,
+		&i.CertificateID,
+		&i.Source,
+		&i.Status,
+		&i.StartedAt,
+		&i.FinishedAt,
+		&i.Error,
+	)
+	return &i, err
+}
+
 const ListCertificateJobsByRecord = `-- name: ListCertificateJobsByRecord :many
 SELECT
     id, created_at, updated_at, record_id, certificate_id, source, status, started_at, finished_at, error

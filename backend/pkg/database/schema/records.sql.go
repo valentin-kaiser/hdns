@@ -12,9 +12,9 @@ import (
 
 const CreateRecord = `-- name: CreateRecord :execlastid
 INSERT INTO
-    records (token, zone_id, domain, name, ttl, purpose, include_wildcard)
+    records (token, zone_id, domain, name, ttl, purpose, include_wildcard, acme_email)
 VALUES
-    (?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateRecordParams struct {
@@ -25,6 +25,7 @@ type CreateRecordParams struct {
 	Ttl             int32
 	Purpose         int8
 	IncludeWildcard bool
+	AcmeEmail       sql.NullString
 }
 
 func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int64, error) {
@@ -36,6 +37,7 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int
 		arg.Ttl,
 		arg.Purpose,
 		arg.IncludeWildcard,
+		arg.AcmeEmail,
 	)
 	if err != nil {
 		return 0, err
@@ -56,7 +58,7 @@ func (q *Queries) DeleteRecord(ctx context.Context, id int64) error {
 
 const GetRecord = `-- name: GetRecord :one
 SELECT
-    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id, purpose, include_wildcard
+    id, created_at, updated_at, token, zone_id, domain, name, ttl, address_id, purpose, include_wildcard, acme_email
 FROM
     records
 WHERE
@@ -80,13 +82,14 @@ func (q *Queries) GetRecord(ctx context.Context, id int64) (*Record, error) {
 		&i.AddressID,
 		&i.Purpose,
 		&i.IncludeWildcard,
+		&i.AcmeEmail,
 	)
 	return &i, err
 }
 
 const ListRecords = `-- name: ListRecords :many
 SELECT
-    r.id, r.created_at, r.updated_at, r.token, r.zone_id, r.domain, r.name, r.ttl, r.address_id, r.purpose, r.include_wildcard
+    r.id, r.created_at, r.updated_at, r.token, r.zone_id, r.domain, r.name, r.ttl, r.address_id, r.purpose, r.include_wildcard, r.acme_email
 FROM
     records as r
 WHERE
@@ -125,6 +128,7 @@ func (q *Queries) ListRecords(ctx context.Context, arg ListRecordsParams) ([]*Re
 			&i.AddressID,
 			&i.Purpose,
 			&i.IncludeWildcard,
+			&i.AcmeEmail,
 		); err != nil {
 			return nil, err
 		}
@@ -148,7 +152,8 @@ SET
     name = ?,
     ttl = ?,
     purpose = ?,
-    include_wildcard = ?
+    include_wildcard = ?,
+    acme_email = ?
 WHERE
     id = ?
 `
@@ -161,6 +166,7 @@ type UpdateRecordParams struct {
 	Ttl             int32
 	Purpose         int8
 	IncludeWildcard bool
+	AcmeEmail       sql.NullString
 	ID              int64
 }
 
@@ -173,6 +179,7 @@ func (q *Queries) UpdateRecord(ctx context.Context, arg UpdateRecordParams) erro
 		arg.Ttl,
 		arg.Purpose,
 		arg.IncludeWildcard,
+		arg.AcmeEmail,
 		arg.ID,
 	)
 	return err

@@ -64,6 +64,8 @@ type Record struct {
 	// 1=ddns, 2=cert, 3=both
 	Purpose         int8
 	IncludeWildcard bool
+	// optional per-record ACME account email; falls back to global acme.email when NULL
+	AcmeEmail sql.NullString
 }
 
 type Release struct {

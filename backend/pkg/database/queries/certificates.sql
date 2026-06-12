@@ -90,6 +90,16 @@ SET
 WHERE
     id = ?;
 
+-- name: GetCertificateJob :one
+SELECT
+    *
+FROM
+    certificate_jobs
+WHERE
+    id = ?
+LIMIT
+    1;
+
 -- name: ListCertificateJobsByRecord :many
 SELECT
     *
