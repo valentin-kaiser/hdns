@@ -100,6 +100,11 @@ export function taskTriggerToJSON(object: TaskTrigger): string {
 export interface Empty {
 }
 
+export interface LogLine {
+  line: string;
+  timestamp: number;
+}
+
 export interface Request {
   search: string;
 }
@@ -133,6 +138,7 @@ export interface Record {
   purpose: RecordPurpose;
   includeWildcard: boolean;
   certificate: Certificate | undefined;
+  acmeEmail: string;
 }
 
 export interface RecordList {
@@ -342,6 +348,82 @@ export const Empty: MessageFns<Empty> = {
   },
   fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
     const message = createBaseEmpty();
+    return message;
+  },
+};
+
+function createBaseLogLine(): LogLine {
+  return { line: "", timestamp: 0 };
+}
+
+export const LogLine: MessageFns<LogLine> = {
+  encode(message: LogLine, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.line !== "") {
+      writer.uint32(10).string(message.line);
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(16).int64(message.timestamp);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogLine {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogLine();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.line = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timestamp = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogLine {
+    return {
+      line: isSet(object.line) ? globalThis.String(object.line) : "",
+      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
+    };
+  },
+
+  toJSON(message: LogLine): unknown {
+    const obj: any = {};
+    if (message.line !== "") {
+      obj.line = message.line;
+    }
+    if (message.timestamp !== 0) {
+      obj.timestamp = Math.round(message.timestamp);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogLine>, I>>(base?: I): LogLine {
+    return LogLine.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LogLine>, I>>(object: I): LogLine {
+    const message = createBaseLogLine();
+    message.line = object.line ?? "";
+    message.timestamp = object.timestamp ?? 0;
     return message;
   },
 };
@@ -629,6 +711,7 @@ function createBaseRecord(): Record {
     purpose: 0,
     includeWildcard: false,
     certificate: undefined,
+    acmeEmail: "",
   };
 }
 
@@ -672,6 +755,9 @@ export const Record: MessageFns<Record> = {
     }
     if (message.certificate !== undefined) {
       Certificate.encode(message.certificate, writer.uint32(106).fork()).join();
+    }
+    if (message.acmeEmail !== "") {
+      writer.uint32(114).string(message.acmeEmail);
     }
     return writer;
   },
@@ -787,6 +873,14 @@ export const Record: MessageFns<Record> = {
           message.certificate = Certificate.decode(reader, reader.uint32());
           continue;
         }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.acmeEmail = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -831,6 +925,11 @@ export const Record: MessageFns<Record> = {
         ? globalThis.Boolean(object.include_wildcard)
         : false,
       certificate: isSet(object.certificate) ? Certificate.fromJSON(object.certificate) : undefined,
+      acmeEmail: isSet(object.acmeEmail)
+        ? globalThis.String(object.acmeEmail)
+        : isSet(object.acme_email)
+        ? globalThis.String(object.acme_email)
+        : "",
     };
   },
 
@@ -875,6 +974,9 @@ export const Record: MessageFns<Record> = {
     if (message.certificate !== undefined) {
       obj.certificate = Certificate.toJSON(message.certificate);
     }
+    if (message.acmeEmail !== "") {
+      obj.acmeEmail = message.acmeEmail;
+    }
     return obj;
   },
 
@@ -900,6 +1002,7 @@ export const Record: MessageFns<Record> = {
     message.certificate = (object.certificate !== undefined && object.certificate !== null)
       ? Certificate.fromPartial(object.certificate)
       : undefined;
+    message.acmeEmail = object.acmeEmail ?? "";
     return message;
   },
 };
@@ -3598,6 +3701,19 @@ export const HDNSDefinition = {
       requestStream: false,
       responseType: Configuration as typeof Configuration,
       responseStream: false,
+      options: {},
+    },
+    /**
+     * StreamCertificateLog streams live ACME issuance log lines for a record.
+     * While issuance is in progress, lines are sent as they are produced.
+     * If the most recent job is complete, the stored log is replayed immediately.
+     */
+    streamCertificateLog: {
+      name: "StreamCertificateLog",
+      requestType: Record as typeof Record,
+      requestStream: false,
+      responseType: LogLine as typeof LogLine,
+      responseStream: true,
       options: {},
     },
   },

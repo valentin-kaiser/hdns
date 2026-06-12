@@ -35,6 +35,7 @@ type HDNSServer interface {
 	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
+	StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error
 }
 
 type UnimplementedHDNSServer struct{}
@@ -127,6 +128,10 @@ func (UnimplementedHDNSServer) UpdateConfig(ctx context.Context, in *Configurati
 	return nil, errors.New("method HDNS.UpdateConfig not implemented")
 }
 
+func (UnimplementedHDNSServer) StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error {
+	return errors.New("method HDNS.StreamCertificateLog not implemented")
+}
+
 // RegisterHDNSServer registers a HDNSServer with the JSON-RPC service registry.
 // It returns a *jrpc.Service that can be used to handle JSON-RPC requests.
 func RegisterHDNSServer(server HDNSServer) *jrpc.Service {
@@ -159,6 +164,7 @@ type HDNSClientDefinition interface {
 	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
+	StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error
 }
 
 type HDNSClient struct {
@@ -379,6 +385,12 @@ func (c *HDNSClient) UpdateConfig(ctx context.Context, in *Configuration) (*Conf
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *HDNSClient) StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error {
+	u := c.baseURL.JoinPath("HDNS", "StreamCertificateLog")
+	factory := func() *LogLine { return &LogLine{} }
+	return jrpc.ServerStream(c.client, ctx, u, in, out, factory)
 }
 
 // Ensure HDNSClient implements HDNSClientDefinition
