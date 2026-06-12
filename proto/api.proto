@@ -70,10 +70,20 @@ service HDNS {
 
   // UpdateConfig updates the current configuration.
   rpc UpdateConfig (Configuration) returns (Configuration);
+
+  // StreamCertificateLog streams live ACME issuance log lines for a record.
+  // While issuance is in progress, lines are sent as they are produced.
+  // If the most recent job is complete, the stored log is replayed immediately.
+  rpc StreamCertificateLog (Record) returns (stream LogLine);
 }
 
 message Empty {
 
+}
+
+message LogLine {
+  string line      = 1;
+  int64  timestamp = 2;
 }
 
 message Request {
@@ -116,6 +126,7 @@ message Record {
   RecordPurpose purpose          = 11;
   bool          include_wildcard = 12;
   Certificate   certificate      = 13;
+  string        acme_email       = 14;
 }
 
 message RecordList {
