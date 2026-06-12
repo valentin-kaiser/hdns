@@ -100,6 +100,10 @@ export function taskTriggerToJSON(object: TaskTrigger): string {
 export interface Empty {
 }
 
+export interface Line {
+  line: string;
+}
+
 export interface Request {
   search: string;
 }
@@ -133,6 +137,7 @@ export interface Record {
   purpose: RecordPurpose;
   includeWildcard: boolean;
   certificate: Certificate | undefined;
+  acmeEmail: string;
 }
 
 export interface RecordList {
@@ -342,6 +347,64 @@ export const Empty: MessageFns<Empty> = {
   },
   fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
     const message = createBaseEmpty();
+    return message;
+  },
+};
+
+function createBaseLine(): Line {
+  return { line: "" };
+}
+
+export const Line: MessageFns<Line> = {
+  encode(message: Line, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.line !== "") {
+      writer.uint32(10).string(message.line);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Line {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLine();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.line = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Line {
+    return { line: isSet(object.line) ? globalThis.String(object.line) : "" };
+  },
+
+  toJSON(message: Line): unknown {
+    const obj: any = {};
+    if (message.line !== "") {
+      obj.line = message.line;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Line>, I>>(base?: I): Line {
+    return Line.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Line>, I>>(object: I): Line {
+    const message = createBaseLine();
+    message.line = object.line ?? "";
     return message;
   },
 };
@@ -629,6 +692,7 @@ function createBaseRecord(): Record {
     purpose: 0,
     includeWildcard: false,
     certificate: undefined,
+    acmeEmail: "",
   };
 }
 
@@ -672,6 +736,9 @@ export const Record: MessageFns<Record> = {
     }
     if (message.certificate !== undefined) {
       Certificate.encode(message.certificate, writer.uint32(106).fork()).join();
+    }
+    if (message.acmeEmail !== "") {
+      writer.uint32(114).string(message.acmeEmail);
     }
     return writer;
   },
@@ -787,6 +854,14 @@ export const Record: MessageFns<Record> = {
           message.certificate = Certificate.decode(reader, reader.uint32());
           continue;
         }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.acmeEmail = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -831,6 +906,11 @@ export const Record: MessageFns<Record> = {
         ? globalThis.Boolean(object.include_wildcard)
         : false,
       certificate: isSet(object.certificate) ? Certificate.fromJSON(object.certificate) : undefined,
+      acmeEmail: isSet(object.acmeEmail)
+        ? globalThis.String(object.acmeEmail)
+        : isSet(object.acme_email)
+        ? globalThis.String(object.acme_email)
+        : "",
     };
   },
 
@@ -875,6 +955,9 @@ export const Record: MessageFns<Record> = {
     if (message.certificate !== undefined) {
       obj.certificate = Certificate.toJSON(message.certificate);
     }
+    if (message.acmeEmail !== "") {
+      obj.acmeEmail = message.acmeEmail;
+    }
     return obj;
   },
 
@@ -900,6 +983,7 @@ export const Record: MessageFns<Record> = {
     message.certificate = (object.certificate !== undefined && object.certificate !== null)
       ? Certificate.fromPartial(object.certificate)
       : undefined;
+    message.acmeEmail = object.acmeEmail ?? "";
     return message;
   },
 };
@@ -3598,6 +3682,19 @@ export const HDNSDefinition = {
       requestStream: false,
       responseType: Configuration as typeof Configuration,
       responseStream: false,
+      options: {},
+    },
+    /**
+     * StreamLog streams live ACME issuance log lines.
+     * While issuance is in progress, lines are sent as they are produced.
+     * If the most recent job is complete, the stored log is replayed immediately.
+     */
+    streamLog: {
+      name: "StreamLog",
+      requestType: Empty as typeof Empty,
+      requestStream: false,
+      responseType: Line as typeof Line,
+      responseStream: true,
       options: {},
     },
   },

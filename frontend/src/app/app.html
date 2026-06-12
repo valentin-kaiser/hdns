@@ -13,6 +13,10 @@
     </div>
   }
 
+  <button mat-icon-button (click)="logDrawer.open()" matTooltip="Logs" aria-label="Open logs">
+    <mat-icon>receipt_long</mat-icon>
+  </button>
+
   <button mat-icon-button (click)="configDrawer.open()" matTooltip="Settings" aria-label="Open settings">
     <mat-icon>settings</mat-icon>
   </button>
@@ -29,3 +33,5 @@
 </main>
 
 <app-config-drawer #configDrawer />
+
+<app-log-drawer #logDrawer />
