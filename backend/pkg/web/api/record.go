@@ -69,6 +69,7 @@ func (s *Server) GetRecords(ctx context.Context, in *service.Request) (*service.
 			AddressId:       record.AddressID.Int64,
 			Purpose:         service.RecordPurpose(record.Purpose),
 			IncludeWildcard: record.IncludeWildcard,
+			AcmeEmail:       record.AcmeEmail.String,
 		}
 
 		if record.AddressID.Valid {
@@ -139,6 +140,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				Ttl:             int32(in.Ttl),
 				Purpose:         int8(in.Purpose),
 				IncludeWildcard: in.IncludeWildcard,
+				AcmeEmail:       sql.NullString{String: in.AcmeEmail, Valid: in.AcmeEmail != ""},
 			})
 			if err != nil {
 				return apperror.NewError("failed to create record in database").AddError(err)
@@ -153,6 +155,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 				Ttl:             int32(in.Ttl),
 				Purpose:         int8(in.Purpose),
 				IncludeWildcard: in.IncludeWildcard,
+				AcmeEmail:       sql.NullString{String: in.AcmeEmail, Valid: in.AcmeEmail != ""},
 			}
 
 			if in.Token == "" {
@@ -205,6 +208,7 @@ func (s *Server) UpsertRecord(ctx context.Context, in *service.Record) (*service
 		AddressId:       record.AddressID.Int64,
 		Purpose:         service.RecordPurpose(record.Purpose),
 		IncludeWildcard: record.IncludeWildcard,
+		AcmeEmail:       record.AcmeEmail.String,
 	}
 
 	if record.AddressID.Valid {
@@ -302,6 +306,7 @@ func (s *Server) RefreshRecord(ctx context.Context, in *service.Record) (*servic
 		AddressId:       record.AddressID.Int64,
 		Purpose:         service.RecordPurpose(record.Purpose),
 		IncludeWildcard: record.IncludeWildcard,
+		AcmeEmail:       record.AcmeEmail.String,
 	}
 
 	if record.AddressID.Valid {

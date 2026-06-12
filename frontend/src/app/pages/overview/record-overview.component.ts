@@ -131,17 +131,19 @@ import { TaskFormDrawerComponent } from '../home/drawers/task-form/task-form-dra
               <section class="section card">
                 <div class="section-title-row">
                   <h3>Certificate</h3>
-                  @if (certificateDetails()?.certificate) {
-                    <span
-                      class="status"
-                      [class]="statusClass(certificateDetails()!.certificate!.status)"
-                    >
-                      <mat-icon>{{
-                        statusIcon(certificateDetails()!.certificate!.status)
-                      }}</mat-icon>
-                      {{ certificateDetails()!.certificate!.status }}
-                    </span>
-                  }
+                  <div class="row-actions">
+                    @if (certificateDetails()?.certificate) {
+                      <span
+                        class="status"
+                        [class]="statusClass(certificateDetails()!.certificate!.status)"
+                      >
+                        <mat-icon>{{
+                          statusIcon(certificateDetails()!.certificate!.status)
+                        }}</mat-icon>
+                        {{ certificateDetails()!.certificate!.status }}
+                      </span>
+                    }
+                  </div>
                 </div>
 
                 @if (certificateDetails()?.certificate) {

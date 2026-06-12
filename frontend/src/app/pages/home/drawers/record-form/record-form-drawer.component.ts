@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  inject,
-  OnDestroy,
-  Output,
-  ViewChild,
+    ChangeDetectorRef,
+    Component,
+    EventEmitter,
+    inject,
+    OnDestroy,
+    Output,
+    ViewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -103,6 +103,11 @@ import { NotifyService } from '../../../../global/services/notify/notify.service
                 <mat-slide-toggle formControlName="includeWildcard" class="toggle-field">
                   Include wildcard (*) in certificate
                 </mat-slide-toggle>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>ACME account email (optional)</mat-label>
+                  <input matInput type="email" formControlName="acmeEmail" placeholder="Override global ACME email for this record" />
+                  <mat-hint>Leave empty to use the global ACME email from settings.</mat-hint>
+                </mat-form-field>
               }
             </form>
           </mat-step>
@@ -211,6 +216,7 @@ export class RecordFormDrawerComponent implements OnDestroy {
     ttl: [60, [Validators.required, Validators.min(1)]],
     purpose: [RecordPurpose.RECORD_PURPOSE_DDNS, [Validators.required]],
     includeWildcard: [false],
+    acmeEmail: [''],
   });
 
   constructor() {
@@ -257,6 +263,7 @@ export class RecordFormDrawerComponent implements OnDestroy {
         ttl: record.ttl,
         purpose: record.purpose ?? RecordPurpose.RECORD_PURPOSE_DDNS,
         includeWildcard: record.includeWildcard ?? false,
+        acmeEmail: record.acmeEmail ?? '',
       });
       const token = record.token;
       setTimeout(() => {
@@ -267,7 +274,7 @@ export class RecordFormDrawerComponent implements OnDestroy {
     } else {
       this.tokenGroup.reset({ token: '' });
       this.zoneGroup.reset({ zoneId: 0 });
-      this.detailsGroup.reset({ name: '', ttl: 60, purpose: RecordPurpose.RECORD_PURPOSE_DDNS, includeWildcard: false });
+      this.detailsGroup.reset({ name: '', ttl: 60, purpose: RecordPurpose.RECORD_PURPOSE_DDNS, includeWildcard: false, acmeEmail: '' });
       this.zones = [];
       setTimeout(() => {
         if (this.stepper) this.stepper.selectedIndex = 0;
@@ -365,6 +372,7 @@ export class RecordFormDrawerComponent implements OnDestroy {
     const ttl = this.detailsGroup.value.ttl!;
     const purpose = this.detailsGroup.value.purpose ?? RecordPurpose.RECORD_PURPOSE_UNSPECIFIED;
     const includeWildcard = purpose === RecordPurpose.RECORD_PURPOSE_UNSPECIFIED ? false : (this.detailsGroup.value.includeWildcard ?? false);
+    const acmeEmail = purpose === RecordPurpose.RECORD_PURPOSE_DDNS ? '' : (this.detailsGroup.value.acmeEmail ?? '').trim();
     const domain =
       this.zones.find((zone) => zone.id === zoneId)?.name?.trim() ??
       this.record?.domain?.trim() ??
@@ -393,6 +401,7 @@ export class RecordFormDrawerComponent implements OnDestroy {
       ttl,
       purpose,
       includeWildcard,
+      acmeEmail,
     };
     this.saving = true;
     this.api.upsertRecord(payload).subscribe({
