@@ -25,6 +25,7 @@ import {
   Configuration,
   Empty,
   HDNSDefinition,
+  Line,
   Record,
   RecordDelete,
   RecordList,
@@ -133,6 +134,10 @@ export class ApiService {
 
   public issueCertificate(record: Record): Observable<Certificate> {
     return this.rpc<Certificate>('issueCertificate', record);
+  }
+
+  public streamLog(): Stream<Line, Empty> {
+    return this.stream<Line, Record>('streamLog');
   }
 
   public getTasks(): Observable<TaskList> {

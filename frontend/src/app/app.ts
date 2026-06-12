@@ -12,6 +12,7 @@ import { NotificationContainerComponent } from './components/notification-contai
 import { ApiService } from './global/services/api/api.service';
 import { NotifyService } from './global/services/notify/notify.service';
 import { ConfigDrawerComponent } from './pages/home/drawers/config/config-drawer.component';
+import { LogDrawerComponent } from "./pages/home/drawers/log/log-drawer.component";
 
 @Component({
   selector: 'app-root',
@@ -24,7 +25,8 @@ import { ConfigDrawerComponent } from './pages/home/drawers/config/config-drawer
     MatProgressBarModule,
     CommonModule,
     ConfigDrawerComponent,
-  ],
+    LogDrawerComponent
+],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
