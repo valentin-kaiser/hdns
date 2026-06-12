@@ -14,11 +14,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-acme/lego/v4/certcrypto"
-	"github.com/go-acme/lego/v4/certificate"
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/lego"
-	"github.com/go-acme/lego/v4/registration"
+	"github.com/go-acme/lego/v5/acme"
+	"github.com/go-acme/lego/v5/certcrypto"
+	"github.com/go-acme/lego/v5/certificate"
+	"github.com/go-acme/lego/v5/challenge/dns01"
+	"github.com/go-acme/lego/v5/lego"
+	llog "github.com/go-acme/lego/v5/log"
+	"github.com/go-acme/lego/v5/registration"
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/flag"
@@ -31,28 +33,37 @@ import (
 // ACME account used to issue certificates.
 type user struct {
 	Email        string
-	Registration *registration.Resource
-	key          crypto.PrivateKey
+	Registration *acme.ExtendedAccount
+	key          crypto.Signer
 }
 
-func (u *user) GetEmail() string                        { return u.Email }
-func (u *user) GetRegistration() *registration.Resource { return u.Registration }
-func (u *user) GetPrivateKey() crypto.PrivateKey        { return u.key }
+// legacyRegistration mirrors the v4 persisted account resource format.
+// It is used to migrate old account.json files to v5's ExtendedAccount.
+type legacyRegistration struct {
+	Body acme.Account `json:"body"`
+	URI  string       `json:"uri"`
+}
+
+func (u *user) GetEmail() string                       { return u.Email }
+func (u *user) GetRegistration() *acme.ExtendedAccount { return u.Registration }
+func (u *user) GetPrivateKey() crypto.Signer           { return u.key }
 
 // dir returns the directory used to persist ACME account material
-// for the selected environment (staging or production).
-func dir(staging bool) string {
+// for the selected environment (staging or production) and email address.
+func dir(email string, staging bool) string {
 	env := "production"
 	if staging {
 		env = "staging"
 	}
-	return filepath.Join(flag.Path, "acme", env)
+	// Sanitize the email address for use as a directory name.
+	safe := strings.NewReplacer("@", "_at_", ":", "_", "/", "_", "\\", "_", " ", "_").Replace(email)
+	return filepath.Join(flag.Path, "acme", env, safe)
 }
 
 // loadOrCreateUser loads the persisted ACME account key and registration
 // for the given environment, generating a new account key if none exists.
 func loadOrCreateUser(email string, staging bool) (*user, error) {
-	dir := dir(staging)
+	dir := dir(email, staging)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return nil, apperror.NewError("failed to create acme account directory").AddError(err)
 	}
@@ -76,8 +87,15 @@ func loadOrCreateUser(email string, staging bool) (*user, error) {
 
 		regData, rerr := os.ReadFile(regPath)
 		if rerr == nil {
-			var reg registration.Resource
+			var reg acme.ExtendedAccount
 			if uerr := json.Unmarshal(regData, &reg); uerr == nil {
+				if strings.TrimSpace(reg.Location) == "" {
+					var legacy legacyRegistration
+					if lerr := json.Unmarshal(regData, &legacy); lerr == nil {
+						reg.Account = legacy.Body
+						reg.Location = strings.TrimSpace(legacy.URI)
+					}
+				}
 				user.Registration = &reg
 			}
 		}
@@ -111,7 +129,7 @@ func saveACMERegistration(user *user, staging bool) error {
 	if err != nil {
 		return apperror.NewError("failed to marshal acme registration").AddError(err)
 	}
-	regPath := filepath.Join(dir(staging), "account.json")
+	regPath := filepath.Join(dir(user.Email, staging), "account.json")
 	if err := os.WriteFile(regPath, data, 0o600); err != nil {
 		return apperror.NewError("failed to persist acme registration").AddError(err)
 	}
@@ -130,12 +148,12 @@ func newACMEClient(email string, staging bool) (*lego.Client, error) {
 		return nil, apperror.Wrap(err)
 	}
 
+	llog.SetDefault(log.SLogger())
 	cfg := lego.NewConfig(user)
-	cfg.CADirURL = lego.LEDirectoryProduction
+	cfg.CADirURL = lego.DirectoryURLLetsEncrypt
 	if staging {
-		cfg.CADirURL = lego.LEDirectoryStaging
+		cfg.CADirURL = lego.DirectoryURLLetsEncryptStaging
 	}
-	cfg.Certificate.KeyType = certcrypto.RSA2048
 
 	client, err := lego.NewClient(cfg)
 	if err != nil {
@@ -143,13 +161,31 @@ func newACMEClient(email string, staging bool) (*lego.Client, error) {
 	}
 
 	if user.Registration == nil {
-		reg, rerr := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+		reg, rerr := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if rerr != nil {
 			return nil, apperror.NewError("failed to register acme account").AddError(rerr)
 		}
 		user.Registration = reg
 		if serr := saveACMERegistration(user, staging); serr != nil {
 			log.Warn().Err(serr).Msg("[ACME] failed to persist account registration")
+		}
+	} else if strings.TrimSpace(user.Registration.Location) == "" {
+		// v4 account.json used `uri`; recover the account URL so v5 can set JWS kid.
+		reg, rerr := client.Registration.ResolveAccountByKey(context.Background())
+		if rerr == nil && reg != nil && strings.TrimSpace(reg.Location) != "" {
+			user.Registration = reg
+			if serr := saveACMERegistration(user, staging); serr != nil {
+				log.Warn().Err(serr).Msg("[ACME] failed to persist recovered account registration")
+			}
+		} else {
+			reg, rerr = client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
+			if rerr != nil {
+				return nil, apperror.NewError("failed to recover acme account registration").AddError(rerr)
+			}
+			user.Registration = reg
+			if serr := saveACMERegistration(user, staging); serr != nil {
+				log.Warn().Err(serr).Msg("[ACME] failed to persist recovered account registration")
+			}
 		}
 	}
 
@@ -180,8 +216,8 @@ func newProvider(client *hcloud.Client, zoneID int64, zone string) *provider {
 // Present publishes the challenge token as a TXT record. Multiple challenges
 // for the same FQDN (e.g. base domain + wildcard) are aggregated into a single
 // RRSet.
-func (p *provider) Present(domain, _, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (p *provider) Present(ctx context.Context, domain, _, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 	name := p.relativeName(info.FQDN)
 
 	p.mu.Lock()
@@ -189,19 +225,19 @@ func (p *provider) Present(domain, _, keyAuth string) error {
 	vals := append([]string(nil), p.values[name]...)
 	p.mu.Unlock()
 
-	return upsertTXTRecord(context.Background(), p.client, p.zoneID, name, vals, 60)
+	return upsertTXTRecord(ctx, p.client, p.zoneID, name, vals, 60)
 }
 
 // CleanUp removes the challenge TXT record.
-func (p *provider) CleanUp(domain, _, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (p *provider) CleanUp(ctx context.Context, domain, _, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 	name := p.relativeName(info.FQDN)
 
 	p.mu.Lock()
 	delete(p.values, name)
 	p.mu.Unlock()
 
-	return deleteTXTRecord(context.Background(), p.client, p.zoneID, name)
+	return deleteTXTRecord(ctx, p.client, p.zoneID, name)
 }
 
 // relativeName converts an absolute challenge FQDN into a name relative to the
@@ -221,11 +257,18 @@ func (p *provider) relativeName(fqdn string) string {
 }
 
 // obtainCertificate runs the ACME DNS-01 flow for the given domains using the
-// record's Hetzner credentials and zone.
+// record's Hetzner credentials and zone. emit receives human-readable log lines
+// about the issuance progress.
 func obtainCertificate(record *schema.Record, domains []string, zoneName string) (*certificate.Resource, error) {
 	cfg := config.Get()
 
-	client, err := newACMEClient(cfg.ACME.Email, cfg.ACME.Staging)
+	// Prefer the per-record ACME email when set; fall back to the global value.
+	email := cfg.ACME.Email
+	if record.AcmeEmail.Valid && strings.TrimSpace(record.AcmeEmail.String) != "" {
+		email = record.AcmeEmail.String
+	}
+
+	client, err := newACMEClient(email, cfg.ACME.Staging)
 	if err != nil {
 		return nil, apperror.Wrap(err)
 	}
@@ -237,18 +280,20 @@ func obtainCertificate(record *schema.Record, domains []string, zoneName string)
 
 	provider := newProvider(hclient, record.ZoneID, zoneName)
 
-	opts := []dns01.ChallengeOption{}
 	if servers := recursiveNameservers(); len(servers) > 0 {
-		opts = append(opts, dns01.AddRecursiveNameservers(servers))
+		dns01.SetDefaultClient(dns01.NewClient(&dns01.Options{RecursiveNameservers: servers}))
 	}
 
-	if err := client.Challenge.SetDNS01Provider(provider, opts...); err != nil {
+	if err := client.Challenge.SetDNS01Provider(provider,
+		dns01.DisableRecursiveNSsPropagationRequirement(),
+	); err != nil {
 		return nil, apperror.NewError("failed to configure dns-01 provider").AddError(err)
 	}
 
-	res, err := client.Certificate.Obtain(certificate.ObtainRequest{
+	res, err := client.Certificate.Obtain(context.Background(), certificate.ObtainRequest{
 		Domains: domains,
 		Bundle:  false,
+		KeyType: certcrypto.RSA2048,
 	})
 	if err != nil {
 		return nil, apperror.NewError("failed to obtain certificate").AddError(err)

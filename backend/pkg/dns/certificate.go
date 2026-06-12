@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v5/certificate"
 	"github.com/valentin-kaiser/go-core/apperror"
 	"github.com/valentin-kaiser/go-core/flag"
 	"github.com/valentin-kaiser/go-core/logging/log"

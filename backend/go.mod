@@ -3,7 +3,7 @@ module github.com/valentin-kaiser/hdns
 go 1.26
 
 require (
-	github.com/go-acme/lego/v4 v4.35.2
+	github.com/go-acme/lego/v5 v5.2.2
 	github.com/gorilla/websocket v1.5.3
 	github.com/hetznercloud/hcloud-go/v2 v2.42.0
 	github.com/miekg/dns v1.1.72
@@ -32,7 +32,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-sqlite3 v1.14.45 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
