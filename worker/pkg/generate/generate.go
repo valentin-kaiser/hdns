@@ -1,4 +1,4 @@
-package main
+package generate
 
 import (
 	"bufio"
@@ -12,7 +12,7 @@ import (
 // isGenerateTaskCommand returns true when the user passed "generate-task" as a
 // positional argument, before any flag parsing occurs. This is used by init()
 // to skip service / config initialisation for this purely interactive command.
-func isGenerateTaskCommand() bool {
+func IsGenerateTaskCommand() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "generate-task" {
 			return true
@@ -23,7 +23,7 @@ func isGenerateTaskCommand() bool {
 
 // runGenerateTask runs an interactive wizard that produces a ready-to-paste
 // task YAML snippet for hdns-worker.yaml.
-func runGenerateTask() {
+func RunGenerateTask() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("HDNS Worker — Task Configuration Generator")

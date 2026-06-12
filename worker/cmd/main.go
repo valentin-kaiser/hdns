@@ -14,6 +14,7 @@ import (
 	goservice "github.com/valentin-kaiser/go-core/service"
 	"github.com/valentin-kaiser/go-core/web"
 	"github.com/valentin-kaiser/hdns-worker/pkg/config"
+	"github.com/valentin-kaiser/hdns-worker/pkg/generate"
 	"github.com/valentin-kaiser/hdns-worker/pkg/handler"
 )
 
@@ -26,7 +27,7 @@ const (
 func init() {
 	// generate-task is a standalone interactive wizard that does not need the
 	// service stack (config file, logging rotation, etc.) to be initialised.
-	if isGenerateTaskCommand() {
+	if generate.IsGenerateTaskCommand() {
 		return
 	}
 
@@ -57,8 +58,8 @@ func main() {
 
 	// Handle generate-task before any flag access — flag.Init() was intentionally
 	// skipped in init() for this command, so flag.Arguments() is not usable yet.
-	if isGenerateTaskCommand() {
-		runGenerateTask()
+	if generate.IsGenerateTaskCommand() {
+		generate.RunGenerateTask()
 		return
 	}
 
