@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/go-acme/lego/v4 v4.35.2
 	github.com/gorilla/websocket v1.5.3
-	github.com/hetznercloud/hcloud-go/v2 v2.42.0
+	github.com/hetznercloud/hcloud-go/v2 v2.43.0
 	github.com/miekg/dns v1.1.72
 	github.com/robfig/cron v1.2.0
 	github.com/rubenv/sql-migrate v1.8.1
