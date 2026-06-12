@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/kardianos/service v1.2.4
-	github.com/valentin-kaiser/go-core v1.10.0
+	github.com/valentin-kaiser/go-core v1.10.2
 )
 
 require (
@@ -19,10 +19,10 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
