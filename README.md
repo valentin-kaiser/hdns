@@ -26,6 +26,16 @@ docker build --tag hdns .
 docker run -p 443:443 -v ./data:/app/data hdns
 ```
 
+The repository uses a single multi-target Dockerfile. Build images independently with:
+
+```bash
+# Main app image
+docker build --target hdns --tag hdns .
+
+# Worker image
+docker build --target hdns-worker --tag hdns-worker .
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -130,6 +140,13 @@ To run the Worker with Docker, use the following command:
 ```bash
 docker pull ghcr.io/valentin-kaiser/hdns-worker:latest
 docker run -p 8080:8080 -v ./worker-data:/app/data ghcr.io/valentin-kaiser/hdns-worker:latest
+```
+
+To build the Worker image locally from the combined Dockerfile:
+
+```bash
+docker build --target hdns-worker --tag hdns-worker .
+docker run -p 8080:8080 -v ./worker-data:/app/data hdns-worker
 ```
 
 ### Configuration

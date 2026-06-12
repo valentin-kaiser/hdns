@@ -13,8 +13,18 @@ permissions:
 
 jobs:
   build:
-    name: Build and Publish Docker Image
+    name: Build and Publish ${{ matrix.image_name }} Image
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: hdns
+            image: ghcr.io/valentin-kaiser/hdns
+            target: hdns
+          - image_name: hdns-worker
+            image: ghcr.io/valentin-kaiser/hdns-worker
+            target: hdns-worker
 
     steps:
       - name: Checkout repository
@@ -28,7 +38,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/valentin-kaiser/hdns
+            ${{ matrix.image }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
@@ -54,6 +64,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          target: ${{ matrix.target }}
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
