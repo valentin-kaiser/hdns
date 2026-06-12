@@ -10,17 +10,7 @@ Built on [Hetzner's Cloud API v2](https://pkg.go.dev/github.com/hetznercloud/hcl
 
 ## Installation
 
-The quickest way to run HDNS is with Docker Compose:
-
-```bash
-git clone https://github.com/valentin-kaiser/hdns.git
-cd hdns
-docker compose up -d
-```
-
-This starts HDNS on port 443 together with a MariaDB instance. Data is persisted in `./data` and `db-data` volumes.
-
-To run just the main server from a pre-built image:
+The quickest way to run HDNS is with Docker:
 
 ```bash
 docker pull ghcr.io/valentin-kaiser/hdns:latest
@@ -133,22 +123,14 @@ Each certificate issuance job records the full lego/ACME client log. The log is 
 
 The Worker is a lightweight webhook receiver that acts on certificate and IP-change events from the main server. Run it on the target host to deploy certificates automatically after issuance.
 
-### Running with Docker Compose
+### Running with Docker
 
-The Worker is included in the default `compose.yml`. Set the shared secret and map a data directory:
+To run the Worker with Docker, use the following command:
 
-```yaml
-hdns-worker:
-  build: ./worker
-  ports:
-    - "8080:8080"
-  volumes:
-    - ./data/worker:/app/data
-  environment:
-    - HDNS_WORKER_SECRET=your-secret-here
+```bash
+docker pull ghcr.io/valentin-kaiser/hdns-worker:latest
+docker run -p 8080:8080 -v ./worker-data:/app/data ghcr.io/valentin-kaiser/hdns-worker:latest
 ```
-
-Or run it as a standalone binary or system service on the target host.
 
 ### Configuration
 
