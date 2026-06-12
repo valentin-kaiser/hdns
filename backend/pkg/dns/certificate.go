@@ -160,8 +160,6 @@ func runIssuance(ctx context.Context, record *schema.Record, source IssuanceSour
 		return apperror.Wrap(cause)
 	}
 
-	log.Info().Msgf("[ACME] issuing certificate for %s", strings.Join(domains, ", "))
-
 	res, err := obtainCertificate(record, domains, record.Domain)
 	if err != nil {
 		return fail(err)
@@ -193,8 +191,6 @@ func runIssuance(ctx context.Context, record *schema.Record, source IssuanceSour
 	if err != nil {
 		return fail(apperror.NewError("failed to persist certificate").AddError(err))
 	}
-
-	log.Info().Msgf("[ACME] certificate for %s issued, valid until %s", domains[0], leaf.NotAfter.Format(time.RFC3339))
 
 	finishCertificateJob(ctx, jobID, "success", nil)
 	tasks.FireTasks(ctx, record.ID, tasks.TriggerCert, sql.NullInt64{Int64: jobID, Valid: true})

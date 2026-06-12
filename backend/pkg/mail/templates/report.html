@@ -177,6 +177,46 @@
 						</table>
 						{{- end}}
 
+						<!-- Certificates -->
+						{{- if .Certificates}}
+						<div style="font-size:13px;font-weight:600;color:#374151;margin:20px 0 8px;">Certificates ({{len .Certificates}})</div>
+						<table role="presentation" class="hdns-records" width="100%" cellpadding="0" cellspacing="0" border="0">
+							<colgroup>
+								<col style="width:82px;">
+								<col>
+								<col style="width:100px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th style="padding:10px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:600;color:#374151;text-align:left;text-transform:uppercase;letter-spacing:.04em;">Status</th>
+									<th style="padding:10px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:600;color:#374151;text-align:left;text-transform:uppercase;letter-spacing:.04em;">Domain</th>
+									<th style="padding:10px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:600;color:#374151;text-align:left;text-transform:uppercase;letter-spacing:.04em;">Expires</th>
+								</tr>
+							</thead>
+							<tbody>
+								{{- range .Certificates}}
+								<tr>
+									<td data-label="Status" style="padding:10px 12px;{{if .Error}}border-bottom:0;{{else}}border-bottom:1px solid #e5e7eb;{{end}}font-size:13px;vertical-align:top;">
+										<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;{{if eq .Status "valid"}}background:#d1fae5;color:#065f46;{{else if eq .Status "failed"}}background:#fee2e2;color:#991b1b;{{else if eq .Status "expired"}}background:#fef3c7;color:#92400e;{{else}}background:#e5e7eb;color:#374151;{{end}}">{{upper .Status}}</span>
+									</td>
+									<td data-label="Domain" class="hdns-mono" style="padding:10px 12px;{{if .Error}}border-bottom:0;{{else}}border-bottom:1px solid #e5e7eb;{{end}}font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;color:#111827;vertical-align:top;">{{.Domain}}</td>
+									<td data-label="Expires" style="padding:10px 12px;{{if .Error}}border-bottom:0;{{else}}border-bottom:1px solid #e5e7eb;{{end}}font-size:13px;color:#374151;vertical-align:top;">{{emptyDash .NotAfter}}</td>
+								</tr>
+								{{- if .Error}}
+								<tr>
+									<td colspan="3" style="padding:0 12px 10px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;vertical-align:top;">
+										<div style="padding:6px 10px;background:#fef2f2;border-left:3px solid #dc2626;color:#991b1b;word-break:break-word;border-radius:0 4px 4px 0;">
+											<span style="font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:11px;">Error:</span>
+											{{.Error}}
+										</div>
+									</td>
+								</tr>
+								{{- end}}
+								{{- end}}
+							</tbody>
+						</table>
+						{{- end}}
+
 						<!-- Footer -->
 						<p class="hdns-footer hdns-muted" style="margin:24px 0 0;font-size:12px;color:#9ca3af;text-align:center;">
 							Automated notification from <b style="color:#6b7280;">hdns</b>.

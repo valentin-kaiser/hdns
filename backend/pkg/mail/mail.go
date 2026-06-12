@@ -53,6 +53,15 @@ type RecordStatus struct {
 	Error  string
 }
 
+// CertificateStatus describes the current state of a certificate for a
+// cert-enabled record.
+type CertificateStatus struct {
+	Domain   string
+	Status   string // "valid" | "pending" | "failed" | "expired"
+	NotAfter string // formatted expiry date, empty if not yet issued
+	Error    string // last known error, if any
+}
+
 // Report captures a full refresh run suitable for rendering as an email body.
 type Report struct {
 	Severity       Severity
@@ -63,6 +72,7 @@ type Report struct {
 	UpdatedCount   int
 	FailedCount    int
 	UnchangedCount int
+	Certificates   []CertificateStatus
 }
 
 var (

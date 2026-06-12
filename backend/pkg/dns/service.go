@@ -102,6 +102,36 @@ func Refresh(ctx context.Context) error {
 		report.Records = append(report.Records, status)
 	}
 
+	// Append the current certificate status for all cert-enabled records so
+	// the refresh report gives a complete picture of the TLS state.
+	for _, record := range records {
+		if !recordDoesCert(record.Purpose) {
+			continue
+		}
+		var cert *schema.Certificate
+		_ = database.HDNS().Query(func(q *schema.Queries) error {
+			var qerr error
+			cert, qerr = q.GetCertificateByRecord(ctx, record.ID)
+			return qerr
+		})
+
+		cs := mailpkg.CertificateStatus{
+			Domain: record.Name + "." + record.Domain,
+		}
+		if cert != nil {
+			cs.Status = cert.Status
+			if cert.NotAfter.Valid {
+				cs.NotAfter = cert.NotAfter.Time.Format("2006-01-02")
+			}
+			if cert.LastError.Valid {
+				cs.Error = cert.LastError.String
+			}
+		} else {
+			cs.Status = "not issued"
+		}
+		report.Certificates = append(report.Certificates, cs)
+	}
+
 	switch {
 	case report.FailedCount > 0 || report.AddressError != "":
 		report.Severity = mailpkg.SeverityFailure
