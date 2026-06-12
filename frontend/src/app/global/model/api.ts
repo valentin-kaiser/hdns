@@ -100,9 +100,8 @@ export function taskTriggerToJSON(object: TaskTrigger): string {
 export interface Empty {
 }
 
-export interface LogLine {
+export interface Line {
   line: string;
-  timestamp: number;
 }
 
 export interface Request {
@@ -352,25 +351,22 @@ export const Empty: MessageFns<Empty> = {
   },
 };
 
-function createBaseLogLine(): LogLine {
-  return { line: "", timestamp: 0 };
+function createBaseLine(): Line {
+  return { line: "" };
 }
 
-export const LogLine: MessageFns<LogLine> = {
-  encode(message: LogLine, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const Line: MessageFns<Line> = {
+  encode(message: Line, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.line !== "") {
       writer.uint32(10).string(message.line);
-    }
-    if (message.timestamp !== 0) {
-      writer.uint32(16).int64(message.timestamp);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): LogLine {
+  decode(input: BinaryReader | Uint8Array, length?: number): Line {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseLogLine();
+    const message = createBaseLine();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -382,14 +378,6 @@ export const LogLine: MessageFns<LogLine> = {
           message.line = reader.string();
           continue;
         }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.timestamp = longToNumber(reader.int64());
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -399,31 +387,24 @@ export const LogLine: MessageFns<LogLine> = {
     return message;
   },
 
-  fromJSON(object: any): LogLine {
-    return {
-      line: isSet(object.line) ? globalThis.String(object.line) : "",
-      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
-    };
+  fromJSON(object: any): Line {
+    return { line: isSet(object.line) ? globalThis.String(object.line) : "" };
   },
 
-  toJSON(message: LogLine): unknown {
+  toJSON(message: Line): unknown {
     const obj: any = {};
     if (message.line !== "") {
       obj.line = message.line;
     }
-    if (message.timestamp !== 0) {
-      obj.timestamp = Math.round(message.timestamp);
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<LogLine>, I>>(base?: I): LogLine {
-    return LogLine.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Line>, I>>(base?: I): Line {
+    return Line.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<LogLine>, I>>(object: I): LogLine {
-    const message = createBaseLogLine();
+  fromPartial<I extends Exact<DeepPartial<Line>, I>>(object: I): Line {
+    const message = createBaseLine();
     message.line = object.line ?? "";
-    message.timestamp = object.timestamp ?? 0;
     return message;
   },
 };
@@ -3704,15 +3685,15 @@ export const HDNSDefinition = {
       options: {},
     },
     /**
-     * StreamCertificateLog streams live ACME issuance log lines for a record.
+     * StreamLog streams live ACME issuance log lines.
      * While issuance is in progress, lines are sent as they are produced.
      * If the most recent job is complete, the stored log is replayed immediately.
      */
-    streamCertificateLog: {
-      name: "StreamCertificateLog",
-      requestType: Record as typeof Record,
+    streamLog: {
+      name: "StreamLog",
+      requestType: Empty as typeof Empty,
       requestStream: false,
-      responseType: LogLine as typeof LogLine,
+      responseType: Line as typeof Line,
       responseStream: true,
       options: {},
     },

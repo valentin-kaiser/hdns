@@ -161,28 +161,27 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{0}
 }
 
-type LogLine struct {
+type Line struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Line          string                 `protobuf:"bytes,1,opt,name=line,proto3" json:"line,omitempty"`
-	Timestamp     int64                  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LogLine) Reset() {
-	*x = LogLine{}
+func (x *Line) Reset() {
+	*x = Line{}
 	mi := &file_api_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LogLine) String() string {
+func (x *Line) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LogLine) ProtoMessage() {}
+func (*Line) ProtoMessage() {}
 
-func (x *LogLine) ProtoReflect() protoreflect.Message {
+func (x *Line) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -194,23 +193,16 @@ func (x *LogLine) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LogLine.ProtoReflect.Descriptor instead.
-func (*LogLine) Descriptor() ([]byte, []int) {
+// Deprecated: Use Line.ProtoReflect.Descriptor instead.
+func (*Line) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *LogLine) GetLine() string {
+func (x *Line) GetLine() string {
 	if x != nil {
 		return x.Line
 	}
 	return ""
-}
-
-func (x *LogLine) GetTimestamp() int64 {
-	if x != nil {
-		return x.Timestamp
-	}
-	return 0
 }
 
 type Request struct {
@@ -1924,10 +1916,9 @@ var File_api_proto protoreflect.FileDescriptor
 const file_api_proto_rawDesc = "" +
 	"\n" +
 	"\tapi.proto\x12\aservice\"\a\n" +
-	"\x05Empty\";\n" +
-	"\aLogLine\x12\x12\n" +
-	"\x04line\x18\x01 \x01(\tR\x04line\x12\x1c\n" +
-	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\"!\n" +
+	"\x05Empty\"\x1a\n" +
+	"\x04Line\x12\x12\n" +
+	"\x04line\x18\x01 \x01(\tR\x04line\"!\n" +
 	"\aRequest\x12\x16\n" +
 	"\x06search\x18\x01 \x01(\tR\x06search\"\x99\x01\n" +
 	"\aAddress\x12\x0e\n" +
@@ -2105,7 +2096,7 @@ const file_api_proto_rawDesc = "" +
 	"\x18TASK_TRIGGER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fTASK_TRIGGER_IP\x10\x01\x12\x15\n" +
 	"\x11TASK_TRIGGER_CERT\x10\x02\x12\x15\n" +
-	"\x11TASK_TRIGGER_BOTH\x10\x032\xc1\t\n" +
+	"\x11TASK_TRIGGER_BOTH\x10\x032\xb2\t\n" +
 	"\x04HDNS\x12.\n" +
 	"\bGetZones\x12\x0f.service.Record\x1a\x11.service.ZoneList\x123\n" +
 	"\n" +
@@ -2131,8 +2122,8 @@ const file_api_proto_rawDesc = "" +
 	"DeleteTask\x12\x13.service.TaskDelete\x1a\x0e.service.Empty\x12-\n" +
 	"\aRunTask\x12\r.service.Task\x1a\x13.service.TaskResult\x123\n" +
 	"\tGetConfig\x12\x0e.service.Empty\x1a\x16.service.Configuration\x12>\n" +
-	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x12;\n" +
-	"\x14StreamCertificateLog\x12\x0f.service.Record\x1a\x10.service.LogLine0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
+	"\fUpdateConfig\x12\x16.service.Configuration\x1a\x16.service.Configuration\x12,\n" +
+	"\tStreamLog\x12\x0e.service.Empty\x1a\r.service.Line0\x01B5H\x01Z1github.com/valentin-kaiser/hdns/pkg/proto/serviceb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
@@ -2152,7 +2143,7 @@ var file_api_proto_goTypes = []any{
 	(RecordPurpose)(0),             // 0: service.RecordPurpose
 	(TaskTrigger)(0),               // 1: service.TaskTrigger
 	(*Empty)(nil),                  // 2: service.Empty
-	(*LogLine)(nil),                // 3: service.LogLine
+	(*Line)(nil),                   // 3: service.Line
 	(*Request)(nil),                // 4: service.Request
 	(*Address)(nil),                // 5: service.Address
 	(*AddressHistory)(nil),         // 6: service.AddressHistory
@@ -2213,7 +2204,7 @@ var file_api_proto_depIdxs = []int32{
 	16, // 33: service.HDNS.RunTask:input_type -> service.Task
 	2,  // 34: service.HDNS.GetConfig:input_type -> service.Empty
 	24, // 35: service.HDNS.UpdateConfig:input_type -> service.Configuration
-	7,  // 36: service.HDNS.StreamCertificateLog:input_type -> service.Record
+	2,  // 36: service.HDNS.StreamLog:input_type -> service.Empty
 	21, // 37: service.HDNS.GetZones:output_type -> service.ZoneList
 	8,  // 38: service.HDNS.GetRecords:output_type -> service.RecordList
 	7,  // 39: service.HDNS.UpsertRecord:output_type -> service.Record
@@ -2235,7 +2226,7 @@ var file_api_proto_depIdxs = []int32{
 	19, // 55: service.HDNS.RunTask:output_type -> service.TaskResult
 	24, // 56: service.HDNS.GetConfig:output_type -> service.Configuration
 	24, // 57: service.HDNS.UpdateConfig:output_type -> service.Configuration
-	3,  // 58: service.HDNS.StreamCertificateLog:output_type -> service.LogLine
+	3,  // 58: service.HDNS.StreamLog:output_type -> service.Line
 	37, // [37:59] is the sub-list for method output_type
 	15, // [15:37] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name

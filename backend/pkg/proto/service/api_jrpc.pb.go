@@ -35,7 +35,7 @@ type HDNSServer interface {
 	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
-	StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error
+	StreamLog(ctx context.Context, in *Empty, out chan<- *Line) error
 }
 
 type UnimplementedHDNSServer struct{}
@@ -128,8 +128,8 @@ func (UnimplementedHDNSServer) UpdateConfig(ctx context.Context, in *Configurati
 	return nil, errors.New("method HDNS.UpdateConfig not implemented")
 }
 
-func (UnimplementedHDNSServer) StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error {
-	return errors.New("method HDNS.StreamCertificateLog not implemented")
+func (UnimplementedHDNSServer) StreamLog(ctx context.Context, in *Empty, out chan<- *Line) error {
+	return errors.New("method HDNS.StreamLog not implemented")
 }
 
 // RegisterHDNSServer registers a HDNSServer with the JSON-RPC service registry.
@@ -164,7 +164,7 @@ type HDNSClientDefinition interface {
 	RunTask(ctx context.Context, in *Task) (*TaskResult, error)
 	GetConfig(ctx context.Context, in *Empty) (*Configuration, error)
 	UpdateConfig(ctx context.Context, in *Configuration) (*Configuration, error)
-	StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error
+	StreamLog(ctx context.Context, in *Empty, out chan<- *Line) error
 }
 
 type HDNSClient struct {
@@ -387,9 +387,9 @@ func (c *HDNSClient) UpdateConfig(ctx context.Context, in *Configuration) (*Conf
 	return out, nil
 }
 
-func (c *HDNSClient) StreamCertificateLog(ctx context.Context, in *Record, out chan<- *LogLine) error {
-	u := c.baseURL.JoinPath("HDNS", "StreamCertificateLog")
-	factory := func() *LogLine { return &LogLine{} }
+func (c *HDNSClient) StreamLog(ctx context.Context, in *Empty, out chan<- *Line) error {
+	u := c.baseURL.JoinPath("HDNS", "StreamLog")
+	factory := func() *Line { return &Line{} }
 	return jrpc.ServerStream(c.client, ctx, u, in, out, factory)
 }
 
