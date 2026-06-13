@@ -1700,12 +1700,16 @@ func (x *ResolutionResult) GetResolutions() []*Resolution {
 }
 
 type Configuration struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LogLevel      int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
-	RefreshCron   string                 `protobuf:"bytes,2,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
-	DnsServers    []string               `protobuf:"bytes,3,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
-	Ipv4Resolvers []string               `protobuf:"bytes,4,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
-	Ipv6Resolvers []string               `protobuf:"bytes,5,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
+	state                          protoimpl.MessageState `protogen:"open.v1"`
+	LogLevel                       int32                  `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3" json:"log_level,omitempty"`
+	RefreshCron                    string                 `protobuf:"bytes,2,opt,name=refresh_cron,json=refreshCron,proto3" json:"refresh_cron,omitempty"`
+	DnsServers                     []string               `protobuf:"bytes,3,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
+	Ipv4Resolvers                  []string               `protobuf:"bytes,4,rep,name=ipv4_resolvers,json=ipv4Resolvers,proto3" json:"ipv4_resolvers,omitempty"`
+	Ipv6Resolvers                  []string               `protobuf:"bytes,5,rep,name=ipv6_resolvers,json=ipv6Resolvers,proto3" json:"ipv6_resolvers,omitempty"`
+	Ipv4ResolverAgreementThreshold float64                `protobuf:"fixed64,15,opt,name=ipv4_resolver_agreement_threshold,json=ipv4ResolverAgreementThreshold,proto3" json:"ipv4_resolver_agreement_threshold,omitempty"`
+	Ipv6ResolverAgreementThreshold float64                `protobuf:"fixed64,16,opt,name=ipv6_resolver_agreement_threshold,json=ipv6ResolverAgreementThreshold,proto3" json:"ipv6_resolver_agreement_threshold,omitempty"`
+	Ipv4ResolverMinResponses       int32                  `protobuf:"varint,17,opt,name=ipv4_resolver_min_responses,json=ipv4ResolverMinResponses,proto3" json:"ipv4_resolver_min_responses,omitempty"`
+	Ipv6ResolverMinResponses       int32                  `protobuf:"varint,18,opt,name=ipv6_resolver_min_responses,json=ipv6ResolverMinResponses,proto3" json:"ipv6_resolver_min_responses,omitempty"`
 	// User-facing notification settings. SMTP transport (host, port, auth, TLS,
 	// from address, ...) is intentionally NOT part of this message and is
 	// configured via the YAML file only.
@@ -1786,6 +1790,34 @@ func (x *Configuration) GetIpv6Resolvers() []string {
 		return x.Ipv6Resolvers
 	}
 	return nil
+}
+
+func (x *Configuration) GetIpv4ResolverAgreementThreshold() float64 {
+	if x != nil {
+		return x.Ipv4ResolverAgreementThreshold
+	}
+	return 0
+}
+
+func (x *Configuration) GetIpv6ResolverAgreementThreshold() float64 {
+	if x != nil {
+		return x.Ipv6ResolverAgreementThreshold
+	}
+	return 0
+}
+
+func (x *Configuration) GetIpv4ResolverMinResponses() int32 {
+	if x != nil {
+		return x.Ipv4ResolverMinResponses
+	}
+	return 0
+}
+
+func (x *Configuration) GetIpv6ResolverMinResponses() int32 {
+	if x != nil {
+		return x.Ipv6ResolverMinResponses
+	}
+	return 0
 }
 
 func (x *Configuration) GetNotificationsEnabled() bool {
@@ -2064,14 +2096,18 @@ const file_api_proto_rawDesc = "" +
 	"\rresponse_time\x18\x03 \x01(\x03R\fresponseTime\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\"I\n" +
 	"\x10ResolutionResult\x125\n" +
-	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\x8a\x05\n" +
+	"\vresolutions\x18\x01 \x03(\v2\x13.service.ResolutionR\vresolutions\"\x9e\a\n" +
 	"\rConfiguration\x12\x1b\n" +
 	"\tlog_level\x18\x01 \x01(\x05R\blogLevel\x12!\n" +
 	"\frefresh_cron\x18\x02 \x01(\tR\vrefreshCron\x12\x1f\n" +
 	"\vdns_servers\x18\x03 \x03(\tR\n" +
 	"dnsServers\x12%\n" +
 	"\x0eipv4_resolvers\x18\x04 \x03(\tR\ripv4Resolvers\x12%\n" +
-	"\x0eipv6_resolvers\x18\x05 \x03(\tR\ripv6Resolvers\x123\n" +
+	"\x0eipv6_resolvers\x18\x05 \x03(\tR\ripv6Resolvers\x12I\n" +
+	"!ipv4_resolver_agreement_threshold\x18\x0f \x01(\x01R\x1eipv4ResolverAgreementThreshold\x12I\n" +
+	"!ipv6_resolver_agreement_threshold\x18\x10 \x01(\x01R\x1eipv6ResolverAgreementThreshold\x12=\n" +
+	"\x1bipv4_resolver_min_responses\x18\x11 \x01(\x05R\x18ipv4ResolverMinResponses\x12=\n" +
+	"\x1bipv6_resolver_min_responses\x18\x12 \x01(\x05R\x18ipv6ResolverMinResponses\x123\n" +
 	"\x15notifications_enabled\x18\x06 \x01(\bR\x14notificationsEnabled\x128\n" +
 	"\x18notifications_on_success\x18\a \x01(\bR\x16notificationsOnSuccess\x129\n" +
 	"\x18notifications_recipients\x18\b \x03(\tR\x17notificationsRecipients\x12D\n" +
