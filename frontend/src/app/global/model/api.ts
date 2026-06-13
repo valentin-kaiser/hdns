@@ -285,6 +285,10 @@ export interface Configuration {
   dnsServers: string[];
   ipv4Resolvers: string[];
   ipv6Resolvers: string[];
+  ipv4ResolverAgreementThreshold: number;
+  ipv6ResolverAgreementThreshold: number;
+  ipv4ResolverMinResponses: number;
+  ipv6ResolverMinResponses: number;
   /**
    * User-facing notification settings. SMTP transport (host, port, auth, TLS,
    * from address, ...) is intentionally NOT part of this message and is
@@ -3065,6 +3069,10 @@ function createBaseConfiguration(): Configuration {
     dnsServers: [],
     ipv4Resolvers: [],
     ipv6Resolvers: [],
+    ipv4ResolverAgreementThreshold: 0,
+    ipv6ResolverAgreementThreshold: 0,
+    ipv4ResolverMinResponses: 0,
+    ipv6ResolverMinResponses: 0,
     notificationsEnabled: false,
     notificationsOnSuccess: false,
     notificationsRecipients: [],
@@ -3093,6 +3101,18 @@ export const Configuration: MessageFns<Configuration> = {
     }
     for (const v of message.ipv6Resolvers) {
       writer.uint32(42).string(v!);
+    }
+    if (message.ipv4ResolverAgreementThreshold !== 0) {
+      writer.uint32(121).double(message.ipv4ResolverAgreementThreshold);
+    }
+    if (message.ipv6ResolverAgreementThreshold !== 0) {
+      writer.uint32(129).double(message.ipv6ResolverAgreementThreshold);
+    }
+    if (message.ipv4ResolverMinResponses !== 0) {
+      writer.uint32(136).int32(message.ipv4ResolverMinResponses);
+    }
+    if (message.ipv6ResolverMinResponses !== 0) {
+      writer.uint32(144).int32(message.ipv6ResolverMinResponses);
     }
     if (message.notificationsEnabled !== false) {
       writer.uint32(48).bool(message.notificationsEnabled);
@@ -3169,6 +3189,38 @@ export const Configuration: MessageFns<Configuration> = {
           }
 
           message.ipv6Resolvers.push(reader.string());
+          continue;
+        }
+        case 15: {
+          if (tag !== 121) {
+            break;
+          }
+
+          message.ipv4ResolverAgreementThreshold = reader.double();
+          continue;
+        }
+        case 16: {
+          if (tag !== 129) {
+            break;
+          }
+
+          message.ipv6ResolverAgreementThreshold = reader.double();
+          continue;
+        }
+        case 17: {
+          if (tag !== 136) {
+            break;
+          }
+
+          message.ipv4ResolverMinResponses = reader.int32();
+          continue;
+        }
+        case 18: {
+          if (tag !== 144) {
+            break;
+          }
+
+          message.ipv6ResolverMinResponses = reader.int32();
           continue;
         }
         case 6: {
@@ -3279,6 +3331,26 @@ export const Configuration: MessageFns<Configuration> = {
         : globalThis.Array.isArray(object?.ipv6_resolvers)
         ? object.ipv6_resolvers.map((e: any) => globalThis.String(e))
         : [],
+      ipv4ResolverAgreementThreshold: isSet(object.ipv4ResolverAgreementThreshold)
+        ? globalThis.Number(object.ipv4ResolverAgreementThreshold)
+        : isSet(object.ipv4_resolver_agreement_threshold)
+        ? globalThis.Number(object.ipv4_resolver_agreement_threshold)
+        : 0,
+      ipv6ResolverAgreementThreshold: isSet(object.ipv6ResolverAgreementThreshold)
+        ? globalThis.Number(object.ipv6ResolverAgreementThreshold)
+        : isSet(object.ipv6_resolver_agreement_threshold)
+        ? globalThis.Number(object.ipv6_resolver_agreement_threshold)
+        : 0,
+      ipv4ResolverMinResponses: isSet(object.ipv4ResolverMinResponses)
+        ? globalThis.Number(object.ipv4ResolverMinResponses)
+        : isSet(object.ipv4_resolver_min_responses)
+        ? globalThis.Number(object.ipv4_resolver_min_responses)
+        : 0,
+      ipv6ResolverMinResponses: isSet(object.ipv6ResolverMinResponses)
+        ? globalThis.Number(object.ipv6ResolverMinResponses)
+        : isSet(object.ipv6_resolver_min_responses)
+        ? globalThis.Number(object.ipv6_resolver_min_responses)
+        : 0,
       notificationsEnabled: isSet(object.notificationsEnabled)
         ? globalThis.Boolean(object.notificationsEnabled)
         : isSet(object.notifications_enabled)
@@ -3344,6 +3416,18 @@ export const Configuration: MessageFns<Configuration> = {
     if (message.ipv6Resolvers?.length) {
       obj.ipv6Resolvers = message.ipv6Resolvers;
     }
+    if (message.ipv4ResolverAgreementThreshold !== 0) {
+      obj.ipv4ResolverAgreementThreshold = message.ipv4ResolverAgreementThreshold;
+    }
+    if (message.ipv6ResolverAgreementThreshold !== 0) {
+      obj.ipv6ResolverAgreementThreshold = message.ipv6ResolverAgreementThreshold;
+    }
+    if (message.ipv4ResolverMinResponses !== 0) {
+      obj.ipv4ResolverMinResponses = Math.round(message.ipv4ResolverMinResponses);
+    }
+    if (message.ipv6ResolverMinResponses !== 0) {
+      obj.ipv6ResolverMinResponses = Math.round(message.ipv6ResolverMinResponses);
+    }
     if (message.notificationsEnabled !== false) {
       obj.notificationsEnabled = message.notificationsEnabled;
     }
@@ -3384,6 +3468,10 @@ export const Configuration: MessageFns<Configuration> = {
     message.dnsServers = object.dnsServers?.map((e) => e) || [];
     message.ipv4Resolvers = object.ipv4Resolvers?.map((e) => e) || [];
     message.ipv6Resolvers = object.ipv6Resolvers?.map((e) => e) || [];
+    message.ipv4ResolverAgreementThreshold = object.ipv4ResolverAgreementThreshold ?? 0;
+    message.ipv6ResolverAgreementThreshold = object.ipv6ResolverAgreementThreshold ?? 0;
+    message.ipv4ResolverMinResponses = object.ipv4ResolverMinResponses ?? 0;
+    message.ipv6ResolverMinResponses = object.ipv6ResolverMinResponses ?? 0;
     message.notificationsEnabled = object.notificationsEnabled ?? false;
     message.notificationsOnSuccess = object.notificationsOnSuccess ?? false;
     message.notificationsRecipients = object.notificationsRecipients?.map((e) => e) || [];

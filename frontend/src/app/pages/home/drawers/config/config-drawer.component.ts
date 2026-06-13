@@ -38,7 +38,16 @@ const LOG_LEVELS = [
     CdkDrag,
   ],
   template: `
-    <app-drawer #drawer (closed)="drawer.close()" [width]="45" [breakpoints]="[{ maxWidth: 768, width: 100 }, { maxWidth: 1200, width: 80 }, { maxWidth: 1600, width: 60 }]">
+    <app-drawer
+      #drawer
+      (closed)="drawer.close()"
+      [width]="45"
+      [breakpoints]="[
+        { maxWidth: 768, width: 100 },
+        { maxWidth: 1200, width: 80 },
+        { maxWidth: 1600, width: 60 },
+      ]"
+    >
       <div class="drawer-header" header>
         <h3 class="drawer-title">Configuration</h3>
       </div>
@@ -94,7 +103,9 @@ const LOG_LEVELS = [
                 >
                   @for (s of form.value.dnsServers; track $index; let i = $index) {
                     <div class="list-item" cdkDrag cdkDragLockAxis="y">
-                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder"
+                        >drag_indicator</mat-icon
+                      >
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ s }}</span>
                       <button
@@ -122,7 +133,9 @@ const LOG_LEVELS = [
                   #ipv4Input
                   class="list-input"
                   placeholder="Add IPv4 resolver"
-                  (keydown.enter)="addToArray('ipv4Resolvers', ipv4Input.value); ipv4Input.value = ''"
+                  (keydown.enter)="
+                    addToArray('ipv4Resolvers', ipv4Input.value); ipv4Input.value = ''
+                  "
                 />
                 <button
                   type="button"
@@ -144,7 +157,9 @@ const LOG_LEVELS = [
                 >
                   @for (r of form.value.ipv4Resolvers; track $index; let i = $index) {
                     <div class="list-item" cdkDrag cdkDragLockAxis="y">
-                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder"
+                        >drag_indicator</mat-icon
+                      >
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ r }}</span>
                       <button
@@ -172,7 +187,9 @@ const LOG_LEVELS = [
                   #ipv6Input
                   class="list-input"
                   placeholder="Add IPv6 resolver"
-                  (keydown.enter)="addToArray('ipv6Resolvers', ipv6Input.value); ipv6Input.value = ''"
+                  (keydown.enter)="
+                    addToArray('ipv6Resolvers', ipv6Input.value); ipv6Input.value = ''
+                  "
                 />
                 <button
                   type="button"
@@ -194,7 +211,9 @@ const LOG_LEVELS = [
                 >
                   @for (r of form.value.ipv6Resolvers; track $index; let i = $index) {
                     <div class="list-item" cdkDrag cdkDragLockAxis="y">
-                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder"
+                        >drag_indicator</mat-icon
+                      >
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ r }}</span>
                       <button
@@ -211,12 +230,48 @@ const LOG_LEVELS = [
                 </div>
               }
             </div>
+            <div class="list-section">
+              <div class="list-header">
+                <label class="list-label">Resolver Settings</label>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>IPv4 Resolver Agreement Threshold</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  formControlName="ipv4ResolverAgreementThreshold"
+                />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>IPv6 Resolver Agreement Threshold</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  formControlName="ipv6ResolverAgreementThreshold"
+                />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>IPv4 Resolver Minimum Responses</mat-label>
+                <input matInput type="number" min="1" formControlName="ipv4ResolverMinResponses" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>IPv6 Resolver Minimum Responses</mat-label>
+                <input matInput type="number" min="1" formControlName="ipv6ResolverMinResponses" />
+              </mat-form-field>
+            </div>
             <div class="list-section notifications-section">
               <div class="list-header">
                 <label class="list-label">Notifications</label>
               </div>
               <div class="notifications-hint">
-                SMTP transport (host, credentials, encryption) is configured via the YAML file only and cannot be changed from here.
+                SMTP transport (host, credentials, encryption) is configured via the YAML file only
+                and cannot be changed from here.
               </div>
               <div class="toggle-row">
                 <mat-slide-toggle formControlName="notificationsEnabled">
@@ -230,15 +285,24 @@ const LOG_LEVELS = [
               </div>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Cooldown (minutes)</mat-label>
-                <input matInput type="number" min="0" formControlName="notificationsCooldownMinutes" />
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  formControlName="notificationsCooldownMinutes"
+                />
               </mat-form-field>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Subject prefix</mat-label>
                 <input matInput formControlName="notificationsSubjectPrefix" placeholder="[hdns]" />
               </mat-form-field>
               <div class="list-header">
-                <label class="list-label" style="text-transform:none;letter-spacing:0">Recipients</label>
-                <span class="list-count">{{ (form.value.notificationsRecipients ?? []).length }}</span>
+                <label class="list-label" style="text-transform:none;letter-spacing:0"
+                  >Recipients</label
+                >
+                <span class="list-count">{{
+                  (form.value.notificationsRecipients ?? []).length
+                }}</span>
               </div>
               <div class="add-row">
                 <input
@@ -268,7 +332,9 @@ const LOG_LEVELS = [
                 >
                   @for (r of form.value.notificationsRecipients; track $index; let i = $index) {
                     <div class="list-item" cdkDrag cdkDragLockAxis="y">
-                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder">drag_indicator</mat-icon>
+                      <mat-icon class="drag-handle" cdkDragHandle aria-label="Reorder"
+                        >drag_indicator</mat-icon
+                      >
                       <span class="list-index">{{ i + 1 }}</span>
                       <span class="list-value">{{ r }}</span>
                       <button
@@ -301,7 +367,12 @@ const LOG_LEVELS = [
               </div>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Account email</mat-label>
-                <input matInput type="email" formControlName="acmeEmail" placeholder="you@example.com" />
+                <input
+                  matInput
+                  type="email"
+                  formControlName="acmeEmail"
+                  placeholder="you@example.com"
+                />
                 <mat-hint>Used for the Let's Encrypt account registration.</mat-hint>
               </mat-form-field>
               <div class="toggle-row">
@@ -452,7 +523,9 @@ const LOG_LEVELS = [
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--launch-border-color);
         border-radius: 6px;
-        transition: border-color 0.15s ease, background 0.15s ease;
+        transition:
+          border-color 0.15s ease,
+          background 0.15s ease;
       }
       .list-item:hover {
         border-color: color-mix(in srgb, var(--hdns-primary) 40%, var(--launch-border-color));
@@ -538,7 +611,6 @@ const LOG_LEVELS = [
   ],
 })
 export class ConfigDrawerComponent implements OnInit {
-
   @ViewChild('drawer') drawer!: DrawerComponent;
 
   loading = signal(true);
@@ -567,6 +639,10 @@ export class ConfigDrawerComponent implements OnInit {
     acmeEmail: ['', [Validators.email]],
     acmeStaging: [true],
     acmeRenewBeforeDays: [30, [Validators.min(1)]],
+    ipv4ResolverAgreementThreshold: [0.5, [Validators.min(0), Validators.max(1)]],
+    ipv6ResolverAgreementThreshold: [0.5, [Validators.min(0), Validators.max(1)]],
+    ipv4ResolverMinResponses: [1, [Validators.min(1)]],
+    ipv6ResolverMinResponses: [1, [Validators.min(1)]],
     database: [{ value: '', disabled: true }],
   });
 
@@ -574,7 +650,10 @@ export class ConfigDrawerComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  addToArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients', value: string): void {
+  addToArray(
+    field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients',
+    value: string,
+  ): void {
     const trimmed = value.trim();
     if (!trimmed) return;
     const current: string[] = this.form.get(field)!.value ?? [];
@@ -591,7 +670,10 @@ export class ConfigDrawerComponent implements OnInit {
     this.addToArray('notificationsRecipients', trimmed);
   }
 
-  removeFromArray(field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients', index: number): void {
+  removeFromArray(
+    field: 'dnsServers' | 'ipv4Resolvers' | 'ipv6Resolvers' | 'notificationsRecipients',
+    index: number,
+  ): void {
     const current: string[] = this.form.get(field)!.value ?? [];
     this.form.get(field)!.setValue(current.filter((_, i) => i !== index));
   }
@@ -618,6 +700,10 @@ export class ConfigDrawerComponent implements OnInit {
           dnsServers: cfg.dnsServers ?? [],
           ipv4Resolvers: cfg.ipv4Resolvers ?? [],
           ipv6Resolvers: cfg.ipv6Resolvers ?? [],
+          ipv4ResolverAgreementThreshold: cfg.ipv4ResolverAgreementThreshold ?? 0.5,
+          ipv6ResolverAgreementThreshold: cfg.ipv6ResolverAgreementThreshold ?? 0.5,
+          ipv4ResolverMinResponses: cfg.ipv4ResolverMinResponses ?? 1,
+          ipv6ResolverMinResponses: cfg.ipv6ResolverMinResponses ?? 1,
           notificationsEnabled: cfg.notificationsEnabled ?? false,
           notificationsOnSuccess: cfg.notificationsOnSuccess ?? false,
           notificationsCooldownMinutes: cfg.notificationsCooldownMinutes ?? 60,
@@ -644,6 +730,10 @@ export class ConfigDrawerComponent implements OnInit {
       dnsServers: v.dnsServers ?? [],
       ipv4Resolvers: v.ipv4Resolvers ?? [],
       ipv6Resolvers: v.ipv6Resolvers ?? [],
+      ipv4ResolverAgreementThreshold: v.ipv4ResolverAgreementThreshold ?? 0.5,
+      ipv6ResolverAgreementThreshold: v.ipv6ResolverAgreementThreshold ?? 0.5,
+      ipv4ResolverMinResponses: v.ipv4ResolverMinResponses ?? 1,
+      ipv6ResolverMinResponses: v.ipv6ResolverMinResponses ?? 1,
       notificationsEnabled: v.notificationsEnabled ?? false,
       notificationsOnSuccess: v.notificationsOnSuccess ?? false,
       notificationsCooldownMinutes: v.notificationsCooldownMinutes ?? 0,

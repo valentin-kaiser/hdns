@@ -25,18 +25,22 @@ var (
 )
 
 type App struct {
-	LogLevel        int                  `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
-	WebPort         int16                `usage:"port to bind the web server to" json:"web_port"`
-	CertificatePath string               `usage:"path to the TLS certificate file" json:"certificate_file"`
-	KeyPath         string               `usage:"path to the TLS key file" json:"key_file"`
-	RefreshCron     string               `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
-	DNSServers      []string             `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
-	IPv4Resolvers   []string             `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
-	IPv6Resolvers   []string             `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
-	Database        string               `usage:"database connection DSN" json:"database"`
-	Mail            mail.ClientConfig    `usage:"SMTP transport configuration (YAML only; not exposed via the web UI)" json:"mail"`
-	Notifications   NotificationSettings `usage:"user-facing notification settings controlling when refresh reports are sent" json:"notifications"`
-	ACME            ACMESettings         `usage:"ACME / Let's Encrypt settings for DNS-01 certificate issuance" json:"acme"`
+	LogLevel                       int                  `usage:"(0 = debug, 1 = info, 2 = warn, 3 = error, 4 = fatal, 5 = panic)" json:"log_level"`
+	WebPort                        int16                `usage:"port to bind the web server to" json:"web_port"`
+	CertificatePath                string               `usage:"path to the TLS certificate file" json:"certificate_file"`
+	KeyPath                        string               `usage:"path to the TLS key file" json:"key_file"`
+	RefreshCron                    string               `usage:"cron expression to schedule data refresh tasks" json:"refresh_cron"`
+	DNSServers                     []string             `usage:"list of DNS servers to use for lookups" json:"dns_servers"`
+	IPv4Resolvers                  []string             `usage:"list of IPv4 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv4_resolvers"`
+	IPv6Resolvers                  []string             `usage:"list of IPv6 resolvers to determine public IP address (supports http(s):// and dns:// URIs)" json:"ipv6_resolvers"`
+	IPv4ResolverAgreementThreshold float64              `usage:"minimum resolver agreement ratio (0-1) for IPv4 consensus" json:"ipv4_resolver_agreement_threshold"`
+	IPv6ResolverAgreementThreshold float64              `usage:"minimum resolver agreement ratio (0-1) for IPv6 consensus" json:"ipv6_resolver_agreement_threshold"`
+	IPv4ResolverMinResponses       int                  `usage:"minimum successful IPv4 resolver responses before consensus is trusted" json:"ipv4_resolver_min_responses"`
+	IPv6ResolverMinResponses       int                  `usage:"minimum successful IPv6 resolver responses before consensus is trusted" json:"ipv6_resolver_min_responses"`
+	Database                       string               `usage:"database connection DSN" json:"database"`
+	Mail                           mail.ClientConfig    `usage:"SMTP transport configuration (YAML only; not exposed via the web UI)" json:"mail"`
+	Notifications                  NotificationSettings `usage:"user-facing notification settings controlling when refresh reports are sent" json:"notifications"`
+	ACME                           ACMESettings         `usage:"ACME / Let's Encrypt settings for DNS-01 certificate issuance" json:"acme"`
 }
 
 // ACMESettings holds the configuration for issuing and renewing Let's Encrypt
@@ -94,9 +98,6 @@ func Init() {
 			"1.1.1.1:53",
 		},
 		IPv4Resolvers: []string{
-			"dns://resolver1.opendns.com/myip.opendns.com?type=A",
-			"dns://ns1.google.com/o-o.myaddr.l.google.com?type=TXT",
-			"dns://1.1.1.1/whoami.cloudflare?type=TXT&class=CH",
 			"https://icanhazip.com/",
 			"https://ident.me/",
 			"https://api.ipy.ch",
@@ -108,7 +109,11 @@ func Init() {
 			"https://api6.ipify.org",
 			"https://ipv6.icanhazip.com",
 		},
-		Database: "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true",
+		IPv4ResolverAgreementThreshold: 0.5,
+		IPv6ResolverAgreementThreshold: 0.5,
+		IPv4ResolverMinResponses:       2,
+		IPv6ResolverMinResponses:       2,
+		Database:                       "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true",
 		Mail: mail.ClientConfig{
 			Enabled: false,
 		},
@@ -241,6 +246,22 @@ func (c *App) Validate() error {
 		return apperror.NewError("invalid refresh cron expression").AddError(err)
 	}
 
+	if c.IPv4ResolverAgreementThreshold <= 0 || c.IPv4ResolverAgreementThreshold > 1 {
+		return apperror.NewError("ipv4_resolver_agreement_threshold must be > 0 and <= 1")
+	}
+
+	if c.IPv6ResolverAgreementThreshold <= 0 || c.IPv6ResolverAgreementThreshold > 1 {
+		return apperror.NewError("ipv6_resolver_agreement_threshold must be > 0 and <= 1")
+	}
+
+	if c.IPv4ResolverMinResponses <= 0 {
+		return apperror.NewError("ipv4_resolver_min_responses must be greater than zero")
+	}
+
+	if c.IPv6ResolverMinResponses <= 0 {
+		return apperror.NewError("ipv6_resolver_min_responses must be greater than zero")
+	}
+
 	if c.Notifications.CooldownMinutes < 0 {
 		return apperror.NewError("notifications.cooldown_minutes must be >= 0")
 	}
@@ -280,20 +301,24 @@ func (c *App) Validate() error {
 
 func (c *App) ToProto() *service.Configuration {
 	return &service.Configuration{
-		LogLevel:                     int32(c.LogLevel),
-		RefreshCron:                  c.RefreshCron,
-		DnsServers:                   c.DNSServers,
-		Ipv4Resolvers:                c.IPv4Resolvers,
-		Ipv6Resolvers:                c.IPv6Resolvers,
-		NotificationsEnabled:         c.Notifications.Enabled,
-		NotificationsOnSuccess:       c.Notifications.NotifyOnSuccess,
-		NotificationsRecipients:      c.Notifications.Recipients,
-		NotificationsCooldownMinutes: int32(c.Notifications.CooldownMinutes),
-		NotificationsSubjectPrefix:   c.Notifications.SubjectPrefix,
-		AcmeEnabled:                  c.ACME.Enabled,
-		AcmeEmail:                    c.ACME.Email,
-		AcmeStaging:                  c.ACME.Staging,
-		AcmeRenewBeforeDays:          int32(c.ACME.RenewBeforeDays),
+		LogLevel:                       int32(c.LogLevel),
+		RefreshCron:                    c.RefreshCron,
+		DnsServers:                     c.DNSServers,
+		Ipv4Resolvers:                  c.IPv4Resolvers,
+		Ipv6Resolvers:                  c.IPv6Resolvers,
+		Ipv4ResolverAgreementThreshold: c.IPv4ResolverAgreementThreshold,
+		Ipv6ResolverAgreementThreshold: c.IPv6ResolverAgreementThreshold,
+		Ipv4ResolverMinResponses:       int32(c.IPv4ResolverMinResponses),
+		Ipv6ResolverMinResponses:       int32(c.IPv6ResolverMinResponses),
+		NotificationsEnabled:           c.Notifications.Enabled,
+		NotificationsOnSuccess:         c.Notifications.NotifyOnSuccess,
+		NotificationsRecipients:        c.Notifications.Recipients,
+		NotificationsCooldownMinutes:   int32(c.Notifications.CooldownMinutes),
+		NotificationsSubjectPrefix:     c.Notifications.SubjectPrefix,
+		AcmeEnabled:                    c.ACME.Enabled,
+		AcmeEmail:                      c.ACME.Email,
+		AcmeStaging:                    c.ACME.Staging,
+		AcmeRenewBeforeDays:            int32(c.ACME.RenewBeforeDays),
 	}
 }
 
@@ -306,6 +331,18 @@ func (c *App) FromProto(pc *service.Configuration) *App {
 	c.DNSServers = pc.DnsServers
 	c.IPv4Resolvers = pc.Ipv4Resolvers
 	c.IPv6Resolvers = pc.Ipv6Resolvers
+	if pc.Ipv4ResolverAgreementThreshold > 0 {
+		c.IPv4ResolverAgreementThreshold = pc.Ipv4ResolverAgreementThreshold
+	}
+	if pc.Ipv6ResolverAgreementThreshold > 0 {
+		c.IPv6ResolverAgreementThreshold = pc.Ipv6ResolverAgreementThreshold
+	}
+	if pc.Ipv4ResolverMinResponses > 0 {
+		c.IPv4ResolverMinResponses = int(pc.Ipv4ResolverMinResponses)
+	}
+	if pc.Ipv6ResolverMinResponses > 0 {
+		c.IPv6ResolverMinResponses = int(pc.Ipv6ResolverMinResponses)
+	}
 	c.Notifications.Enabled = pc.NotificationsEnabled
 	c.Notifications.NotifyOnSuccess = pc.NotificationsOnSuccess
 	c.Notifications.Recipients = pc.NotificationsRecipients

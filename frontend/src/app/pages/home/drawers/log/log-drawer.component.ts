@@ -196,6 +196,7 @@ export class LogDrawerComponent implements OnInit, OnDestroy {
   }
 
   open() {
+    this.lines.set([]);
     this.drawer.open();
 
     this.cleanupStream();

@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -66,35 +68,139 @@ func UpdateAddress(ctx context.Context) (*schema.Address, error) {
 }
 
 func resolve() (string, string, error) {
-	var ipv4 string
-	for _, r := range config.Get().IPv4Resolvers {
-		var err error
-		ipv4, err = resolveEntry(r, false)
-		if err != nil {
-			log.Warn().Err(err).Msgf("resolver %s failed", r)
-			continue
-		}
-		log.Info().Field("ipv4", ipv4).Field("resolver", r).Msg("resolved public IP")
-		break
-	}
+	c := config.Get()
 
-	var ipv6 string
-	for _, r := range config.Get().IPv6Resolvers {
-		var err error
-		ipv6, err = resolveEntry(r, true)
-		if err != nil {
-			log.Warn().Err(err).Msgf("resolver %s failed", r)
-			continue
-		}
-		log.Info().Field("ipv6", ipv6).Field("resolver", r).Msg("resolved public IPv6")
-		break
-	}
+	ipv4, err4 := resolveWithConsensus(
+		c.IPv4Resolvers,
+		false,
+		c.IPv4ResolverAgreementThreshold,
+		c.IPv4ResolverMinResponses,
+		"ipv4",
+	)
+
+	ipv6, err6 := resolveWithConsensus(
+		c.IPv6Resolvers,
+		true,
+		c.IPv6ResolverAgreementThreshold,
+		c.IPv6ResolverMinResponses,
+		"ipv6",
+	)
 
 	if ipv4 == "" && ipv6 == "" {
-		return "", "", apperror.NewError("failed to resolve public IP address using all configured resolvers")
+		err := apperror.NewError("failed to resolve public IP address using all configured resolvers")
+		if err4 != nil {
+			err = err.AddError(err4)
+		}
+		if err6 != nil {
+			err = err.AddError(err6)
+		}
+		return "", "", err
 	}
 
 	return ipv4, ipv6, nil
+}
+
+func resolveWithConsensus(resolvers []string, wantIPv6 bool, threshold float64, minResponses int, family string) (string, error) {
+	if len(resolvers) == 0 {
+		return "", apperror.NewErrorf("no %s resolvers configured", family)
+	}
+
+	counts := map[string]int{}
+	firstSeen := map[string]int{}
+	successful := 0
+
+	for _, r := range resolvers {
+		addr, err := resolveEntry(r, wantIPv6)
+		if err != nil {
+			log.Warn().Err(err).Field("family", family).Msgf("resolver %s failed", r)
+			continue
+		}
+
+		if _, ok := firstSeen[addr]; !ok {
+			firstSeen[addr] = successful
+		}
+		counts[addr]++
+		successful++
+
+		log.Debug().
+			Field("family", family).
+			Field("resolver", r).
+			Field("candidate", addr).
+			Msg("resolved candidate address")
+	}
+
+	if successful == 0 {
+		return "", apperror.NewErrorf("failed to resolve %s address using all configured resolvers", family)
+	}
+
+	selected, winnerCount := pickConsensusCandidate(counts, firstSeen)
+	agreement := float64(winnerCount) / float64(successful)
+
+	logEvt := log.Info()
+	if successful < minResponses || agreement < threshold {
+		logEvt = log.Warn()
+	}
+
+	logEvt.
+		Field("family", family).
+		Field("selected", selected).
+		Field("winner_count", winnerCount).
+		Field("successful_responses", successful).
+		Field("agreement_ratio", agreement).
+		Field("threshold", threshold).
+		Field("min_responses", minResponses).
+		Field("distribution", formatCandidateDistribution(counts)).
+		Msg("resolved public IP using resolver consensus")
+
+	if successful < minResponses || agreement < threshold {
+		log.Warn().
+			Field("family", family).
+			Field("selected", selected).
+			Field("agreement_ratio", agreement).
+			Field("threshold", threshold).
+			Field("successful_responses", successful).
+			Field("min_responses", minResponses).
+			Msg("resolver consensus below trust threshold, using best-effort candidate")
+	}
+
+	return selected, nil
+}
+
+func pickConsensusCandidate(counts map[string]int, firstSeen map[string]int) (string, int) {
+	bestAddr := ""
+	bestCount := -1
+	bestFirstSeen := 0
+
+	for addr, count := range counts {
+		if count > bestCount {
+			bestAddr = addr
+			bestCount = count
+			bestFirstSeen = firstSeen[addr]
+			continue
+		}
+
+		if count == bestCount && firstSeen[addr] < bestFirstSeen {
+			bestAddr = addr
+			bestFirstSeen = firstSeen[addr]
+		}
+	}
+
+	return bestAddr, bestCount
+}
+
+func formatCandidateDistribution(counts map[string]int) string {
+	parts := make([]string, 0, len(counts))
+	keys := make([]string, 0, len(counts))
+	for addr := range counts {
+		keys = append(keys, addr)
+	}
+	sort.Strings(keys)
+
+	for _, addr := range keys {
+		parts = append(parts, fmt.Sprintf("%s=%d", addr, counts[addr]))
+	}
+
+	return strings.Join(parts, ",")
 }
 
 func resolveEntry(entry string, wantIPv6 bool) (string, error) {

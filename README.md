@@ -50,6 +50,10 @@ docker build --target hdns-worker --tag hdns-worker .
 | `HDNS_DNS_SERVERS` | Comma-separated list of DNS servers used for propagation checks |
 | `HDNS_IPV4_RESOLVERS` | Comma-separated resolvers to detect the current public IPv4. Supports `http(s)://` and `dns://host/name?type=A` URIs |
 | `HDNS_IPV6_RESOLVERS` | Same format as `HDNS_IPV4_RESOLVERS`; default query type is `AAAA` |
+| `HDNS_IPV4_RESOLVER_AGREEMENT_THRESHOLD` | Minimum IPv4 resolver agreement ratio required for trusted consensus (`0 < value <= 1`, default: `0.75`) |
+| `HDNS_IPV6_RESOLVER_AGREEMENT_THRESHOLD` | Minimum IPv6 resolver agreement ratio required for trusted consensus (`0 < value <= 1`, default: `0.75`) |
+| `HDNS_IPV4_RESOLVER_MIN_RESPONSES` | Minimum successful IPv4 resolver responses before consensus is considered trusted (default: `2`) |
+| `HDNS_IPV6_RESOLVER_MIN_RESPONSES` | Minimum successful IPv6 resolver responses before consensus is considered trusted (default: `2`) |
 | `HDNS_DATABASE` | MariaDB connection DSN |
 | `HDNS_ACME_ENABLED` | Set to `true` to enable Let's Encrypt certificate issuance |
 | `HDNS_ACME_EMAIL` | Contact address registered with the ACME CA |
@@ -83,6 +87,10 @@ ipv6resolvers:
   - dns://resolver1.opendns.com/myip.opendns.com?type=AAAA
   - dns://[2606:4700:4700::1111]/whoami.cloudflare?type=TXT&class=CH
   - https://ipv6.icanhazip.com
+ipv4resolveragreementthreshold: 0.75
+ipv6resolveragreementthreshold: 0.75
+ipv4resolverminresponses: 2
+ipv6resolverminresponses: 2
 database: "hdns:hdns@tcp(localhost:3306)/hdns?parseTime=true"
 acme:
   enabled: false
