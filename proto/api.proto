@@ -274,6 +274,10 @@ message Configuration {
   repeated string dns_servers    = 3;
   repeated string ipv4_resolvers = 4;
   repeated string ipv6_resolvers = 5;
+  double          ipv4_resolver_agreement_threshold = 15;
+  double          ipv6_resolver_agreement_threshold = 16;
+  int32           ipv4_resolver_min_responses = 17;
+  int32           ipv6_resolver_min_responses = 18;
 
   // User-facing notification settings. SMTP transport (host, port, auth, TLS,
   // from address, ...) is intentionally NOT part of this message and is

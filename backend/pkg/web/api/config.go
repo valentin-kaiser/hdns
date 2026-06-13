@@ -16,15 +16,19 @@ func (s *Server) GetConfig(ctx context.Context, in *service.Empty) (*service.Con
 func (s *Server) UpdateConfig(ctx context.Context, in *service.Configuration) (*service.Configuration, error) {
 	current := config.Get()
 	c := &config.App{
-		LogLevel:        current.LogLevel,
-		WebPort:         current.WebPort,
-		CertificatePath: current.CertificatePath,
-		KeyPath:         current.KeyPath,
-		RefreshCron:     current.RefreshCron,
-		DNSServers:      current.DNSServers,
-		IPv4Resolvers:   current.IPv4Resolvers,
-		IPv6Resolvers:   current.IPv6Resolvers,
-		Database:        current.Database,
+		LogLevel:                       current.LogLevel,
+		WebPort:                        current.WebPort,
+		CertificatePath:                current.CertificatePath,
+		KeyPath:                        current.KeyPath,
+		RefreshCron:                    current.RefreshCron,
+		DNSServers:                     current.DNSServers,
+		IPv4Resolvers:                  current.IPv4Resolvers,
+		IPv6Resolvers:                  current.IPv6Resolvers,
+		IPv4ResolverAgreementThreshold: current.IPv4ResolverAgreementThreshold,
+		IPv6ResolverAgreementThreshold: current.IPv6ResolverAgreementThreshold,
+		IPv4ResolverMinResponses:       current.IPv4ResolverMinResponses,
+		IPv6ResolverMinResponses:       current.IPv6ResolverMinResponses,
+		Database:                       current.Database,
 		// SMTP transport fields are not part of the proto and remain
 		// unchanged on UpdateConfig; FromProto only overwrites the
 		// Notifications subsection. ACME is seeded with the current values
