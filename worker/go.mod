@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/kardianos/service v1.2.4
-	github.com/valentin-kaiser/go-core v1.10.2
+	github.com/valentin-kaiser/go-core v1.10.3
 )
 
 require (
