@@ -5,13 +5,13 @@ go 1.26
 require (
 	github.com/go-acme/lego/v5 v5.2.2
 	github.com/gorilla/websocket v1.5.3
-	github.com/hetznercloud/hcloud-go/v2 v2.43.0
+	github.com/hetznercloud/hcloud-go/v2 v2.44.0
 	github.com/miekg/dns v1.1.72
 	github.com/robfig/cron v1.2.0
 	github.com/rubenv/sql-migrate v1.8.1
-	github.com/valentin-kaiser/go-core v1.10.2
+	github.com/valentin-kaiser/go-core v1.10.3
 	google.golang.org/protobuf v1.36.11
-	software.sslmate.com/src/go-pkcs12 v0.7.2
+	software.sslmate.com/src/go-pkcs12 v0.7.3
 )
 
 require (
@@ -33,13 +33,13 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
-	github.com/mattn/go-sqlite3 v1.14.45 // indirect
+	github.com/mattn/go-sqlite3 v1.14.46 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
-	github.com/rabbitmq/amqp091-go v1.11.0 // indirect
+	github.com/rabbitmq/amqp091-go v1.12.0 // indirect
 	github.com/redis/go-redis/v9 v9.20.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
