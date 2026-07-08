@@ -41,14 +41,14 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^22.0.1",
-    "@angular/cli": "^22.0.1",
-    "@angular/compiler-cli": "^22.0.1",
-    "@tailwindcss/postcss": "^4.3.1",
+    "@angular/build": "^22.0.5",
+    "@angular/cli": "^22.0.5",
+    "@angular/compiler-cli": "^22.0.6",
+    "@tailwindcss/postcss": "^4.3.2",
     "jsdom": "^29.1.1",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.16",
     "tailwindcss": "^4.1.12",
-    "typescript": "~6.0.3",
-    "vitest": "^4.1.8"
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
   }
 }
