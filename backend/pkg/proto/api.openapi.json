@@ -1,0 +1,1130 @@
+{
+  "components": {
+    "schemas": {
+      "service.Address": {
+        "properties": {
+          "createdAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ipv4": {
+            "type": "string"
+          },
+          "ipv6": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "service.AddressHistory": {
+        "properties": {
+          "addresses": {
+            "items": {
+              "$ref": "#/components/schemas/service.Address"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.Certificate": {
+        "properties": {
+          "createdAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domains": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "notAfter": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "notBefore": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "recordId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "service.CertificateArtifact": {
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "downloadUrl": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.CertificateDetails": {
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/service.CertificateArtifact"
+            },
+            "type": "array"
+          },
+          "certificate": {
+            "$ref": "#/components/schemas/service.Certificate"
+          },
+          "fetchedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "issuanceJobs": {
+            "items": {
+              "$ref": "#/components/schemas/service.CertificateIssuanceJob"
+            },
+            "type": "array"
+          },
+          "recordDomain": {
+            "type": "string"
+          },
+          "recordId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "recordName": {
+            "type": "string"
+          },
+          "taskRuns": {
+            "items": {
+              "$ref": "#/components/schemas/service.CertificateTaskRun"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.CertificateIssuanceJob": {
+        "properties": {
+          "certificateId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "durationMs": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.CertificateList": {
+        "properties": {
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/service.Certificate"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.CertificateTaskRun": {
+        "properties": {
+          "certificateJobId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "durationMs": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "responseStatus": {
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "taskId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "taskName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.Configuration": {
+        "properties": {
+          "acmeEmail": {
+            "type": "string"
+          },
+          "acmeEnabled": {
+            "type": "boolean"
+          },
+          "acmeRenewBeforeDays": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "acmeStaging": {
+            "type": "boolean"
+          },
+          "dnsServers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ipv4ResolverAgreementThreshold": {
+            "format": "double",
+            "type": "number"
+          },
+          "ipv4ResolverMinResponses": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ipv4Resolvers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ipv6ResolverAgreementThreshold": {
+            "format": "double",
+            "type": "number"
+          },
+          "ipv6ResolverMinResponses": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ipv6Resolvers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "logLevel": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "notificationsCooldownMinutes": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "notificationsEnabled": {
+            "type": "boolean"
+          },
+          "notificationsOnSuccess": {
+            "type": "boolean"
+          },
+          "notificationsRecipients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "notificationsSubjectPrefix": {
+            "type": "string"
+          },
+          "refreshCron": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.Empty": {
+        "properties": {},
+        "type": "object"
+      },
+      "service.Record": {
+        "properties": {
+          "acmeEmail": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/service.Address"
+          },
+          "addressId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "certificate": {
+            "$ref": "#/components/schemas/service.Certificate"
+          },
+          "createdAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "includeWildcard": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "type": "integer"
+          },
+          "token": {
+            "type": "string"
+          },
+          "ttl": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "updatedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "zoneId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "service.RecordDelete": {
+        "properties": {
+          "deleteFromHetzner": {
+            "type": "boolean"
+          },
+          "record": {
+            "$ref": "#/components/schemas/service.Record"
+          }
+        },
+        "type": "object"
+      },
+      "service.RecordList": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/service.Record"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.Request": {
+        "properties": {
+          "search": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.Resolution": {
+        "properties": {
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "string"
+          },
+          "responseTime": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "server": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.ResolutionResult": {
+        "properties": {
+          "resolutions": {
+            "items": {
+              "$ref": "#/components/schemas/service.Resolution"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.Task": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "certificateFormat": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "headers": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "includeCertificate": {
+            "type": "boolean"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "lastRun": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "lastStatus": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "recordId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "triggerOn": {
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "type": "integer"
+          },
+          "updatedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.TaskDelete": {
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "service.TaskList": {
+        "properties": {
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/service.Task"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "service.TaskResult": {
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "service.Zone": {
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "recordCount": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "service.ZoneList": {
+        "properties": {
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/service.Zone"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "service",
+    "version": "0.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/HDNS/DeleteRecord": {
+      "post": {
+        "operationId": "service.HDNS.DeleteRecord",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.RecordDelete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Empty"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/DeleteTask": {
+      "post": {
+        "operationId": "service.HDNS.DeleteTask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.TaskDelete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Empty"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/FetchHetznerRecord": {
+      "post": {
+        "operationId": "service.HDNS.FetchHetznerRecord",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Address"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetAddress": {
+      "post": {
+        "operationId": "service.HDNS.GetAddress",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Address"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetAddressHistory": {
+      "post": {
+        "operationId": "service.HDNS.GetAddressHistory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.AddressHistory"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetCertificateDetails": {
+      "post": {
+        "operationId": "service.HDNS.GetCertificateDetails",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.CertificateDetails"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetCertificates": {
+      "post": {
+        "operationId": "service.HDNS.GetCertificates",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.CertificateList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetConfig": {
+      "post": {
+        "operationId": "service.HDNS.GetConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Configuration"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetRecords": {
+      "post": {
+        "operationId": "service.HDNS.GetRecords",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.RecordList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetTasks": {
+      "post": {
+        "operationId": "service.HDNS.GetTasks",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.TaskList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/GetZones": {
+      "post": {
+        "operationId": "service.HDNS.GetZones",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.ZoneList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/IssueCertificate": {
+      "post": {
+        "operationId": "service.HDNS.IssueCertificate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Certificate"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/RefreshAddress": {
+      "post": {
+        "operationId": "service.HDNS.RefreshAddress",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Address"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/RefreshRecord": {
+      "post": {
+        "operationId": "service.HDNS.RefreshRecord",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Record"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/ResolveRecord": {
+      "post": {
+        "operationId": "service.HDNS.ResolveRecord",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.ResolutionResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/RunTask": {
+      "post": {
+        "operationId": "service.HDNS.RunTask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Task"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.TaskResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/UpdateConfig": {
+      "post": {
+        "operationId": "service.HDNS.UpdateConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Configuration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Configuration"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/UpsertRecord": {
+      "post": {
+        "operationId": "service.HDNS.UpsertRecord",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Record"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Record"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/HDNS/UpsertTask": {
+      "post": {
+        "operationId": "service.HDNS.UpsertTask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/service.Task"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.Task"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error"
+          }
+        }
+      }
+    }
+  }
+}
